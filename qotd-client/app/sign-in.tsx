@@ -1,7 +1,7 @@
-import { api } from '@/app/utils/api';
+import { api } from '@/utils/api';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function SignIn() {
   return (
@@ -20,7 +20,7 @@ export default function SignIn() {
                 AppleAuthentication.AppleAuthenticationScope.EMAIL,
               ],
             });
-            
+
             await api.post('/session', { identityToken });
             router.replace('/');
           } catch (e) {

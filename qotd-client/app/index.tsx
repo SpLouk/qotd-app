@@ -1,6 +1,6 @@
-import { api } from '@/app/utils/api';
+import { api } from '@/utils/api';
 import { Redirect } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function AppIndex() {
   // If no token, redirect to sign-in
