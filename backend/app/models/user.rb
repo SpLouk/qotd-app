@@ -5,11 +5,19 @@ require "jwt"
 
 class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
+  has_many :follows_as_follower, class_name: "follow", foreign_key: :follower_id
+  has_many :follows_as_followed, class_name: "follow", foreign_key: :followed_id
+
+  # get all users this user is actively following
+  has_many :following, -> { active }, through: :follows_as_follower, source: :followed
+
+  # get all users actively following this user
+  has_many :followers, -> { active }, through: :follows_as_followed, source: :follower
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
   def needs_registration
-    # username.nil?
+    username.nil?
   end
 
   def self.find_or_create_by_token(token)

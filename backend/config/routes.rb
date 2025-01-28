@@ -1,4 +1,13 @@
 Rails.application.routes.draw do
+  resources :users do
+    resource :follow, only: [ :create, :destroy ] do
+      put :approve, on: :collection
+    end
+  end
+
+  # Get lists of followers/following for the current user
+  get "follows", to: "follows#index"
+
   resource :session
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
