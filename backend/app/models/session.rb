@@ -1,5 +1,6 @@
 class Session < ApplicationRecord
   belongs_to :user
+  before_create :generate_token
 
   def regenerate_token!
     generate_token
