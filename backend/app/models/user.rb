@@ -29,8 +29,8 @@ class User < ApplicationRecord
 
       User.transaction do
         user = User.find_or_create_by(user_id: uid)
-        # Limit active sessions per user
-        user.sessions.active.order(created_at: :desc).offset(5).destroy_all
+        # Limit sessions per user
+        user.sessions.order(created_at: :desc).offset(5).destroy_all
         user
       end
     rescue JWT::ExpiredSignature

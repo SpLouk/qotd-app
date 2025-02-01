@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trigger_at: 2025-01-28 12:33:35
+  content: MyText
+
+two:
+  trigger_at: 2025-01-28 12:33:35
+  content: MyText

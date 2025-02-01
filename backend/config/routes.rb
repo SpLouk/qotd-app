@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :prompt_questions
   resources :users do
     resource :follow, only: [ :create, :destroy ] do
       put :approve, on: :collection
