@@ -21,8 +21,12 @@ export default function SignIn() {
               ],
             });
 
-            await api.post('/session', { identityToken });
-            router.replace('/');
+            const user = await api.post('/session', { identityToken });
+            if (user.needs_registration) {
+              router.replace('/sign-up');
+            } else {
+              router.replace('/');
+            }
           } catch (e) {
             if ((e as any)?.code === 'ERR_REQUEST_CANCELED') {
               // handle that the user canceled the sign-in flow

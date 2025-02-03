@@ -27,7 +27,7 @@ async function request(endpoint: string, options: RequestOptions = {}) {
   });
 
   // Update token if present in response
-  const newToken = response.headers.get('x-auth-token');
+  const newToken = response.headers.get('Authorization')?.split(' ')[1];
   if (newToken) {
     currentToken = newToken;
   }
@@ -48,8 +48,7 @@ async function request(endpoint: string, options: RequestOptions = {}) {
 
 // Convenience methods for common HTTP methods
 export const api = {
-  get: (endpoint: string, options: RequestOptions = {}) => 
-    request(endpoint, { ...options, method: 'GET' }),
+  get: (endpoint: string, options: RequestOptions = {}) => request(endpoint, { ...options, method: 'GET' }),
 
   post: (endpoint: string, body: any, options: RequestOptions = {}) =>
     request(endpoint, { ...options, method: 'POST', body }),
@@ -57,8 +56,7 @@ export const api = {
   put: (endpoint: string, body: any, options: RequestOptions = {}) =>
     request(endpoint, { ...options, method: 'PUT', body }),
 
-  delete: (endpoint: string, options: RequestOptions = {}) =>
-    request(endpoint, { ...options, method: 'DELETE' }),
+  delete: (endpoint: string, options: RequestOptions = {}) => request(endpoint, { ...options, method: 'DELETE' }),
 
   // Get current token
   getToken: () => currentToken,
@@ -71,5 +69,5 @@ export const api = {
   // Clear token (e.g. for logout)
   clearToken: () => {
     currentToken = null;
-  }
+  },
 };
