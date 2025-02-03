@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_28_203335) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_01_224017) do
   create_table "follows", force: :cascade do |t|
     t.integer "follower_id", null: false
     t.integer "followed_id", null: false
@@ -47,6 +47,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_28_203335) do
     t.datetime "updated_at", null: false
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.index ["user_id"], name: "index_users_on_user_id", unique: true
+    t.index ["username"], name: "index_users_on_username", unique: true, where: "username IS NOT NULL"
   end
 
   add_foreign_key "follows", "users", column: "followed_id"

@@ -15,6 +15,9 @@ class User < ApplicationRecord
   has_many :followers, -> { active }, through: :follows_as_followed, source: :follower
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
+  normalizes :username, with: ->(u) { u&.strip&.downcase }
+
+  validates :username, uniqueness: { case_sensitive: false }, allow_nil: true
 
   def needs_registration
     username.nil?
@@ -42,6 +45,10 @@ class User < ApplicationRecord
     rescue JWT::DecodeError
       raise "Invalid token"
     end
+  end
+
+  def as_json
+    slice(:username, :needs_registration)
   end
 
   private

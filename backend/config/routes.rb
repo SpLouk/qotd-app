@@ -1,10 +1,15 @@
 Rails.application.routes.draw do
   resources :prompt_questions
+
+  # Routes for other users
   resources :users do
     resource :follow, only: [ :create, :destroy ] do
       put :approve, on: :collection
     end
   end
+
+  # Routes for the current user
+  resource :user, only: [ :show, :update ]
 
   # Get lists of followers/following for the current user
   get "follows", to: "follows#index"

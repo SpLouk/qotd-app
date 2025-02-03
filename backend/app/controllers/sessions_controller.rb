@@ -6,7 +6,7 @@ class SessionsController < ApplicationController
     if user = User.find_or_create_by_token(params[:identityToken])
       session = user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip)
       response.set_header("Authorization", "Bearer #{session.token}")
-      render json: user.slice(:username, :needs_registration), status: :created
+      render json: user, status: :created
     else
       render json: { error: "Invalid credentials" }, status: :unauthorized
     end
