@@ -15,6 +15,12 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
+  # Set default URL options for Active Storage
+  Rails.application.routes.default_url_options = {
+    host: "localhost",
+    port: 3000
+  }
+
   # Enable/disable Action Controller caching. By default Action Controller caching is disabled.
   # Run rails dev:cache to toggle Action Controller caching.
   if Rails.root.join("tmp/caching-dev.txt").exist?

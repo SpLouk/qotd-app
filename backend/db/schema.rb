@@ -10,7 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_01_224017) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_03_004001) do
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
   create_table "follows", force: :cascade do |t|
     t.integer "follower_id", null: false
     t.integer "followed_id", null: false
@@ -19,6 +47,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_01_224017) do
     t.datetime "updated_at", null: false
     t.index ["followed_id"], name: "index_follows_on_followed_id"
     t.index ["follower_id"], name: "index_follows_on_follower_id"
+  end
+
+  create_table "posts", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "prompt_question_id"
+    t.integer "parent_post_id"
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["parent_post_id"], name: "index_posts_on_parent_post_id"
+    t.index ["prompt_question_id"], name: "index_posts_on_prompt_question_id"
+    t.index ["user_id"], name: "index_posts_on_user_id"
   end
 
   create_table "prompt_questions", force: :cascade do |t|
@@ -50,7 +90,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_01_224017) do
     t.index ["username"], name: "index_users_on_username", unique: true, where: "username IS NOT NULL"
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "follows", "users", column: "followed_id"
   add_foreign_key "follows", "users", column: "follower_id"
+  add_foreign_key "posts", "posts", column: "parent_post_id"
+  add_foreign_key "posts", "prompt_questions"
+  add_foreign_key "posts", "users"
   add_foreign_key "sessions", "users"
 end

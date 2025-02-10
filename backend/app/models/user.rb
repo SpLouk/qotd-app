@@ -4,6 +4,8 @@ require "base64"
 require "jwt"
 
 class User < ApplicationRecord
+  has_one_attached :profile_photo
+
   has_many :sessions, dependent: :destroy
   has_many :follows_as_follower, class_name: "follow", foreign_key: :follower_id
   has_many :follows_as_followed, class_name: "follow", foreign_key: :followed_id
@@ -18,9 +20,16 @@ class User < ApplicationRecord
   normalizes :username, with: ->(u) { u&.strip&.downcase }
 
   validates :username, uniqueness: { case_sensitive: false }, allow_nil: true
+  validates :profile_photo, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 5.megabytes }
 
   def needs_registration
-    username.nil?
+    username.nil? || profile_photo.nil?
+  end
+
+  def as_json
+    attrs = slice(:username, :needs_registration)
+    attrs[:profile_photo_url] = profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(profile_photo) : nil
+    attrs
   end
 
   def self.find_or_create_by_token(token)
@@ -47,8 +56,8 @@ class User < ApplicationRecord
     end
   end
 
-  def as_json
-    slice(:username, :needs_registration)
+  def self.search_by_username(query)
+    User.where("username LIKE ?", "%#{query}%")
   end
 
   private
@@ -82,7 +91,7 @@ class User < ApplicationRecord
         verify_iss: true,
         iss: "https://appleid.apple.com",
         verify_aud: true,
-        aud: Rails.application.credentials.apple.client_id,
+        aud: Rails.application.credentials.dig(:apple, :client_id),
         verify_exp: true
       }
     ).first
