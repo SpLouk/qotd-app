@@ -21,7 +21,7 @@ module Authentication
       Current.session = Session.find_by(token: token)
     end
     def refresh_session
-      if Current.session
+      if Current.session && Current.session.token_is_stale?
         Current.session.regenerate_token!
         response.set_header("Authorization", "Bearer #{Current.session.token}")
       end

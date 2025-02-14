@@ -17,7 +17,7 @@ Rails.application.configure do
 
   # Set default URL options for Active Storage
   Rails.application.routes.default_url_options = {
-    host: "localhost",
+    host: "192.168.2.21",
     port: 3000
   }
 

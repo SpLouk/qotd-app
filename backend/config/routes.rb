@@ -6,6 +6,11 @@ Rails.application.routes.draw do
     resource :follow, only: [ :create, :destroy ] do
       put :approve, on: :collection
     end
+    get :search, on: :collection
+  end
+
+  resource :prompt_question, only: [] do
+    get :active, on: :collection
   end
 
   # Routes for the current user

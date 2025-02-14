@@ -1,5 +1,5 @@
 class PromptQuestion < ApplicationRecord
-  belongs_to :created_by, class_name: "User"
+  belongs_to :created_by, class_name: "User", optional: true
   has_many :responses, dependent: :destroy
   has_many :posts, dependent: :destroy
 
@@ -13,6 +13,12 @@ class PromptQuestion < ApplicationRecord
     where("trigger_at > ?", Time.current)
       .order(:trigger_at)
   }
+
+  scope :active, -> { where(active: true) }
+
+  def self.active_prompt
+    active.first
+  end
 
   private
 

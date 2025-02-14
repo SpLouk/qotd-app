@@ -1,0 +1,5 @@
+class AddTokenRefreshedAtToSessions < ActiveRecord::Migration[8.0]
+  def change
+    add_column :sessions, :token_refreshed_at, :datetime
+  end
+end

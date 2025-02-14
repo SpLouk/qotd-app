@@ -13,6 +13,12 @@ class UsersController < ApplicationController
     end
   end
 
+  # GET /users/search?q=query
+  def search
+    users = User.search_by_username(params[:q])
+    render json: users
+  end
+
   private
 
   def user_params

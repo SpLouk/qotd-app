@@ -57,7 +57,11 @@ class User < ApplicationRecord
   end
 
   def self.search_by_username(query)
-    User.where("username LIKE ?", "%#{query}%")
+    return none if query.blank?
+
+    sanitized_query = query.strip.downcase
+    where("LOWER(username) LIKE ?", "%#{sanitized_query}%")
+      .limit(20)
   end
 
   private
