@@ -1,19 +1,43 @@
-// Simple token storage in memory
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Token storage key
+const TOKEN_KEY = '@qotd_token';
+
+// Token cache in memory
 let currentToken: string | null = null;
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 type RequestOptions = {
-  method?: string;
-  body?: any;
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  body?: BodyInit;
   headers?: Record<string, string>;
 };
 
+// Initialize token from storage
+async function initializeToken() {
+  try {
+    const storedToken = await AsyncStorage.getItem(TOKEN_KEY);
+    if (storedToken) {
+      currentToken = storedToken;
+    }
+  } catch (error) {
+    console.error('Failed to load token from storage:', error);
+  }
+}
+
+// Call initialize when the module loads
+initializeToken();
+
 async function request(endpoint: string, options: RequestOptions = {}) {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...options.headers,
   };
+  let body = options.body;
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(options.body);
+  }
 
   // Add token if we have one
   if (currentToken) {
@@ -23,13 +47,18 @@ async function request(endpoint: string, options: RequestOptions = {}) {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: options.method || 'GET',
     headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body,
   });
 
   // Update token if present in response
   const newToken = response.headers.get('Authorization')?.split(' ')[1];
   if (newToken) {
     currentToken = newToken;
+    try {
+      await AsyncStorage.setItem(TOKEN_KEY, newToken);
+    } catch (error) {
+      console.error('Failed to save token to storage:', error);
+    }
   }
 
   // Handle non-2xx responses
@@ -48,26 +77,48 @@ async function request(endpoint: string, options: RequestOptions = {}) {
 
 // Convenience methods for common HTTP methods
 export const api = {
-  get: (endpoint: string, options: RequestOptions = {}) => request(endpoint, { ...options, method: 'GET' }),
+  async get(endpoint: string, options: RequestOptions = {}) {
+    return request(endpoint, { ...options, method: 'GET' });
+  },
 
-  post: (endpoint: string, body: any, options: RequestOptions = {}) =>
-    request(endpoint, { ...options, method: 'POST', body }),
+  async post(endpoint: string, body: any, options: RequestOptions = {}) {
+    return request(endpoint, { ...options, method: 'POST', body });
+  },
 
-  put: (endpoint: string, body: any, options: RequestOptions = {}) =>
-    request(endpoint, { ...options, method: 'PUT', body }),
+  async put(endpoint: string, body: any, options: RequestOptions = {}) {
+    return request(endpoint, { ...options, method: 'PUT', body });
+  },
 
-  delete: (endpoint: string, options: RequestOptions = {}) => request(endpoint, { ...options, method: 'DELETE' }),
+  async patch(endpoint: string, body: any, options: RequestOptions = {}) {
+    return request(endpoint, { ...options, method: 'PATCH', body });
+  },
+
+  async delete(endpoint: string, options: RequestOptions = {}) {
+    return request(endpoint, { ...options, method: 'DELETE' });
+  },
 
   // Get current token
-  getToken: () => currentToken,
+  getToken() {
+    return currentToken;
+  },
 
   // Set token manually (e.g. after login)
-  setToken: (token: string) => {
+  async setToken(token: string) {
     currentToken = token;
+    try {
+      await AsyncStorage.setItem(TOKEN_KEY, token);
+    } catch (error) {
+      console.error('Failed to save token to storage:', error);
+    }
   },
 
   // Clear token (e.g. for logout)
-  clearToken: () => {
+  async clearToken() {
     currentToken = null;
-  },
+    try {
+      await AsyncStorage.removeItem(TOKEN_KEY);
+    } catch (error) {
+      console.error('Failed to remove token from storage:', error);
+    }
+  }
 };
