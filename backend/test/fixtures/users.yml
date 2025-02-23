@@ -1,5 +1,11 @@
 one:
   email_address: one@example.com
+  username: davidl
 
 two:
   email_address: two@example.com
+  username: splouk
+
+three:
+  email_address: three@example.com
+  username: foobar

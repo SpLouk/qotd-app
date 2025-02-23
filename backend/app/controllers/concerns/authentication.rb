@@ -29,7 +29,4 @@ module Authentication
     def render_unauthorized
       render json: { error: "Unauthorized" }, status: :unauthorized
     end
-    def authenticated?
-      resume_session
-    end
 end

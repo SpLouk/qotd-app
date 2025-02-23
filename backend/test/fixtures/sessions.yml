@@ -1,0 +1,4 @@
+one:
+  user: one
+  token: <%= SecureRandom.hex(32) %>
+  token_refreshed_at: <%= Time.current %>

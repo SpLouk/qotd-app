@@ -7,3 +7,13 @@ one:
 two:
   follower: two
   followed: two
+
+one_follows_two:
+  follower: one
+  followed: two
+  approved: true
+
+one_follows_three_unapproved:
+  follower: one
+  followed: three
+  approved: false

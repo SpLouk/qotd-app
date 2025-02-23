@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   resources :prompt_questions
+  resources :posts, only: [ :create, :destroy, :index ]
 
   # Routes for other users
   resources :users do

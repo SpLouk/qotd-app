@@ -1,47 +1,59 @@
+import { fetchPosts } from '@/api/posts';
+import { fetchCurrentUser } from '@/api/user';
 import { PromptCard } from '@/components/PromptCard';
+import { Feed } from '@/components/Feed'; // Assuming Feed component is defined in this file
 import { api } from '@/utils/api';
+import { useQuery } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-type User = {
-  username: string;
-  profile_photo_url: string;
-};
+import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AppIndex() {
-  const [user, setUser] = useState<User | null>(null);
+  const { data: user, isLoading: isLoadingUser } = useQuery({
+    queryKey: ['user'],
+    queryFn: fetchCurrentUser,
+  });
+  const { data: posts, isLoading: isLoadingPosts } = useQuery({
+    queryKey: ['posts'],
+    queryFn: fetchPosts,
+  });
 
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const response = await api.get('/user');
-        setUser(response);
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-      }
-    }
-    fetchUser();
-  }, []);
+  const ownPost = posts?.find((p) => p.username === user?.username);
 
-  // If no token, redirect to sign-in
   if (!api.getToken()) {
     return <Redirect href="/sign-in" />;
   }
+
   return (
     <View style={styles.container}>
-      {user && (
-        <View style={styles.profileContainer}>
-          <View style={styles.userInfo}>
-            <Image source={{ uri: user.profile_photo_url, width: 40, height: 40 }} style={styles.profilePhoto} />
-            <Text style={styles.username}>{user.username}</Text>
+      <View style={styles.profileContainer}>
+        {isLoadingUser ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator color="#007AFF" />
           </View>
-          <TouchableOpacity style={styles.findFriendsButton} onPress={() => router.push('/search')}>
-            <Text style={styles.findFriendsText}>Find Friends</Text>
-          </TouchableOpacity>
+        ) : (
+          user && (
+            <>
+              <View style={styles.userInfo}>
+                <Image source={{ uri: user.profile_photo_url, width: 40, height: 40 }} style={styles.profilePhoto} />
+                <Text style={styles.username}>{user.username}</Text>
+              </View>
+              <TouchableOpacity style={styles.findFriendsButton} onPress={() => router.push('/search')}>
+                <Text style={styles.findFriendsText}>Find Friends</Text>
+              </TouchableOpacity>
+            </>
+          )
+        )}
+      </View>
+
+      {isLoadingPosts ? (
+        <View style={styles.contentLoadingContainer}>
+          <ActivityIndicator color="#007AFF" size="large" />
         </View>
+      ) : ownPost ? (
+        <Feed />
+      ) : (
+        <PromptCard />
       )}
-      <PromptCard />
     </View>
   );
 }
@@ -49,15 +61,28 @@ export default function AppIndex() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
   },
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
+    padding: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    minHeight: 72,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contentLoadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
   },
   userInfo: {
     flexDirection: 'row',

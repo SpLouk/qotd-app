@@ -1,6 +1,5 @@
 class PromptQuestion < ApplicationRecord
   belongs_to :created_by, class_name: "User", optional: true
-  has_many :responses, dependent: :destroy
   has_many :posts, dependent: :destroy
 
   validates :content, presence: true

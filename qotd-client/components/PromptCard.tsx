@@ -1,50 +1,45 @@
-import { api } from '@/utils/api';
+import { fetchActivePromptQuestion } from '@/api/posts';
+import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-type Prompt = {
-  content: string;
-  id: string;
-};
-
 export function PromptCard() {
-  const [prompt, setPrompt] = useState<Prompt | null>(null);
-
-  useEffect(() => {
-    async function fetchPrompt() {
-      try {
-        const response = await api.get('/prompt_question/active');
-        setPrompt(response);
-      } catch (error) {
-        console.error('Failed to fetch prompt:', error);
-      }
-    }
-    fetchPrompt();
-  }, []);
+  const { data: prompt, isLoading } = useQuery({
+    queryKey: ['promptQuestion'],
+    queryFn: fetchActivePromptQuestion,
+  });
 
   function handleWriteResponse() {
     if (!prompt) return;
-    
+
     router.push({
       pathname: '/write',
       params: {
         promptId: prompt.id,
         promptContent: prompt.content,
-      }
+      },
     });
+  }
+
+  if (isLoading) {
+    return (
+      <View style={styles.content}>
+        <View style={styles.noteCard}>
+          <View style={styles.promptHeader}>
+            <Text style={styles.promptText}>Loading...</Text>
+          </View>
+        </View>
+      </View>
+    );
   }
 
   return (
     <View style={styles.content}>
       <View style={styles.noteCard}>
         <View style={styles.promptHeader}>
-          <Text style={styles.promptText}>{prompt?.content ?? 'loading'}</Text>
+          <Text style={styles.promptText}>{prompt?.content}</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.responseButton}
-          onPress={handleWriteResponse}
-        >
+        <TouchableOpacity style={styles.responseButton} onPress={handleWriteResponse}>
           <Text style={styles.responseButtonText}>Write your response</Text>
         </TouchableOpacity>
       </View>

@@ -1,0 +1,19 @@
+followed_user_active_post:
+  user: two
+  prompt_question: active
+  content: "Ruby is my favorite!"
+
+followed_user_inactive_post:
+  user: two
+  prompt_question: inactive
+  content: "Pizza is my favorite!"
+
+not_followed_user_post:
+  user: three
+  prompt_question: active
+  content: "Python is my favorite!"
+
+current_user_active_post:
+  user: one
+  prompt_question: active
+  content: "JavaScript is my favorite!"

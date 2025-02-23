@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View, Text } from 'react-native';
+import { createPost } from '@/api/posts';
+import { CreatePostRequest } from '@/types/api';
 import { router, useLocalSearchParams } from 'expo-router';
-import { api } from '@/utils/api';
+import { useState } from 'react';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function WriteResponse() {
   const { promptId, promptContent, initialResponse } = useLocalSearchParams<{
@@ -10,28 +12,25 @@ export default function WriteResponse() {
     initialResponse: string;
   }>();
   const [response, setResponse] = useState(initialResponse || '');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
-  async function handleSubmit() {
+  const { mutate: submitPost, isPending } = useMutation({
+    mutationFn: createPost,
+    onSuccess: () => {
+      router.push('/feed');
+    },
+  });
+
+  function handleSubmit() {
+    Keyboard.dismiss();
     if (!response.trim()) {
       return;
     }
-
-    setIsSubmitting(true);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      await api.post('/api/responses', {
-        promptId,
-        content: response.trim(),
-      });
-      
-      router.back();
-    } catch (err) {
-      console.error('Failed to submit response:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    
+    const payload: CreatePostRequest = {
+      post: { prompt_question_id: promptId, content: response.trim() },
+    };
+    submitPost(payload);
   }
 
   return (
@@ -40,13 +39,15 @@ export default function WriteResponse() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
           <Text style={styles.headerButtonText}>Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={handleSubmit}
-          disabled={isSubmitting || !response.trim()}
-          style={[styles.headerButton, (!response.trim() || isSubmitting) && styles.headerButtonDisabled]}
+          disabled={isPending || !response.trim()}
+          style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
         >
-          <Text style={[styles.headerButtonText, (!response.trim() || isSubmitting) && styles.headerButtonTextDisabled]}>
-            {isSubmitting ? 'Submitting...' : 'Done'}
+          <Text
+            style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}
+          >
+            {isPending ? 'Submitting...' : 'Done'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -56,11 +57,12 @@ export default function WriteResponse() {
       <TextInput
         style={styles.input}
         multiline
-        placeholder="Write your response here..."
+        placeholder="Start writing..."
         value={response}
         onChangeText={setResponse}
         autoFocus
         textAlignVertical="top"
+        editable={!isPending}
       />
     </View>
   );
@@ -95,20 +97,21 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   promptContainer: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   promptText: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#333',
-    lineHeight: 32,
+    color: '#000',
   },
   input: {
     flex: 1,
-    padding: 20,
-    fontSize: 16,
+    paddingHorizontal: 20,
+    paddingTop: 0,
+    fontSize: 17,
     lineHeight: 24,
+    color: '#000',
   },
 });

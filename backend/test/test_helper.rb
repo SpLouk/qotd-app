@@ -11,5 +11,14 @@ module ActiveSupport
     fixtures :all
 
     # Add more helper methods to be used by all tests here...
+    def sign_in_as(user)
+      session = Session.create!(user: user)
+      @headers ||= {}
+      @headers["Authorization"] = "Bearer #{session.token}"
+    end
+
+    def auth_headers
+      @headers || {}
+    end
   end
 end

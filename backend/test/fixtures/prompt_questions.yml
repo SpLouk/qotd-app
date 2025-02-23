@@ -7,3 +7,13 @@ one:
 two:
   trigger_at: 2025-01-28 12:33:35
   content: MyText
+
+active:
+  trigger_at: <%= 1.day.ago %>
+  content: "What's your favorite programming language?"
+  active: true
+
+inactive:
+  trigger_at: <%= 2.days.ago %>
+  content: "What's your favorite food?"
+  active: false

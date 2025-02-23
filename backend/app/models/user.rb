@@ -7,14 +7,16 @@ class User < ApplicationRecord
   has_one_attached :profile_photo
 
   has_many :sessions, dependent: :destroy
-  has_many :follows_as_follower, class_name: "follow", foreign_key: :follower_id
-  has_many :follows_as_followed, class_name: "follow", foreign_key: :followed_id
+  has_many :follows_as_follower, class_name: "Follow", foreign_key: :follower_id
+  has_many :follows_as_followed, class_name: "Follow", foreign_key: :followed_id
+
+  has_many :posts
 
   # get all users this user is actively following
-  has_many :following, -> { active }, through: :follows_as_follower, source: :followed
+  has_many :following, -> { where(follows: { approved: true }) }, through: :follows_as_follower, source: :followed
 
   # get all users actively following this user
-  has_many :followers, -> { active }, through: :follows_as_followed, source: :follower
+  has_many :followers, -> { where(follows: { approved: true }) }, through: :follows_as_followed, source: :follower
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
   normalizes :username, with: ->(u) { u&.strip&.downcase }
