@@ -14,6 +14,7 @@ export default function WriteResponse() {
   const [response, setResponse] = useState(initialResponse || '');
 
   const { mutate: submitPost, isPending } = useMutation({
+    mutationKey: ['posts'],
     mutationFn: createPost,
     onSuccess: () => {
       router.push('/');

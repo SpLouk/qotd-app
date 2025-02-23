@@ -69,59 +69,55 @@ export const Post: React.FC<PostProps> = ({ post }) => {
       </View>
       <Text style={styles.responseText}>{post.content}</Text>
 
-      <View style={styles.commentSection}>
-        {!isCommenting ? (
-          <TouchableOpacity style={styles.addCommentButton} onPress={() => setIsCommenting(true)}>
-            <Text style={styles.addCommentButtonText}>Add a comment</Text>
-          </TouchableOpacity>
+      <View style={styles.commentsContainer}>
+        {isLoadingComments ? (
+          <ActivityIndicator style={styles.loadingIndicator} />
+        ) : comments.length > 0 ? (
+          comments.map(renderComment)
         ) : (
-          <View style={styles.commentForm}>
-            <TextInput
-              style={styles.commentInput}
-              value={comment}
-              onChangeText={setComment}
-              placeholder="Write a comment..."
-              multiline
-              editable={!addCommentMutation.isPending}
-            />
-            <View style={styles.commentActions}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => {
-                  setIsCommenting(false);
-                  setComment('');
-                }}
-                disabled={addCommentMutation.isPending}
-              >
-                <Text style={[styles.cancelButtonText, addCommentMutation.isPending && styles.disabledText]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.submitButton, addCommentMutation.isPending && styles.disabledButton]}
-                onPress={handleAddComment}
-                disabled={addCommentMutation.isPending}
-              >
-                {addCommentMutation.isPending ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
+          <Text style={styles.noCommentsText}>No comments yet</Text>
         )}
-
-        <View style={styles.commentsContainer}>
-          {isLoadingComments ? (
-            <ActivityIndicator style={styles.loadingIndicator} />
-          ) : comments.length > 0 ? (
-            comments.map(renderComment)
-          ) : (
-            <Text style={styles.noCommentsText}>No comments yet</Text>
-          )}
-        </View>
       </View>
+
+      {!isCommenting ? (
+        <TouchableOpacity style={styles.addCommentButton} onPress={() => setIsCommenting(true)}>
+          <Text style={styles.addCommentButtonText}>Add a comment</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.commentForm}>
+          <TextInput
+            style={styles.commentInput}
+            value={comment}
+            onChangeText={setComment}
+            placeholder="Write a comment..."
+            multiline
+            editable={!addCommentMutation.isPending}
+          />
+          <View style={styles.commentActions}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => {
+                setIsCommenting(false);
+                setComment('');
+              }}
+              disabled={addCommentMutation.isPending}
+            >
+              <Text style={[styles.cancelButtonText, addCommentMutation.isPending && styles.disabledText]}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.submitButton, addCommentMutation.isPending && styles.disabledButton]}
+              onPress={handleAddComment}
+              disabled={addCommentMutation.isPending}
+            >
+              {addCommentMutation.isPending ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.submitButtonText}>Submit</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -142,7 +138,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   userInfo: {
     flexDirection: 'row',
@@ -168,14 +164,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: '#333',
   },
-  commentSection: {
-    marginTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    paddingTop: 16,
-  },
   addCommentButton: {
     padding: 8,
+    marginTop: 8,
   },
   addCommentButtonText: {
     color: '#007AFF',
@@ -183,6 +174,7 @@ const styles = StyleSheet.create({
   },
   commentForm: {
     gap: 12,
+    marginTop: 8,
   },
   commentInput: {
     borderWidth: 1,
@@ -222,19 +214,19 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   commentsContainer: {
-    marginTop: 16,
+    marginBottom: 8,
   },
   comment: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#ddd',
   },
   commentHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   commentProfilePhoto: {
     width: 24,
@@ -257,10 +249,10 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   loadingIndicator: {
-    marginTop: 12,
+    marginVertical: 16,
   },
   noCommentsText: {
-    marginTop: 12,
+    marginVertical: 16,
     fontSize: 14,
     color: '#666',
     fontStyle: 'italic',

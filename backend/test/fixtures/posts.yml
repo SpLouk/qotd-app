@@ -5,7 +5,7 @@ followed_user_active_post:
 
 followed_user_inactive_post:
   user: two
-  prompt_question: inactive
+  prompt_question: past
   content: "Pizza is my favorite!"
 
 not_followed_user_post:
