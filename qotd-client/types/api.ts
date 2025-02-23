@@ -21,7 +21,8 @@ export interface Post {
 
 export interface CreatePostRequest {
   post: {
-    prompt_question_id: string;
+    prompt_question_id: number;
+    parent_post_id?: number;
     content: string;
   };
 }

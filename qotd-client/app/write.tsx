@@ -12,12 +12,11 @@ export default function WriteResponse() {
     initialResponse: string;
   }>();
   const [response, setResponse] = useState(initialResponse || '');
-  const queryClient = useQueryClient();
 
   const { mutate: submitPost, isPending } = useMutation({
     mutationFn: createPost,
     onSuccess: () => {
-      router.push('/feed');
+      router.push('/');
     },
   });
 
@@ -26,9 +25,9 @@ export default function WriteResponse() {
     if (!response.trim()) {
       return;
     }
-    
+
     const payload: CreatePostRequest = {
-      post: { prompt_question_id: promptId, content: response.trim() },
+      post: { prompt_question_id: parseInt(promptId), content: response.trim() },
     };
     submitPost(payload);
   }
@@ -44,9 +43,7 @@ export default function WriteResponse() {
           disabled={isPending || !response.trim()}
           style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
         >
-          <Text
-            style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}
-          >
+          <Text style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}>
             {isPending ? 'Submitting...' : 'Done'}
           </Text>
         </TouchableOpacity>

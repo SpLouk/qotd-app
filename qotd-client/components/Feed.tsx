@@ -6,7 +6,7 @@ import { Post as PostComponent } from './Post';
 
 export function Feed() {
   const {
-    data: posts,
+    data: allPosts = [],
     isLoading,
     refetch,
     isRefetching,
@@ -14,6 +14,8 @@ export function Feed() {
     queryKey: ['posts'],
     queryFn: fetchPosts,
   });
+
+  const posts = allPosts.filter((p) => !p.parent_post_id);
 
   const { data: activePrompt } = useQuery({
     queryKey: ['promptQuestion'],
