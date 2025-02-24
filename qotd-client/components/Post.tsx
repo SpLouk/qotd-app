@@ -1,9 +1,22 @@
-import { createPost, fetchPosts } from '@/api/posts';
+import { createPost, deletePost, fetchPosts } from '@/api/posts';
+import { fetchCurrentUser } from '@/api/user';
 import { Post as PostType } from '@/types/api';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { FontAwesome } from '@expo/vector-icons';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { 
+  ActivityIndicator, 
+  Alert, 
+  Image, 
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  View 
+} from 'react-native';
 
 interface PostProps {
   post: PostType;
@@ -12,6 +25,12 @@ interface PostProps {
 export const Post: React.FC<PostProps> = ({ post }) => {
   const [comment, setComment] = useState('');
   const [isCommenting, setIsCommenting] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['user'],
+    queryFn: fetchCurrentUser,
+  });
 
   const { data: posts = [], isLoading: isLoadingComments } = useQuery({
     queryKey: ['posts'],
@@ -24,11 +43,23 @@ export const Post: React.FC<PostProps> = ({ post }) => {
     mutationKey: ['posts'],
     mutationFn: createPost,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
       setComment('');
       setIsCommenting(false);
     },
     onError: (error) => {
       console.error('Failed to add comment:', error);
+    },
+  });
+
+  const deletePostMutation = useMutation({
+    mutationKey: ['posts'],
+    mutationFn: deletePost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
+    onError: (error) => {
+      console.error('Failed to delete post:', error);
     },
   });
 
@@ -43,6 +74,22 @@ export const Post: React.FC<PostProps> = ({ post }) => {
     });
   };
 
+  const handleDelete = (postToDelete: PostType) => {
+    Alert.alert('Delete Post', 'Are you sure you want to delete this post?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => deletePostMutation.mutate(postToDelete.id),
+      },
+    ]);
+  };
+
+  const isOwner = (item: PostType) => currentUser?.username === item.username;
+
   const renderComment = (comment: PostType) => (
     <View key={comment.id} style={styles.comment}>
       <View style={styles.commentHeader}>
@@ -52,79 +99,113 @@ export const Post: React.FC<PostProps> = ({ post }) => {
           ) : null}
           <Text style={styles.commentUserName}>{comment.username ?? 'Anonymous'}</Text>
         </View>
-        <Text style={styles.commentDate}>{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</Text>
+        <View style={styles.commentActions}>
+          <Text style={styles.commentDate}>
+            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+          </Text>
+          {isOwner(comment) && (
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDelete(comment)}
+              disabled={deletePostMutation.isPending}
+            >
+              <FontAwesome name="trash-o" size={16} color="#FF3B30" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       <Text style={styles.commentText}>{comment.content}</Text>
     </View>
   );
 
   return (
-    <View style={styles.postContainer}>
-      <View style={styles.postHeader}>
-        <View style={styles.userInfo}>
-          {post.user_photo_url ? <Image source={{ uri: post.user_photo_url }} style={styles.profilePhoto} /> : null}
-          <Text style={styles.userName}>{post.username ?? 'Anonymous'}</Text>
-        </View>
-        <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
-      </View>
-      <Text style={styles.responseText}>{post.content}</Text>
-
-      <View style={styles.commentsContainer}>
-        {isLoadingComments ? (
-          <ActivityIndicator style={styles.loadingIndicator} />
-        ) : comments.length > 0 ? (
-          comments.map(renderComment)
-        ) : (
-          <Text style={styles.noCommentsText}>No comments yet</Text>
-        )}
-      </View>
-
-      {!isCommenting ? (
-        <TouchableOpacity style={styles.addCommentButton} onPress={() => setIsCommenting(true)}>
-          <Text style={styles.addCommentButtonText}>Add a comment</Text>
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.commentForm}>
-          <TextInput
-            style={styles.commentInput}
-            value={comment}
-            onChangeText={setComment}
-            placeholder="Write a comment..."
-            multiline
-            editable={!addCommentMutation.isPending}
-          />
-          <View style={styles.commentActions}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => {
-                setIsCommenting(false);
-                setComment('');
-              }}
-              disabled={addCommentMutation.isPending}
-            >
-              <Text style={[styles.cancelButtonText, addCommentMutation.isPending && styles.disabledText]}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.submitButton, addCommentMutation.isPending && styles.disabledButton]}
-              onPress={handleAddComment}
-              disabled={addCommentMutation.isPending}
-            >
-              {addCommentMutation.isPending ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={styles.submitButtonText}>Submit</Text>
-              )}
-            </TouchableOpacity>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={100}
+      style={styles.postContainer}
+    >
+      <View style={styles.postContent}>
+        <View style={styles.postHeader}>
+          <View style={styles.userInfo}>
+            {post.user_photo_url ? <Image source={{ uri: post.user_photo_url }} style={styles.profilePhoto} /> : null}
+            <Text style={styles.userName}>{post.username ?? 'Anonymous'}</Text>
+          </View>
+          <View style={styles.headerActions}>
+            <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
+            {isOwner(post) && (
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDelete(post)}
+                disabled={deletePostMutation.isPending}
+              >
+                <FontAwesome name="trash-o" size={16} color="#FF3B30" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
-      )}
-    </View>
+        <Text style={styles.responseText}>{post.content}</Text>
+
+        <View style={styles.commentsContainer}>
+          {isLoadingComments ? (
+            <ActivityIndicator style={styles.loadingIndicator} />
+          ) : comments.length > 0 ? (
+            comments.map(renderComment)
+          ) : (
+            <Text style={styles.noCommentsText}>No comments yet</Text>
+          )}
+        </View>
+
+        {!isCommenting ? (
+          <TouchableOpacity style={styles.addCommentButton} onPress={() => setIsCommenting(true)}>
+            <FontAwesome name="comment-o" size={20} color="#000" />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.commentForm}>
+            <TextInput
+              style={styles.commentInput}
+              value={comment}
+              onChangeText={setComment}
+              placeholder="Write a comment..."
+              placeholderTextColor="#ddd"
+              multiline
+              editable={!addCommentMutation.isPending}
+            />
+            <View style={styles.commentActions}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setIsCommenting(false);
+                  setComment('');
+                }}
+                disabled={addCommentMutation.isPending}
+              >
+                <Text style={[styles.cancelButtonText, addCommentMutation.isPending && styles.disabledText]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.submitButton, addCommentMutation.isPending && styles.disabledButton]}
+                onPress={handleAddComment}
+                disabled={addCommentMutation.isPending}
+              >
+                {addCommentMutation.isPending ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Submit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   postContainer: {
     marginBottom: 24,
+    flex: 1,
+  },
+  postContent: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
@@ -144,6 +225,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   profilePhoto: {
     width: 32,
     height: 32,
@@ -159,6 +245,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  deleteButton: {
+    padding: 4,
+  },
   responseText: {
     fontSize: 16,
     lineHeight: 24,
@@ -167,10 +256,6 @@ const styles = StyleSheet.create({
   addCommentButton: {
     padding: 8,
     marginTop: 8,
-  },
-  addCommentButtonText: {
-    color: '#007AFF',
-    fontSize: 14,
   },
   commentForm: {
     gap: 12,
@@ -188,6 +273,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 12,
+    alignItems: 'center',
   },
   cancelButton: {
     padding: 8,

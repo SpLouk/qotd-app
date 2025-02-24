@@ -1,20 +1,30 @@
-import { fetchPosts } from '@/api/posts';
+import { fetchActivePromptQuestion, fetchPosts } from '@/api/posts';
 import { fetchCurrentUser } from '@/api/user';
+import { Feed } from '@/components/Feed';
 import { PromptCard } from '@/components/PromptCard';
-import { Feed } from '@/components/Feed'; // Assuming Feed component is defined in this file
 import { api } from '@/utils/api';
+import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
-import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AppIndex() {
+  const [menuVisible, setMenuVisible] = useState(false);
+
   const { data: user, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user'],
     queryFn: fetchCurrentUser,
   });
-  const { data: posts, isLoading: isLoadingPosts } = useQuery({
+
+  const { data: posts = [] } = useQuery({
     queryKey: ['posts'],
     queryFn: fetchPosts,
+  });
+
+  const { data: activePrompt } = useQuery({
+    queryKey: ['promptQuestion'],
+    queryFn: fetchActivePromptQuestion,
   });
 
   const ownPost = posts?.find((p) => p.username === user?.username);
@@ -23,37 +33,58 @@ export default function AppIndex() {
     return <Redirect href="/sign-in" />;
   }
 
+  const handleMenuItemPress = (route: '/search') => {
+    setMenuVisible(false);
+    router.push(route);
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.profileContainer}>
-        {isLoadingUser ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator color="#007AFF" />
-          </View>
-        ) : (
-          user && (
-            <>
-              <View style={styles.userInfo}>
-                <Image source={{ uri: user.profile_photo_url, width: 40, height: 40 }} style={styles.profilePhoto} />
-                <Text style={styles.username}>{user.username}</Text>
+      <View style={styles.header}>
+        {activePrompt && (
+          <View style={styles.headerContent}>
+            <View style={styles.promptContainer}>
+              <Text style={styles.promptLabel}>Today's Question</Text>
+              <Text style={styles.promptText} numberOfLines={2}>
+                {activePrompt.content}
+              </Text>
+            </View>
+            {isLoadingUser ? (
+              <View style={styles.profileButton}>
+                <ActivityIndicator color="#007AFF" size="small" />
               </View>
-              <TouchableOpacity style={styles.findFriendsButton} onPress={() => router.push('/search')}>
-                <Text style={styles.findFriendsText}>Find Friends</Text>
-              </TouchableOpacity>
-            </>
-          )
+            ) : (
+              user && (
+                <TouchableOpacity 
+                  style={styles.profileButton}
+                  onPress={() => setMenuVisible(true)}
+                >
+                  <Image 
+                    source={{ uri: user.profile_photo_url }} 
+                    style={styles.profilePhoto}
+                  />
+                </TouchableOpacity>
+              )
+            )}
+          </View>
         )}
       </View>
 
-      {isLoadingPosts ? (
-        <View style={styles.contentLoadingContainer}>
-          <ActivityIndicator color="#007AFF" size="large" />
-        </View>
-      ) : ownPost ? (
+      <Modal animationType="fade" transparent={true} visible={menuVisible} onRequestClose={() => setMenuVisible(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
+          <View style={styles.menuContainer}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('/search')}>
+              <FontAwesome name="search" size={20} color="#000" style={styles.menuIcon} />
+              <Text style={styles.menuText}>Find Friends</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <View style={styles.content}>
+        {!ownPost && <PromptCard />}
         <Feed />
-      ) : (
-        <PromptCard />
-      )}
+      </View>
     </View>
   );
 }
@@ -61,128 +92,85 @@ export default function AppIndex() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f0f0f0',
   },
-  profileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  header: {
+    backgroundColor: '#fff',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#ddd',
     padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    minHeight: 72,
   },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  contentLoadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  userInfo: {
+  headerContent: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
   },
-  profilePhoto: {
-    borderRadius: 20,
+  promptContainer: {
+    flex: 1,
   },
-  username: {
+  promptLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  promptText: {
     fontSize: 18,
     fontWeight: '600',
+    color: '#000',
+    lineHeight: 24,
   },
-  findFriendsButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginTop: 10,
+  profileButton: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  findFriendsText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
+  profilePhoto: {
+    height: '100%',
+    width: '100%',
   },
   content: {
     flex: 1,
   },
-  scrollView: {
+  modalOverlay: {
     flex: 1,
-    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
   },
-  noteCard: {
-    flex: 1,
+  menuContainer: {
     backgroundColor: '#fff',
+    marginTop: 60,
+    marginHorizontal: 16,
     borderRadius: 12,
-    padding: 20,
+    padding: 8,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 5,
   },
-  promptHeader: {
-    marginBottom: 20,
-    paddingBottom: 15,
-  },
-  promptLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  promptText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#333',
-    lineHeight: 32,
-  },
-  responseSection: {
-    flex: 1,
-  },
-  responseLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  responseInput: {
-    flex: 1,
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#333',
-    textAlignVertical: 'top',
-    padding: 0,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  submitButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+  menuItem: {
+    flexDirection: 'row',
     alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
   },
-  submitButtonDisabled: {
-    opacity: 0.6,
+  menuIcon: {
+    marginRight: 12,
   },
-  submitButtonText: {
-    color: '#fff',
+  menuText: {
     fontSize: 16,
-    fontWeight: '600',
+    color: '#000',
   },
 });

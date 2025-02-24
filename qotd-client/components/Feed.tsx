@@ -1,4 +1,4 @@
-import { fetchActivePromptQuestion, fetchPosts } from '@/api/posts';
+import { fetchPosts } from '@/api/posts';
 import { Post } from '@/types/api';
 import { useQuery } from '@tanstack/react-query';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
@@ -17,11 +17,6 @@ export function Feed() {
 
   const posts = allPosts.filter((p) => !p.parent_post_id);
 
-  const { data: activePrompt } = useQuery({
-    queryKey: ['promptQuestion'],
-    queryFn: fetchActivePromptQuestion,
-  });
-
   if (isLoading) {
     return (
       <View style={styles.centered}>
@@ -36,9 +31,6 @@ export function Feed() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{activePrompt?.content}</Text>
-      </View>
       <FlatList
         data={posts}
         renderItem={renderItem}
@@ -60,17 +52,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#fff',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-  },
   listContent: {
     padding: 16,
   },
@@ -78,6 +59,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   emptyText: {
     fontSize: 16,

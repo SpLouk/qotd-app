@@ -7,5 +7,7 @@ export const fetchActivePromptQuestion = (): Promise<PromptQuestion> => api.get(
 
 export const createPost = (data: CreatePostRequest): Promise<Post> => api.post('/posts', data);
 
+export const deletePost = (postId: number): Promise<void> => api.delete(`/posts/${postId}`);
+
 export const createComment = (postId: number, data: CreatePostRequest): Promise<Post> => 
   api.post(`/posts/${postId}/comments`, data);
