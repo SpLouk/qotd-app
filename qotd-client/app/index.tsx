@@ -33,7 +33,7 @@ export default function AppIndex() {
     return <Redirect href="/sign-in" />;
   }
 
-  const handleMenuItemPress = (route: '/search') => {
+  const handleMenuItemPress = (route: '/search' | '/profile') => {
     setMenuVisible(false);
     router.push(route);
   };
@@ -73,6 +73,10 @@ export default function AppIndex() {
       <Modal animationType="fade" transparent={true} visible={menuVisible} onRequestClose={() => setMenuVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
           <View style={styles.menuContainer}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('/profile')}>
+              <FontAwesome name="user" size={20} color="#000" style={styles.menuIcon} />
+              <Text style={styles.menuText}>Profile</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('/search')}>
               <FontAwesome name="search" size={20} color="#000" style={styles.menuIcon} />
               <Text style={styles.menuText}>Find Friends</Text>

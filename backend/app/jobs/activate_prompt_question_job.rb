@@ -1,16 +1,17 @@
 class ActivatePromptQuestionJob < ApplicationJob
   queue_as :default
 
-  def perform(prompt)
+  def perform
+    # Find the most voted prompt that's available for activation
+    prompt = PromptQuestion.most_voted
+    
+    # If no available prompt, do nothing
     return unless prompt
-    return if prompt.trigger_at > Time.current
-
-    ActiveRecord::Base.transaction do
-      # Deactivate currently active prompt
-      PromptQuestion.active.update_all(active: false)
-
-      # Activate this prompt
-      prompt.update!(active: true)
-    end
+    
+    # Activate the prompt
+    prompt.activate!
+    
+    # Schedule the next activation
+    SchedulePromptActivationJob.perform_later
   end
 end

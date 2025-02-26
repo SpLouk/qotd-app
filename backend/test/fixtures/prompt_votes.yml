@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+user_one_vote:
+  user: one
+  prompt_question: inactive
+
+user_two_vote:
+  user: two
+  prompt_question: inactive
+
+user_three_vote:
+  user: three
+  prompt_question: inactive_with_votes

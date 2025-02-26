@@ -1,35 +1,38 @@
 require "test_helper"
 
 class ActivatePromptQuestionJobTest < ActiveJob::TestCase
-  test "activates a prompt and deactivates currently active prompts" do
-    # Create an active prompt
+  test "activates the highest-voted prompt and deactivates currently active prompt" do
+    # Setup - active_prompt is currently active
     active_prompt = prompt_questions(:active)
+    assert active_prompt.active?
 
-    # Create a new prompt ready to be activated
-    new_prompt = prompt_questions(:future)
-    new_prompt.update!(trigger_at: 1.hour.ago)
+    # Highest voted prompt is inactive with 2 votes
+    highest_voted = prompt_questions(:inactive)
+    assert_equal 2, highest_voted.prompt_votes_count
+    assert_not highest_voted.active?
 
     # Run the job
-    ActivatePromptQuestionJob.perform_now(new_prompt)
+    assert_enqueued_with(job: SchedulePromptActivationJob) do
+      ActivatePromptQuestionJob.perform_now
+    end
 
     # Verify the old prompt is deactivated
-    assert_not active_prompt.reload.active
-    # Verify the new prompt is activated
-    assert new_prompt.reload.active
+    assert_not active_prompt.reload.active?
+    assert active_prompt.deactivated_at.present?
+
+    # Verify the highest voted prompt is activated
+    assert highest_voted.reload.active?
+    assert highest_voted.activated_at.present?
   end
 
-  test "does not activate a prompt if trigger time is in the future" do
-    future_prompt = prompt_questions(:active)
-    future_prompt.update!(trigger_at: 1.hour.from_now, active: false)
+  test "does nothing if no prompts are available for activation" do
+    # Setup - make all prompts unavailable
+    PromptQuestion.update_all(activated_at: Time.current)
 
-    ActivatePromptQuestionJob.perform_now(future_prompt)
+    # Run the job
+    ActivatePromptQuestionJob.perform_now
 
-    assert_not future_prompt.reload.active
-  end
-
-  test "handles nil prompt gracefully" do
-    assert_nothing_raised do
-      ActivatePromptQuestionJob.perform_now(nil)
-    end
+    # Active prompt should still be active
+    assert prompt_questions(:active).reload.active?
   end
 end

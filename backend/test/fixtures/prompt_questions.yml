@@ -1,16 +1,25 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 active:
-  trigger_at: <%= 2.days.ago %>
   content: "This is the currently active prompt"
   active: true
+  activated_at: <%= 1.day.ago %>
+  created_by: one
 
-past:
-  trigger_at: 2025-01-28 12:33:35
-  content: "This is a past prompt"
+inactive:
+  content: "This is an inactive prompt with votes"
   active: false
+  prompt_votes_count: 2
+  created_by: two
 
-future:
-  trigger_at: <%= 2.days.from_now %>
-  content: "What's your favorite food?"
+inactive_with_votes:
+  content: "This is another inactive prompt with votes"
   active: false
+  prompt_votes_count: 1
+  created_by: three
+
+unused:
+  content: "This is an unused prompt"
+  active: false
+  prompt_votes_count: 0
+  created_by: one

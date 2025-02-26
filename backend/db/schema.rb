@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_14_124534) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_26_224941) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -62,13 +62,26 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_14_124534) do
   end
 
   create_table "prompt_questions", force: :cascade do |t|
-    t.datetime "trigger_at"
     t.text "content"
     t.boolean "active", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "created_by_id"
+    t.integer "prompt_votes_count", default: 0
+    t.datetime "activated_at"
+    t.datetime "deactivated_at"
     t.index ["created_by_id"], name: "index_prompt_questions_on_created_by_id"
+    t.index ["prompt_votes_count"], name: "index_prompt_questions_on_prompt_votes_count"
+  end
+
+  create_table "prompt_votes", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "prompt_question_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["prompt_question_id"], name: "index_prompt_votes_on_prompt_question_id"
+    t.index ["user_id", "prompt_question_id"], name: "index_prompt_votes_on_user_id_and_prompt_question_id", unique: true
+    t.index ["user_id"], name: "index_prompt_votes_on_user_id"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -101,5 +114,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_14_124534) do
   add_foreign_key "posts", "prompt_questions"
   add_foreign_key "posts", "users"
   add_foreign_key "prompt_questions", "users", column: "created_by_id"
+  add_foreign_key "prompt_votes", "prompt_questions"
+  add_foreign_key "prompt_votes", "users"
   add_foreign_key "sessions", "users"
 end

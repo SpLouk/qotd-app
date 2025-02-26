@@ -1,5 +1,12 @@
 Rails.application.routes.draw do
-  resources :prompt_questions
+  resources :prompt_questions, only: [:index, :create] do
+    member do
+      post :vote
+      delete :unvote
+    end
+    get :active, on: :collection
+  end
+  
   resources :posts, only: [ :create, :destroy, :index ]
 
   # Routes for other users
@@ -8,10 +15,6 @@ Rails.application.routes.draw do
       put :approve, on: :collection
     end
     get :search, on: :collection
-  end
-
-  resource :prompt_question, only: [] do
-    get :active, on: :collection
   end
 
   # Routes for the current user
