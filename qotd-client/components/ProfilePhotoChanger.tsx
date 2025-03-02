@@ -2,12 +2,15 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { View, Image, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { api } from '@/utils/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface ProfilePhotoChangerProps {
   initialPhotoUrl?: string;
   size?: number;
-  onImageSelected: (image: ImagePicker.ImagePickerAsset) => void;
+  onImageSelected?: (image: ImagePicker.ImagePickerAsset) => void;
   onError?: (error: string) => void;
+  autoUpload?: boolean;
 }
 
 export function ProfilePhotoChanger({
@@ -15,8 +18,31 @@ export function ProfilePhotoChanger({
   size = 120,
   onImageSelected,
   onError,
+  autoUpload = false,
 }: ProfilePhotoChangerProps) {
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const queryClient = useQueryClient();
+
+  const updateProfilePhotoMutation = useMutation({
+    mutationFn: async (imageAsset: ImagePicker.ImagePickerAsset) => {
+      const formData = new FormData();
+      formData.append('user[profile_photo]', {
+        uri: imageAsset.uri,
+        type: imageAsset.mimeType || 'image/jpeg',
+        name: imageAsset.fileName || 'profile-photo.jpg',
+      } as any);
+
+      return api.patch('/user', formData);
+    },
+    onSuccess: () => {
+      // Invalidate and refetch the user query to update profile photo in UI
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+    onError: (error) => {
+      onError?.('Failed to update profile photo');
+      console.error(error);
+    },
+  });
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -26,15 +52,14 @@ export function ProfilePhotoChanger({
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0]);
-      onImageSelected(result.assets[0]);
+      handleImageChange(result.assets[0]);
     }
   };
 
@@ -52,15 +77,26 @@ export function ProfilePhotoChanger({
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0]);
-      onImageSelected(result.assets[0]);
+      handleImageChange(result.assets[0]);
+    }
+  };
+
+  const handleImageChange = async (imageAsset: ImagePicker.ImagePickerAsset) => {
+    setImage(imageAsset);
+
+    if (autoUpload) {
+      updateProfilePhotoMutation.mutate(imageAsset);
+    }
+
+    if (onImageSelected) {
+      onImageSelected(imageAsset);
     }
   };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={pickImage} style={[styles.photoContainer, { width: size, height: size }]}>
-        {(image?.uri || initialPhotoUrl) ? (
+        {image?.uri || initialPhotoUrl ? (
           <Image
             source={{ uri: image?.uri || initialPhotoUrl }}
             style={[styles.photo, { width: size, height: size }]}
@@ -74,7 +110,7 @@ export function ProfilePhotoChanger({
           <FontAwesome name="camera" size={size / 4} color="#fff" />
         </View>
       </TouchableOpacity>
-      
+
       <View style={styles.buttonContainer}>
         <TouchableOpacity onPress={pickImage} style={styles.button}>
           <FontAwesome name="image" size={16} color="#007AFF" style={styles.buttonIcon} />

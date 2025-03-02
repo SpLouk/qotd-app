@@ -3,7 +3,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,48 +12,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
 
 export default function SignUp() {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      setError('Permission to access gallery was denied');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0]);
-    }
-  };
-
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      setError('Permission to access camera was denied');
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-      mediaTypes: ['images'],
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0]);
-    }
+  const handleImageSelected = (selectedImage: ImagePicker.ImagePickerAsset) => {
+    setImage(selectedImage);
   };
 
   const handleSubmit = async () => {
@@ -99,25 +65,11 @@ export default function SignUp() {
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Create Your Profile</Text>
 
-        <TouchableOpacity style={styles.photoContainer} onPress={pickImage}>
-          {image ? (
-            <Image source={{ uri: image.uri }} style={styles.photo} />
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoPlaceholderText}>Add Photo</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
-        <View style={styles.photoButtons}>
-          <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
-            <Text style={styles.photoButtonText}>Choose from Library</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.photoButton} onPress={takePhoto}>
-            <Text style={styles.photoButtonText}>Take Photo</Text>
-          </TouchableOpacity>
-        </View>
+        <ProfilePhotoChanger
+          onImageSelected={handleImageSelected}
+          onError={setError}
+          size={120}
+        />
 
         <TextInput
           style={styles.input}
@@ -158,47 +110,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 30,
     textAlign: 'center',
-  },
-  photoContainer: {
-    width: 120,
-    height: 120,
-    marginBottom: 20,
-  },
-  photo: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-  photoPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderStyle: 'dashed',
-  },
-  photoPlaceholderText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  photoButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 10,
-    marginBottom: 20,
-  },
-  photoButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-  },
-  photoButtonText: {
-    color: '#007AFF',
-    fontSize: 14,
   },
   input: {
     width: '100%',

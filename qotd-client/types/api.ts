@@ -6,6 +6,15 @@ export interface User {
 export interface PromptQuestion {
   id: string;
   content: string;
+  prompt_votes_count?: number;
+  user_voted?: boolean;
+  created_by_username?: string;
+}
+
+export interface CreatePromptQuestionRequest {
+  prompt_question: {
+    content: string;
+  };
 }
 
 export interface Post {

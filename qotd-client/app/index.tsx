@@ -1,12 +1,11 @@
 import { fetchActivePromptQuestion, fetchPosts } from '@/api/posts';
 import { fetchCurrentUser } from '@/api/user';
 import { Feed } from '@/components/Feed';
-import { PromptCard } from '@/components/PromptCard';
 import { api } from '@/utils/api';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AppIndex() {
@@ -17,7 +16,7 @@ export default function AppIndex() {
     queryFn: fetchCurrentUser,
   });
 
-  const { data: posts = [] } = useQuery({
+  const { data: posts = [], isFetching: isFetchingPosts } = useQuery({
     queryKey: ['posts'],
     queryFn: fetchPosts,
   });
@@ -27,9 +26,23 @@ export default function AppIndex() {
     queryFn: fetchActivePromptQuestion,
   });
 
+  // Find if the user has a post for the current active prompt
   const ownPost = posts?.find((p) => p.username === user?.username);
 
-  if (!api.getToken()) {
+  // Handle redirecting to write page with useEffect instead of during render
+  useEffect(() => {
+    if (user && activePrompt && !isFetchingPosts && !ownPost) {
+      router.replace({
+        pathname: '/write',
+        params: {
+          promptId: activePrompt.id,
+          promptContent: activePrompt.content,
+        },
+      });
+    }
+  }, [user, activePrompt, isFetchingPosts, ownPost]);
+
+  if (!api.getToken() || (!isLoadingUser && !user)) {
     return <Redirect href="/sign-in" />;
   }
 
@@ -55,14 +68,8 @@ export default function AppIndex() {
               </View>
             ) : (
               user && (
-                <TouchableOpacity 
-                  style={styles.profileButton}
-                  onPress={() => setMenuVisible(true)}
-                >
-                  <Image 
-                    source={{ uri: user.profile_photo_url }} 
-                    style={styles.profilePhoto}
-                  />
+                <TouchableOpacity style={styles.profileButton} onPress={() => setMenuVisible(true)}>
+                  <Image source={{ uri: user.profile_photo_url }} style={styles.profilePhoto} />
                 </TouchableOpacity>
               )
             )}
@@ -86,8 +93,13 @@ export default function AppIndex() {
       </Modal>
 
       <View style={styles.content}>
-        {!ownPost && <PromptCard />}
-        <Feed />
+        {isFetchingPosts ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator color="#007AFF" size="large" />
+          </View>
+        ) : (
+          <Feed />
+        )}
       </View>
     </View>
   );
@@ -146,6 +158,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   modalOverlay: {
     flex: 1,

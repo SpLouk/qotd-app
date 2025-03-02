@@ -1,5 +1,4 @@
 class PromptQuestionsController < ApplicationController
-  before_action :authenticate_user!, except: [ :active ]
   before_action :set_prompt_question, only: [ :vote, :unvote ]
 
   def index

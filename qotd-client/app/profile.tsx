@@ -1,52 +1,24 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
-import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
-import * as ImagePicker from 'expo-image-picker';
-import { api } from '@/utils/api';
-import { useState } from 'react';
 import { fetchCurrentUser } from '@/api/user';
+import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function ProfileScreen() {
-  const { data: user, isLoading: isLoadingUser } = useQuery({
+  const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: fetchCurrentUser,
   });
-  const router = useRouter();
   const [error, setError] = useState('');
 
   if (!user) {
     return null;
   }
 
-  const handleImageSelected = async (image: ImagePicker.ImagePickerAsset) => {
-    try {
-      const formData = new FormData();
-      formData.append('photo', {
-        uri: image.uri,
-        type: 'image/jpeg',
-        name: 'profile-photo.jpg',
-      } as any);
-
-      await api.patch('/users/me/photo', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    } catch (err) {
-      setError('Failed to update profile photo');
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.profileSection}>
-        <ProfilePhotoChanger
-          initialPhotoUrl={user.profile_photo_url}
-          onImageSelected={handleImageSelected}
-          onError={setError}
-        />
+        <ProfilePhotoChanger initialPhotoUrl={user.profile_photo_url} onError={setError} autoUpload />
         <Text style={styles.name}>{user.username}</Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>

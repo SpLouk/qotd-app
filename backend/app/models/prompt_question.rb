@@ -8,10 +8,9 @@ class PromptQuestion < ApplicationRecord
   validate :only_one_active_prompt
 
   scope :active, -> { where(active: true) }
-  scope :available_for_activation, -> { 
+  scope :available_for_activation, -> {
     where(active: false)
       .where(activated_at: nil)
-      .or(where("deactivated_at < ?", 7.days.ago)) # Can reuse prompts after 7 days
       .order(prompt_votes_count: :desc)
   }
 
@@ -29,32 +28,32 @@ class PromptQuestion < ApplicationRecord
       currently_active = PromptQuestion.active.first
       if currently_active
         currently_active.update!(
-          active: false, 
+          active: false,
           deactivated_at: Time.current
         )
       end
 
       # Activate this prompt and record activation time
       update!(
-        active: true, 
+        active: true,
         activated_at: Time.current
       )
     end
   end
-  
+
   def user_voted?(user)
     return false unless user
     prompt_votes.exists?(user_id: user.id)
   end
-  
+
   def as_json(options = {})
     json = super(options)
-    
+
     if options[:include_votes]
       json[:votes_count] = prompt_votes_count
       json[:user_voted] = user_voted?(options[:current_user])
     end
-    
+
     json
   end
 

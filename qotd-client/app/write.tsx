@@ -1,8 +1,17 @@
 import { createPost } from '@/api/posts';
 import { CreatePostRequest } from '@/types/api';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
+import { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function WriteResponse() {
@@ -12,40 +21,66 @@ export default function WriteResponse() {
     initialResponse: string;
   }>();
   const [response, setResponse] = useState(initialResponse || '');
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const queryClient = useQueryClient();
 
+  // Set up keyboard listeners
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    // Clean up listeners
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
+  // Submit the post
   const { mutate: submitPost, isPending } = useMutation({
     mutationKey: ['posts'],
     mutationFn: createPost,
-    onSuccess: () => {
-      router.push('/');
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      router.replace({
+        pathname: '/prompts',
+        params: { postId: data.id.toString() },
+      });
     },
   });
 
-  function handleSubmit() {
-    Keyboard.dismiss();
-    if (!response.trim()) {
-      return;
-    }
+  function handleDoneOrSubmit() {
+    if (isKeyboardVisible) {
+      // If keyboard is visible, just hide it
+      Keyboard.dismiss();
+    } else {
+      // If keyboard is already hidden, submit the post
+      if (!response.trim()) {
+        return;
+      }
 
-    const payload: CreatePostRequest = {
-      post: { prompt_question_id: parseInt(promptId), content: response.trim() },
-    };
-    submitPost(payload);
+      const payload: CreatePostRequest = {
+        post: { prompt_question_id: parseInt(promptId), content: response.trim() },
+      };
+      submitPost(payload);
+    }
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
-          <Text style={styles.headerButtonText}>Back</Text>
-        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
         <TouchableOpacity
-          onPress={handleSubmit}
+          onPress={handleDoneOrSubmit}
           disabled={isPending || !response.trim()}
           style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
         >
           <Text style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}>
-            {isPending ? 'Submitting...' : 'Done'}
+            {isPending ? 'Submitting...' : isKeyboardVisible ? 'Done' : 'Submit'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -62,7 +97,7 @@ export default function WriteResponse() {
         textAlignVertical="top"
         editable={!isPending}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -73,11 +108,14 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  headerSpacer: {
+    flex: 1,
   },
   headerButton: {
     paddingVertical: 8,
@@ -113,3 +151,4 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 });
+

@@ -14,6 +14,7 @@
 - Lint: `cd backend && bin/rubocop`
 - Security scan: `cd backend && bin/brakeman`
 
+
 ## Code Style Guidelines
 
 ### Frontend
@@ -25,6 +26,7 @@
 
 ### Backend
 - Follow Rails Omakase style (rubocop-rails-omakase)
+- no whitespace on empty lines
 - Model validations before callbacks, public methods before private
 - RESTful controllers with proper error status codes
 - Thorough fixtures and tests for all functionality
