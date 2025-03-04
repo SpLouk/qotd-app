@@ -1,6 +1,8 @@
 export interface User {
   username: string;
   profile_photo_url: string;
+  voted_today: boolean;
+  created_prompt_today: boolean;
 }
 
 export interface PromptQuestion {

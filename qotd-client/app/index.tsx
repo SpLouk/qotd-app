@@ -1,15 +1,18 @@
 import { fetchActivePromptQuestion, fetchPosts } from '@/api/posts';
 import { fetchCurrentUser } from '@/api/user';
 import { Feed } from '@/components/Feed';
+import PromptDrawer from '@/components/PromptDrawer';
 import { api } from '@/utils/api';
 import { FontAwesome } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AppIndex() {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: user, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user'],
@@ -29,6 +32,9 @@ export default function AppIndex() {
   // Find if the user has a post for the current active prompt
   const ownPost = posts?.find((p) => p.username === user?.username);
 
+  // Check if user has already voted on a prompt (start as true to keep drawer closed initially)
+  const [hasVotedOrCreatedPrompt, setOpenPromptVoter] = useState(true);
+
   // Handle redirecting to write page with useEffect instead of during render
   useEffect(() => {
     if (user && activePrompt && !isFetchingPosts && !ownPost) {
@@ -42,6 +48,32 @@ export default function AppIndex() {
     }
   }, [user, activePrompt, isFetchingPosts, ownPost]);
 
+  const handleVote = (promptId: string) => {
+    setSuccessMessage('Your vote was submitted successfully!');
+    setOpenPromptVoter(true);
+
+    // Hide the success message after 3 seconds
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
+
+    // Invalidate relevant queries
+    queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
+  };
+
+  const handleCreatePrompt = (content: string) => {
+    setSuccessMessage('Your prompt was submitted successfully!');
+    setOpenPromptVoter(true);
+
+    // Hide the success message after 3 seconds
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
+
+    // Invalidate relevant queries
+    queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
+  };
+
   if (!api.getToken() || (!isLoadingUser && !user)) {
     return <Redirect href="/sign-in" />;
   }
@@ -53,18 +85,21 @@ export default function AppIndex() {
 
   return (
     <View style={styles.container}>
+      {successMessage && (
+        <View style={styles.successMessage}>
+          <Text style={styles.successMessageText}>{successMessage}</Text>
+        </View>
+      )}
+
       <View style={styles.header}>
         {activePrompt && (
           <View style={styles.headerContent}>
             <View style={styles.promptContainer}>
-              <Text style={styles.promptLabel}>Today's Question</Text>
-              <Text style={styles.promptText} numberOfLines={2}>
-                {activePrompt.content}
-              </Text>
+              <Text style={styles.promptLabel}>Hoot</Text>
             </View>
             {isLoadingUser ? (
               <View style={styles.profileButton}>
-                <ActivityIndicator color="#007AFF" size="small" />
+                <ActivityIndicator color="#AFF" size="small" />
               </View>
             ) : (
               user && (
@@ -92,13 +127,26 @@ export default function AppIndex() {
         </Pressable>
       </Modal>
 
+      {/* Prompt Drawer */}
+      <PromptDrawer onVote={handleVote} onCreatePrompt={handleCreatePrompt} hasVoted={hasVotedOrCreatedPrompt} />
+
       <View style={styles.content}>
         {isFetchingPosts ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color="#007AFF" size="large" />
           </View>
         ) : (
-          <Feed />
+          <>
+            <Feed />
+            <TouchableOpacity
+              style={styles.promptButton}
+              onPress={() => setOpenPromptVoter(false)} // Reopen drawer by setting hasVoted to false
+              disabled={hasVotedOrCreatedPrompt}
+            >
+              <FontAwesome name="lightbulb-o" size={20} color="#fff" />
+              <Text style={styles.promptButtonText}>Vote on prompts</Text>
+            </TouchableOpacity>
+          </>
         )}
       </View>
     </View>
@@ -109,6 +157,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f0f0',
+  },
+  promptButton: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  promptButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  successMessage: {
+    backgroundColor: '#4CAF50',
+    padding: 16,
+    alignItems: 'center',
+  },
+  successMessageText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
   header: {
     backgroundColor: '#fff',
@@ -125,18 +206,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   promptLabel: {
-    fontSize: 13,
+    fontSize: 18,
     fontWeight: '600',
     color: '#666',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 4,
-  },
-  promptText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    lineHeight: 24,
   },
   profileButton: {
     height: 36,

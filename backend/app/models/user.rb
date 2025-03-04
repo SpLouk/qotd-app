@@ -11,6 +11,8 @@ class User < ApplicationRecord
   has_many :follows_as_followed, class_name: "Follow", foreign_key: :followed_id
 
   has_many :posts
+  has_many :prompt_votes
+  has_many :prompt_questions, foreign_key: :created_by_id
 
   # get all users this user is actively following
   has_many :following, -> { where(follows: { approved: true }) }, through: :follows_as_follower, source: :followed
@@ -31,7 +33,17 @@ class User < ApplicationRecord
   def as_json
     attrs = slice(:username, :needs_registration)
     attrs[:profile_photo_url] = profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(profile_photo) : nil
+    attrs[:voted_today] = has_voted_today?
+    attrs[:created_prompt_today] = has_created_prompt_today?
     attrs
+  end
+
+  def has_voted_today?
+    prompt_votes.where("created_at >= ?", Time.current.beginning_of_day).exists?
+  end
+
+  def has_created_prompt_today?
+    prompt_questions.where("created_at >= ?", Time.current.beginning_of_day).exists?
   end
 
   def self.find_or_create_by_token(token)

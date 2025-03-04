@@ -1,18 +1,18 @@
 import { createPost } from '@/api/posts';
 import { CreatePostRequest } from '@/types/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function WriteResponse() {
   const { promptId, promptContent, initialResponse } = useLocalSearchParams<{
@@ -21,24 +21,7 @@ export default function WriteResponse() {
     initialResponse: string;
   }>();
   const [response, setResponse] = useState(initialResponse || '');
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const queryClient = useQueryClient();
-
-  // Set up keyboard listeners
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-
-    // Clean up listeners
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
 
   // Submit the post
   const { mutate: submitPost, isPending } = useMutation({
@@ -47,56 +30,53 @@ export default function WriteResponse() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       router.replace({
-        pathname: '/prompts',
+        pathname: '/',
         params: { postId: data.id.toString() },
       });
     },
   });
 
-  function handleDoneOrSubmit() {
-    if (isKeyboardVisible) {
-      // If keyboard is visible, just hide it
-      Keyboard.dismiss();
-    } else {
-      // If keyboard is already hidden, submit the post
-      if (!response.trim()) {
-        return;
-      }
-
-      const payload: CreatePostRequest = {
-        post: { prompt_question_id: parseInt(promptId), content: response.trim() },
-      };
-      submitPost(payload);
+  function handleSubmit() {
+    if (!response.trim()) {
+      return;
     }
+
+    const payload: CreatePostRequest = {
+      post: { prompt_question_id: parseInt(promptId), content: response.trim() },
+    };
+    submitPost(payload);
   }
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerSpacer} />
-        <TouchableOpacity
-          onPress={handleDoneOrSubmit}
-          disabled={isPending || !response.trim()}
-          style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
-        >
-          <Text style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}>
-            {isPending ? 'Submitting...' : isKeyboardVisible ? 'Done' : 'Submit'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.promptContainer}>
-        <Text style={styles.promptText}>{promptContent}</Text>
-      </View>
-      <TextInput
-        style={styles.input}
-        multiline
-        placeholder="Start writing..."
-        value={response}
-        onChangeText={setResponse}
-        autoFocus
-        textAlignVertical="top"
-        editable={!isPending}
-      />
+      <TouchableOpacity activeOpacity={1} onPress={Keyboard.dismiss} style={styles.dismissKeyboard}>
+        <View style={styles.header}>
+          <View style={styles.promptContainer}>
+            <Text style={styles.promptText}>{promptContent}</Text>
+          </View>
+          <View style={styles.headerSpacer} />
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={isPending || !response.trim()}
+            style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
+          >
+            <Text style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}>
+              {isPending ? 'Submitting...' : 'Submit'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <TextInput
+          style={styles.input}
+          multiline
+          placeholder="Start writing..."
+          placeholderTextColor="#999"
+          value={response}
+          onChangeText={setResponse}
+          autoFocus
+          textAlignVertical="top"
+          editable={!isPending}
+        />
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 }
@@ -105,6 +85,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  dismissKeyboard: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -133,9 +116,8 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   promptContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    padding: 10,
+    paddingLeft: 0,
   },
   promptText: {
     fontSize: 24,
@@ -145,10 +127,9 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 0,
+    paddingTop: 10,
     fontSize: 17,
     lineHeight: 24,
     color: '#000',
   },
 });
-
