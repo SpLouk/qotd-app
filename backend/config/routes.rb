@@ -1,12 +1,12 @@
 Rails.application.routes.draw do
-  resources :prompt_questions, only: [:index, :create] do
+  resources :prompt_questions, only: [ :index, :create ] do
     member do
       post :vote
       delete :unvote
     end
     get :active, on: :collection
   end
-  
+
   resources :posts, only: [ :create, :destroy, :index ]
 
   # Routes for other users
@@ -21,7 +21,10 @@ Rails.application.routes.draw do
   resource :user, only: [ :show, :update ]
 
   # Get lists of followers/following for the current user
-  get "follows", to: "follows#index"
+  get "followers", to: "follows#followers"
+  get "following", to: "follows#following"
+  get "follow_requests", to: "follows#follow_requests"
+  get "following_requests", to: "follows#following_requests"
 
   resource :session
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

@@ -1,8 +1,20 @@
 export interface User {
+  id: string;
   username: string;
   profile_photo_url: string;
-  voted_today: boolean;
-  created_prompt_today: boolean;
+  voted_today?: boolean;
+  created_prompt_today?: boolean;
+  follow_requested?: boolean;
+  follow_approved?: boolean;
+  requested_following_you?: boolean;
+  following_you?: boolean;
+}
+
+export interface Follow {
+  followed_id: string;
+  follower_id: string;
+  approved: boolean;
+  created_at: string;
 }
 
 export interface PromptQuestion {

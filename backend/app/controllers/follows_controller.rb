@@ -13,21 +13,23 @@ class FollowsController < ApplicationController
 
   def approve
     follow = Current.user.follows_as_followed.find_by!(follower_id: params[:user_id])
-    follow.update!(approved: true)
+    follow.approve_follow!
     render json: follow
   end
 
-  def index
-    follows = case params[:type]
-    when "followers"
-      Current.user.followers
-    when "following"
-      Current.user.following
-    else
-      render json: { error: "Invalid type parameter" }, status: :unprocessable_entity
-      return
-    end
+  def followers
+    Current.user.followers
+  end
 
-    render json: follows
+  def following
+    Current.user.following
+  end
+
+  def follow_requests
+    Current.user.follows_as_followed.where(approved: false)
+  end
+
+  def following_requests
+    Current.user.follows_as_following.where(approved: false)
   end
 end

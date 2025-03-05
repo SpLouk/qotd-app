@@ -7,6 +7,18 @@ class Follow < ApplicationRecord
 
   scope :active, -> { where(approved: true) }
 
+  def as_json
+    slice(:followed_id, :follower_id, :approved, :created_at)
+  end
+
+  def approve_follow!
+    unless Current.user.id == followed.id
+      errors.add(approved, "Only followed user can approve a follow request")
+      return
+    end
+    update!(approved: true)
+  end
+
   private
 
   def not_following_self

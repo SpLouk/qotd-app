@@ -31,10 +31,20 @@ class User < ApplicationRecord
   end
 
   def as_json
-    attrs = slice(:username, :needs_registration)
+    attrs = slice(:id, :username, :needs_registration)
     attrs[:profile_photo_url] = profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(profile_photo) : nil
-    attrs[:voted_today] = has_voted_today?
-    attrs[:created_prompt_today] = has_created_prompt_today?
+    unless Current.user
+      return attrs
+    end
+    if Current.user.id == id
+      attrs[:voted_today] = has_voted_today?
+      attrs[:created_prompt_today] = has_created_prompt_today?
+    else
+      attrs[:follow_requested] = follows_as_followed.exists?(follower_id: Current.user.id)
+      attrs[:follow_approved] = follows_as_followed.exists?(follower_id: Current.user.id, approved: true)
+      attrs[:requested_following_you] = follows_as_follower.exists?(followed_id: Current.user.id, approved: true)
+      attrs[:following_you] = follows_as_follower.exists?(followed_id: Current.user.id, approved: true)
+    end
     attrs
   end
 
