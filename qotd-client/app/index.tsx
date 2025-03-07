@@ -2,12 +2,12 @@ import { fetchActivePromptQuestion, fetchPosts } from '@/api/posts';
 import { fetchCurrentUser, fetchFollowerRequests } from '@/api/user';
 import { Feed } from '@/components/Feed';
 import PromptDrawer from '@/components/PromptDrawer';
+import RadialMenu from '@/components/RadialMenu';
 import { api } from '@/utils/api';
-import { FontAwesome } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AppIndex() {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -107,55 +107,11 @@ export default function AppIndex() {
                 <ActivityIndicator color="#AFF" size="small" />
               </View>
             ) : (
-              user && (
-                <TouchableOpacity style={styles.profileButton} onPress={() => setMenuVisible(true)}>
-                  <Image source={{ uri: user.profile_photo_url }} style={styles.profilePhoto} />
-                </TouchableOpacity>
-              )
+              user && <RadialMenu />
             )}
           </View>
         )}
       </View>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={menuVisible}
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
-          <View style={styles.menuContainer}>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => handleMenuItemPress('/search')}
-            >
-              <FontAwesome name="search" size={24} color="#333" />
-              <Text style={styles.menuItemText}>Find friends</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => handleMenuItemPress('/profile')}
-            >
-              <FontAwesome name="user" size={24} color="#333" />
-              <Text style={styles.menuItemText}>Profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => handleMenuItemPress('/follow-requests')}
-            >
-              <View style={styles.menuItemWithBadge}>
-                <FontAwesome name="user-plus" size={24} color="#333" />
-                {followRequests.length > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{followRequests.length}</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.menuItemText}>Follow Requests</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Modal>
 
       {/* Prompt Drawer */}
       <PromptDrawer onVote={handleVote} onCreatePrompt={handleCreatePrompt} hasVoted={hasVotedOrCreatedPrompt} />
@@ -173,7 +129,6 @@ export default function AppIndex() {
               onPress={() => setOpenPromptVoter(false)} // Reopen drawer by setting hasVoted to false
               disabled={hasVotedOrCreatedPrompt}
             >
-              <FontAwesome name="lightbulb-o" size={20} color="#fff" />
               <Text style={styles.promptButtonText}>Vote on prompts</Text>
             </TouchableOpacity>
           </>
@@ -186,7 +141,52 @@ export default function AppIndex() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flex: 1,
+  },
+  promptContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  promptLabel: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+  },
+  content: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  successMessage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#4CAF50',
+    padding: 16,
+    zIndex: 1000,
+  },
+  successMessageText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
   },
   promptButton: {
     position: 'absolute',
@@ -200,121 +200,13 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowRadius: 4,
     elevation: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: 8,
   },
   promptButtonText: {
     color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  successMessage: {
-    backgroundColor: '#4CAF50',
-    padding: 16,
-    alignItems: 'center',
-  },
-  successMessageText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
-  },
-  header: {
-    backgroundColor: '#fff',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ddd',
-    padding: 16,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  promptContainer: {
-    flex: 1,
-  },
-  promptLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  profileButton: {
-    height: 36,
-    width: 36,
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profilePhoto: {
-    height: '100%',
-    width: '100%',
-  },
-  content: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-start',
-  },
-  menuContainer: {
-    backgroundColor: '#fff',
-    marginTop: 60,
-    marginHorizontal: 16,
-    borderRadius: 12,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-  },
-  menuItemWithBadge: {
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: '#ff3b30',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  menuItemText: {
-    fontSize: 16,
-    color: '#000',
-    marginLeft: 12,
   },
 });
