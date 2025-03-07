@@ -35,7 +35,7 @@ export default function PromptDrawer({ onVote, onCreatePrompt, hasVoted }: Promp
   const [drawerPosition] = useState(new Animated.Value(DRAWER_HEIGHT));
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  
+
   const dragYRef = useRef(0);
 
   // Fetch prompts to vote on
@@ -193,17 +193,14 @@ export default function PromptDrawer({ onVote, onCreatePrompt, hasVoted }: Promp
         },
       ]}
     >
-      <View
-        style={styles.handleContainer}
-        {...panResponder.panHandlers}
-      >
+      <View style={styles.handleContainer} {...panResponder.panHandlers}>
         <View style={styles.handle} />
-        <Text style={styles.peekText}>{isExpanded ? "Pull down to close" : "Vote on prompts"}</Text>
+        <Text style={styles.peekText}>{isExpanded ? 'Pull down to close' : 'Vote on prompts'}</Text>
       </View>
 
       <View style={styles.content}>
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardAvoidingView}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
         >
@@ -267,7 +264,9 @@ export default function PromptDrawer({ onVote, onCreatePrompt, hasVoted }: Promp
                   styles.submitButtonDisabled,
               ]}
               onPress={isCreatingPrompt ? handleSubmitNewPrompt : handleVote}
-              disabled={isCreatingPrompt ? !newPromptContent.trim() || isSubmittingPrompt : !selectedPromptId || isVoting}
+              disabled={
+                isCreatingPrompt ? !newPromptContent.trim() || isSubmittingPrompt : !selectedPromptId || isVoting
+              }
             >
               <Text style={styles.submitButtonText}>
                 {isCreatingPrompt ? (isSubmittingPrompt ? 'Submitting...' : 'Submit') : isVoting ? 'Voting...' : 'Vote'}
@@ -447,3 +446,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

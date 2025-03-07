@@ -8,7 +8,11 @@ class Follow < ApplicationRecord
   scope :active, -> { where(approved: true) }
 
   def as_json
-    slice(:followed_id, :follower_id, :approved, :created_at)
+    attrs = slice(:followed_id, :follower_id, :approved, :created_at)
+
+    attrs[:follower_profile_photo_url] = follower.profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(follower.profile_photo) : nil
+    attrs[:follower_username] = follower.username
+    attrs
   end
 
   def approve_follow!

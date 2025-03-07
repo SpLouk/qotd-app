@@ -1,5 +1,5 @@
 import { fetchActivePromptQuestion, fetchPosts } from '@/api/posts';
-import { fetchCurrentUser } from '@/api/user';
+import { fetchCurrentUser, fetchFollowerRequests } from '@/api/user';
 import { Feed } from '@/components/Feed';
 import PromptDrawer from '@/components/PromptDrawer';
 import { api } from '@/utils/api';
@@ -17,6 +17,11 @@ export default function AppIndex() {
   const { data: user, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user'],
     queryFn: fetchCurrentUser,
+  });
+
+  const { data: followRequests = [] } = useQuery({
+    queryKey: ['follower_requests'],
+    queryFn: fetchFollowerRequests,
   });
 
   const { data: posts = [], isFetching: isFetchingPosts } = useQuery({
@@ -78,7 +83,7 @@ export default function AppIndex() {
     return <Redirect href="/sign-in" />;
   }
 
-  const handleMenuItemPress = (route: '/search' | '/profile') => {
+  const handleMenuItemPress = (route: '/search' | '/profile' | '/follow-requests') => {
     setMenuVisible(false);
     router.push(route);
   };
@@ -112,16 +117,41 @@ export default function AppIndex() {
         )}
       </View>
 
-      <Modal animationType="fade" transparent={true} visible={menuVisible} onRequestClose={() => setMenuVisible(false)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={menuVisible}
+        onRequestClose={() => setMenuVisible(false)}
+      >
         <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
           <View style={styles.menuContainer}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('/profile')}>
-              <FontAwesome name="user" size={20} color="#000" style={styles.menuIcon} />
-              <Text style={styles.menuText}>Profile</Text>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => handleMenuItemPress('/search')}
+            >
+              <FontAwesome name="search" size={24} color="#333" />
+              <Text style={styles.menuItemText}>Find friends</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('/search')}>
-              <FontAwesome name="search" size={20} color="#000" style={styles.menuIcon} />
-              <Text style={styles.menuText}>Find Friends</Text>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => handleMenuItemPress('/profile')}
+            >
+              <FontAwesome name="user" size={24} color="#333" />
+              <Text style={styles.menuItemText}>Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => handleMenuItemPress('/follow-requests')}
+            >
+              <View style={styles.menuItemWithBadge}>
+                <FontAwesome name="user-plus" size={24} color="#333" />
+                {followRequests.length > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{followRequests.length}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.menuItemText}>Follow Requests</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -263,11 +293,28 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
   },
-  menuIcon: {
-    marginRight: 12,
+  menuItemWithBadge: {
+    position: 'relative',
   },
-  menuText: {
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#ff3b30',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  menuItemText: {
     fontSize: 16,
     color: '#000',
+    marginLeft: 12,
   },
 });

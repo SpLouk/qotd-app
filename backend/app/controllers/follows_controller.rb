@@ -18,18 +18,18 @@ class FollowsController < ApplicationController
   end
 
   def followers
-    Current.user.followers
+    render json: Current.user.followers
   end
 
   def following
-    Current.user.following
+    render json: Current.user.following
   end
 
   def follow_requests
-    Current.user.follows_as_followed.where(approved: false)
+    render json: Current.user.follows_as_followed.where(approved: false)
   end
 
   def following_requests
-    Current.user.follows_as_following.where(approved: false)
+    render json: Current.user.follows_as_following.where(approved: false)
   end
 end

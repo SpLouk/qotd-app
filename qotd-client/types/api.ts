@@ -13,6 +13,8 @@ export interface User {
 export interface Follow {
   followed_id: string;
   follower_id: string;
+  follower_profile_photo_url?: string;
+  follower_username: string;
   approved: boolean;
   created_at: string;
 }
