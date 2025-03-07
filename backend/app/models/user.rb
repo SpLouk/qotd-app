@@ -85,6 +85,7 @@ class User < ApplicationRecord
 
     sanitized_query = query.strip.downcase
     where("LOWER(username) LIKE ?", "%#{sanitized_query}%")
+      .where.not(id: Current.user&.id)
       .limit(20)
   end
 
