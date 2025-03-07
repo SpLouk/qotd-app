@@ -13,6 +13,7 @@ class User < ApplicationRecord
   has_many :posts
   has_many :prompt_votes
   has_many :prompt_questions, foreign_key: :created_by_id
+  has_many :device_tokens, dependent: :destroy
 
   # get all users this user is actively following
   has_many :following, -> { where(follows: { approved: true }) }, through: :follows_as_follower, source: :followed
@@ -33,6 +34,7 @@ class User < ApplicationRecord
   def as_json
     attrs = slice(:id, :username, :needs_registration)
     attrs[:profile_photo_url] = profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(profile_photo) : nil
+    attrs[:has_device_token] = device_tokens.exists?
     unless Current.user
       return attrs
     end

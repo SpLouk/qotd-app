@@ -11,7 +11,7 @@ class ActivatePromptQuestionJob < ApplicationJob
     # Activate the prompt
     prompt.activate!
 
-    # Schedule the next activation
-    SchedulePromptActivationJob.perform_later
+    # Send push notifications to all users
+    ApnsService.notify_new_prompt(prompt)
   end
 end

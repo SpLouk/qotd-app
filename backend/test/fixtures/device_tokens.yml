@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+ios_token:
+  token: test_ios_token_1
+  platform: ios
+  user: one
+
+another_ios_token:
+  token: test_ios_token_2
+  platform: ios
+  user: two

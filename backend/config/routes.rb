@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  resources :device_tokens, only: [ :create ] do
+    delete :destroy, on: :collection
+  end
+
   resources :prompt_questions, only: [ :index, :create ] do
     member do
       post :vote

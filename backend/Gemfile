@@ -50,3 +50,6 @@ gem "jwt", "~> 2.10"
 gem "active_storage_validations", "~> 2.0"
 
 gem "aws-sdk-s3", require: false
+
+# HTTP/2 client for APNs
+gem "net-http2", "~> 0.18"
