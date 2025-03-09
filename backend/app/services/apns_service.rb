@@ -5,13 +5,13 @@ class ApnsService
   APNS_DEVELOPMENT_URL = "https://api.sandbox.push.apple.com".freeze
   APNS_PRODUCTION_URL = "https://api.push.apple.com".freeze
   ALGORITHM = "ES256".freeze
-  
+
   class << self
     def notify_new_prompt(prompt)
       return unless credentials_configured?
 
       # Get all unique device tokens
-      device_tokens = DeviceToken.where(platform: "ios").pluck(:token)
+      device_tokens = DeviceToken.all
       return if device_tokens.empty?
 
       # Prepare the notification payload

@@ -342,6 +342,7 @@ DEPENDENCIES
   jwt (~> 2.10)
   kamal
   net-http2 (~> 0.18)
+  net-smtp (~> 0.5.0)
   puma (>= 5.0)
   rails (~> 8.0.1)
   rubocop-rails-omakase
