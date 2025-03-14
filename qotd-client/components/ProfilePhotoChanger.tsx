@@ -1,9 +1,9 @@
+import { api } from '@/utils/api';
+import { FontAwesome } from '@expo/vector-icons';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { View, Image, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import { api } from '@/utils/api';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ProfilePhotoChangerProps {
   initialPhotoUrl?: string;
@@ -93,9 +93,31 @@ export function ProfilePhotoChanger({
     }
   };
 
+  const showImagePickerOptions = () => {
+    Alert.alert(
+      'Change Profile Photo',
+      'Choose a new profile photo',
+      [
+        {
+          text: 'Take Photo',
+          onPress: takePhoto,
+        },
+        {
+          text: 'Choose from Library',
+          onPress: pickImage,
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true },
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={pickImage} style={[styles.photoContainer, { width: size, height: size }]}>
+      <TouchableOpacity onPress={showImagePickerOptions} style={[styles.photoContainer, { width: size, height: size }]}>
         {image?.uri || initialPhotoUrl ? (
           <Image
             source={{ uri: image?.uri || initialPhotoUrl }}
@@ -106,21 +128,10 @@ export function ProfilePhotoChanger({
             <FontAwesome name="user" size={size / 2} color="#666" />
           </View>
         )}
-        <View style={styles.editOverlay}>
-          <FontAwesome name="camera" size={size / 4} color="#fff" />
-        </View>
       </TouchableOpacity>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={pickImage} style={styles.button}>
-          <FontAwesome name="image" size={16} color="#007AFF" style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>Choose Photo</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={takePhoto} style={styles.button}>
-          <FontAwesome name="camera" size={16} color="#007AFF" style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>Take Photo</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity onPress={showImagePickerOptions} style={styles.button}>
+        <Text style={styles.buttonText}>Edit Photo</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -133,41 +144,25 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     overflow: 'hidden',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
   photo: {
     borderRadius: 9999,
   },
   placeholder: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#f5f5f5',
     borderRadius: 9999,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  editOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    height: '33%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    marginTop: 16,
-    gap: 16,
-  },
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-  },
-  buttonIcon: {
-    marginRight: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   buttonText: {
     color: '#007AFF',
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

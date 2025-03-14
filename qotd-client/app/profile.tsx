@@ -22,21 +22,17 @@ function UserListItem({ user }: UserListItemProps) {
   });
 
   const handleUnfollow = () => {
-    Alert.alert(
-      'Unfollow User',
-      `Are you sure you want to unfollow ${user.username}?`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Unfollow',
-          style: 'destructive',
-          onPress: () => unfollowMutation.mutate(user.id),
-        },
-      ]
-    );
+    Alert.alert('Unfollow User', `Are you sure you want to unfollow ${user.username}?`, [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Unfollow',
+        style: 'destructive',
+        onPress: () => unfollowMutation.mutate(user.id),
+      },
+    ]);
   };
 
   return (
@@ -88,10 +84,14 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.profileSection}>
-        <ProfilePhotoChanger initialPhotoUrl={user.profile_photo_url} onError={setError} autoUpload />
+        <ProfilePhotoChanger initialPhotoUrl={user.profile_photo_url} onError={setError} autoUpload size={80} />
         <Text style={styles.name}>{user.username}</Text>
-        {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.error}>{error}</Text>
+        </View>
+      ) : null}
 
       <View style={styles.statsRow}>
         <TouchableOpacity
@@ -126,18 +126,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   profileSection: {
+    padding: 16,
+    paddingHorizontal: 48,
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 32,
+    gap: 32,
   },
   name: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
-    marginBottom: 8,
-    marginTop: 16,
+    color: '#333',
+  },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    padding: 12,
+    marginHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 16,
   },
   error: {
-    color: '#ff3b30',
-    marginTop: 8,
+    color: '#DC2626',
+    fontSize: 14,
+    textAlign: 'center',
   },
   statsRow: {
     flexDirection: 'row',

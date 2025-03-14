@@ -47,7 +47,9 @@ class PromptQuestion < ApplicationRecord
   end
 
   def as_json(options = {})
-    json = super(options)
+    json = slice(:active, :content, :created_at, :id)
+
+    json[:created_by_username] = created_by&.username
 
     if options[:include_votes]
       json[:votes_count] = prompt_votes_count
