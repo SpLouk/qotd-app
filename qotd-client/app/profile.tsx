@@ -65,7 +65,6 @@ function UserListItem({ user }: UserListItemProps) {
 export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('following');
   const [error, setError] = useState('');
-  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ['user'],

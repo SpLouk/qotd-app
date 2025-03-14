@@ -22,8 +22,9 @@ export interface Follow {
 
 export interface PromptQuestion {
   id: string;
+  active?: boolean;
   content: string;
-  prompt_votes_count?: number;
+  votes_count?: number;
   user_voted?: boolean;
   created_by_username?: string;
 }

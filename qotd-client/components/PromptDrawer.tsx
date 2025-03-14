@@ -1,5 +1,5 @@
 import { createPromptQuestion, fetchPromptQuestions, unvoteForPrompt, voteForPrompt } from '@/api/posts';
-import { CreatePromptQuestionRequest, PromptQuestion } from '@/types/api';
+import { CreatePromptQuestionRequest, PromptQuestion, User } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -38,6 +38,10 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
     queryKey: ['promptQuestions'],
     queryFn: () => fetchPromptQuestions(5),
   });
+
+  // Get the current user data from the cache
+  const userData = queryClient.getQueryData<User>(['user']);
+  const userPrompt = promptQuestions?.find((p) => p.created_by_username === userData?.username);
 
   const currentVotedPrompt = promptQuestions?.find((p) => p.user_voted)?.id;
   const { mutate: votePrompt, isPending: isVoting } = useMutation({
@@ -137,7 +141,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
         <Text style={styles.promptItemText}>{item.content}</Text>
         {item.created_by_username && <Text style={styles.promptAuthor}>by {item.created_by_username}</Text>}
         <View style={styles.promptVotes}>
-          <Text style={styles.promptVotesText}>{item.prompt_votes_count || 0} votes</Text>
+          <Text style={styles.promptVotesText}>{item.votes_count || 0} votes</Text>
           {item.user_voted && <Text style={styles.userVotedText}>Your vote</Text>}
         </View>
       </TouchableOpacity>
@@ -190,7 +194,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                     </Text>
                     <TouchableOpacity style={styles.toggleButton} onPress={toggleCreatePrompt}>
                       <Text style={styles.toggleButtonText}>
-                        {isCreatingPrompt ? 'Vote instead' : 'Submit a prompt'}
+                        {isCreatingPrompt ? 'Vote on prompts' : 'Submit a prompt'}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -198,24 +202,35 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                   <View style={styles.voteContainer}>
                     {isCreatingPrompt ? (
                       <>
-                        <TextInput
-                          style={styles.input}
-                          value={newPromptContent}
-                          onChangeText={setNewPromptContent}
-                          placeholder="Type your prompt here..."
-                          multiline
-                        />
-                        <TouchableOpacity
-                          style={[styles.voteButton, !newPromptContent.trim() && styles.submitButtonDisabled]}
-                          onPress={handleSubmitNewPrompt}
-                          disabled={!newPromptContent.trim() || isSubmittingPrompt}
-                        >
-                          {isSubmittingPrompt ? (
-                            <ActivityIndicator color="#fff" />
-                          ) : (
-                            <Text style={styles.submitButtonText}>Submit Prompt</Text>
-                          )}
-                        </TouchableOpacity>
+                        {userData?.created_prompt_today ? (
+                          <View style={styles.submittedPromptContainer}>
+                            <Text style={styles.submittedPromptLabel}>Your submitted prompt:</Text>
+                            <View style={styles.submittedPrompt}>
+                              <Text style={styles.promptItemText}>{userPrompt?.content}</Text>
+                            </View>
+                          </View>
+                        ) : (
+                          <>
+                            <TextInput
+                              style={styles.input}
+                              value={newPromptContent}
+                              onChangeText={setNewPromptContent}
+                              placeholder="Type your prompt here..."
+                              multiline
+                            />
+                            <TouchableOpacity
+                              style={[styles.voteButton, !newPromptContent.trim() && styles.submitButtonDisabled]}
+                              onPress={handleSubmitNewPrompt}
+                              disabled={!newPromptContent.trim() || isSubmittingPrompt}
+                            >
+                              {isSubmittingPrompt ? (
+                                <ActivityIndicator color="#fff" />
+                              ) : (
+                                <Text style={styles.submitButtonText}>Submit Prompt</Text>
+                              )}
+                            </TouchableOpacity>
+                          </>
+                        )}
                       </>
                     ) : (
                       <>
@@ -403,5 +418,19 @@ const styles = StyleSheet.create({
   promptButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  submittedPromptContainer: {
+    padding: 16,
+  },
+  submittedPromptLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#666',
+    marginBottom: 8,
+  },
+  submittedPrompt: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 16,
   },
 });
