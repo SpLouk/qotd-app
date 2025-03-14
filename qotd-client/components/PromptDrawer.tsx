@@ -1,4 +1,4 @@
-import { createPromptQuestion, fetchPromptQuestions, voteForPrompt } from '@/api/posts';
+import { createPromptQuestion, fetchPromptQuestions, unvoteForPrompt, voteForPrompt } from '@/api/posts';
 import { CreatePromptQuestionRequest, PromptQuestion } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -39,13 +39,18 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
     queryFn: () => fetchPromptQuestions(5),
   });
 
-  // Vote for a prompt
+  const currentVotedPrompt = promptQuestions?.find((p) => p.user_voted)?.id;
   const { mutate: votePrompt, isPending: isVoting } = useMutation({
     mutationKey: ['votePrompt'],
-    mutationFn: voteForPrompt,
+    mutationFn: async (promptId: string) => {
+      if (currentVotedPrompt && currentVotedPrompt !== promptId) {
+        await unvoteForPrompt(currentVotedPrompt);
+      }
+      return voteForPrompt(promptId);
+    },
     onSuccess: () => {
       if (selectedPromptId) {
-        setSuccessMessage('Your vote was submitted successfully!');
+        setSuccessMessage('Your vote was updated successfully!');
         queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
         closeModal();
       }
@@ -133,7 +138,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
         {item.created_by_username && <Text style={styles.promptAuthor}>by {item.created_by_username}</Text>}
         <View style={styles.promptVotes}>
           <Text style={styles.promptVotesText}>{item.prompt_votes_count || 0} votes</Text>
-          {item.user_voted && <Text style={styles.userVotedText}>(You voted)</Text>}
+          {item.user_voted && <Text style={styles.userVotedText}>Your vote</Text>}
         </View>
       </TouchableOpacity>
     );
@@ -232,7 +237,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                               {isVoting ? (
                                 <ActivityIndicator color="#fff" />
                               ) : (
-                                <Text style={styles.voteButtonText}>Vote</Text>
+                                <Text style={styles.voteButtonText}>{currentVotedPrompt ? 'Change Vote' : 'Vote'}</Text>
                               )}
                             </TouchableOpacity>
                           </>
@@ -308,7 +313,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   input: {
-    flex: 1,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,

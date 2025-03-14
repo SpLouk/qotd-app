@@ -15,6 +15,15 @@ export default function AppIndex() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
   const { data: user, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user'],
     queryFn: fetchCurrentUser,

@@ -8,11 +8,11 @@ import React, { useState } from 'react';
 import { 
   ActivityIndicator, 
   Alert, 
-  Image, 
+  Image,
+  Text,
   KeyboardAvoidingView,
   Platform,
   StyleSheet, 
-  Text, 
   TextInput, 
   TouchableOpacity, 
   View 
@@ -157,7 +157,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
 
         {!isCommenting ? (
           <TouchableOpacity style={styles.addCommentButton} onPress={() => setIsCommenting(true)}>
-            <FontAwesome name="comment-o" size={20} color="#000" />
+            <Text style={{ color: '#007AFF' }}>Reply</Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.commentForm}>
@@ -254,7 +254,6 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   addCommentButton: {
-    padding: 8,
     marginTop: 8,
   },
   commentForm: {

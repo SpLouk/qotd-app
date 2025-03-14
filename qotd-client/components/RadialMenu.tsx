@@ -119,7 +119,7 @@ export default function RadialMenu() {
 const styles = StyleSheet.create({
   menuWrapper: {
     position: 'relative',
-    zIndex: 1000,
+    zIndex: 999,
   },
   profileButton: {
     width: 40,
