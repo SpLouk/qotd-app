@@ -15,12 +15,11 @@ import {
   Dimensions,
   PanResponder,
 } from 'react-native';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import React from 'react';
 
 interface PromptDrawerProps {
-  onVote: (promptId: string) => void;
-  onCreatePrompt: (content: string) => void;
-  hasVoted: boolean;
+  setSuccessMessage: (content: string | null) => void;
 }
 
 const { height } = Dimensions.get('window');
@@ -28,7 +27,8 @@ const DRAWER_HEIGHT = height * 0.7;
 const DRAWER_PEEK_HEIGHT = 30;
 const DRAG_THRESHOLD = 50;
 
-export default function PromptDrawer({ onVote, onCreatePrompt, hasVoted }: PromptDrawerProps) {
+export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
+  const queryClient = useQueryClient();
   const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
   const [isCreatingPrompt, setIsCreatingPrompt] = useState(false);
   const [newPromptContent, setNewPromptContent] = useState('');
@@ -50,7 +50,8 @@ export default function PromptDrawer({ onVote, onCreatePrompt, hasVoted }: Promp
     mutationFn: voteForPrompt,
     onSuccess: () => {
       if (selectedPromptId) {
-        onVote(selectedPromptId);
+        setSuccessMessage('Your vote was submitted successfully!');
+        queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
         closeDrawer();
       }
     },
@@ -60,8 +61,9 @@ export default function PromptDrawer({ onVote, onCreatePrompt, hasVoted }: Promp
   const { mutate: submitPrompt, isPending: isSubmittingPrompt } = useMutation({
     mutationKey: ['createPrompt'],
     mutationFn: createPromptQuestion,
-    onSuccess: (data) => {
-      onCreatePrompt(newPromptContent);
+    onSuccess: () => {
+      setSuccessMessage('Your prompt was submitted successfully!');
+      queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
       setIsCreatingPrompt(false);
       setNewPromptContent('');
       closeDrawer();
@@ -90,15 +92,6 @@ export default function PromptDrawer({ onVote, onCreatePrompt, hasVoted }: Promp
       setIsCreatingPrompt(true);
     }
   }, [isLoadingPrompts, promptQuestions]);
-
-  // Open/close drawer based on hasVoted prop
-  useEffect(() => {
-    if (hasVoted) {
-      closeDrawer();
-    } else {
-      openDrawer();
-    }
-  }, [hasVoted, closeDrawer, openDrawer]);
 
   const toggleDrawer = useCallback(() => {
     if (isExpanded) {
@@ -185,97 +178,110 @@ export default function PromptDrawer({ onVote, onCreatePrompt, hasVoted }: Promp
   }
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          transform: [{ translateY: drawerPosition }],
-        },
-      ]}
-    >
-      <View style={styles.handleContainer} {...panResponder.panHandlers}>
-        <View style={styles.handle} />
-        <Text style={styles.peekText}>{isExpanded ? 'Pull down to close' : 'Vote on prompts'}</Text>
-      </View>
+    <>
+      <TouchableOpacity
+        style={styles.promptButton}
+        onPress={openDrawer} // Reopen drawer by setting hasVoted to false
+      >
+        <Text style={styles.promptButtonText}>Vote on prompts</Text>
+      </TouchableOpacity>
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            transform: [{ translateY: drawerPosition }],
+          },
+        ]}
+      >
+        <View style={styles.handleContainer} {...panResponder.panHandlers}>
+          <View style={styles.handle} />
+        </View>
 
-      <View style={styles.content}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardAvoidingView}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
-        >
-          <Text style={styles.title}>{isCreatingPrompt ? 'Submit a new prompt' : 'Vote for a future prompt'}</Text>
+        <View style={styles.content}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+          >
+            <Text style={styles.title}>{isCreatingPrompt ? 'Submit a new prompt' : 'Vote for a future prompt'}</Text>
 
-          {isCreatingPrompt ? (
-            <View style={styles.createPromptContainer}>
-              <Text style={styles.description}>Submit a question you'd like to see in the future</Text>
-              <TextInput
-                style={styles.promptInput}
-                multiline
-                placeholder="Type your question here..."
-                value={newPromptContent}
-                onChangeText={setNewPromptContent}
-                maxLength={200}
-              />
-              <Text style={styles.characterCount}>{newPromptContent.length}/200</Text>
-            </View>
-          ) : (
-            <>
-              <Text style={styles.description}>Vote for a prompt you'd like to answer in the future</Text>
-
-              {isLoadingPrompts ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#007AFF" />
-                  <Text style={styles.loadingText}>Loading prompts...</Text>
-                </View>
-              ) : promptQuestions && promptQuestions.length > 0 ? (
-                <FlatList
-                  data={promptQuestions}
-                  renderItem={renderPromptItem}
-                  keyExtractor={(item) => item.id}
-                  style={styles.promptsList}
-                  contentContainerStyle={styles.promptsListContent}
+            {isCreatingPrompt ? (
+              <View style={styles.createPromptContainer}>
+                <Text style={styles.description}>Submit a question you'd like to see in the future</Text>
+                <TextInput
+                  style={styles.promptInput}
+                  multiline
+                  placeholder="Type your question here..."
+                  value={newPromptContent}
+                  onChangeText={setNewPromptContent}
+                  maxLength={200}
                 />
-              ) : (
-                <View style={styles.noPromptsContainer}>
-                  <Text style={styles.noPromptsText}>No prompts available for voting</Text>
-                </View>
-              )}
-            </>
-          )}
+                <Text style={styles.characterCount}>{newPromptContent.length}/200</Text>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.description}>Vote for a prompt you'd like to answer in the future</Text>
 
-          {/* Only show toggle option if prompts are available */}
-          {!isLoadingPrompts && promptQuestions && promptQuestions.length > 0 && (
-            <View style={styles.togglePromptContainer}>
-              <TouchableOpacity onPress={toggleCreatePrompt} disabled={isSubmittingPrompt || isVoting}>
-                <Text style={styles.togglePromptText}>
-                  {isCreatingPrompt ? 'Vote for existing prompts instead' : 'Submit a new prompt instead'}
+                {isLoadingPrompts ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#007AFF" />
+                    <Text style={styles.loadingText}>Loading prompts...</Text>
+                  </View>
+                ) : promptQuestions && promptQuestions.length > 0 ? (
+                  <FlatList
+                    data={promptQuestions}
+                    renderItem={renderPromptItem}
+                    keyExtractor={(item) => item.id}
+                    style={styles.promptsList}
+                    contentContainerStyle={styles.promptsListContent}
+                  />
+                ) : (
+                  <View style={styles.noPromptsContainer}>
+                    <Text style={styles.noPromptsText}>No prompts available for voting</Text>
+                  </View>
+                )}
+              </>
+            )}
+
+            {/* Only show toggle option if prompts are available */}
+            {!isLoadingPrompts && promptQuestions && promptQuestions.length > 0 && (
+              <View style={styles.togglePromptContainer}>
+                <TouchableOpacity onPress={toggleCreatePrompt} disabled={isSubmittingPrompt || isVoting}>
+                  <Text style={styles.togglePromptText}>
+                    {isCreatingPrompt ? 'Vote for existing prompts instead' : 'Submit a new prompt instead'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  styles.submitButton,
+                  (isCreatingPrompt ? !newPromptContent.trim() || isSubmittingPrompt : !selectedPromptId || isVoting) &&
+                    styles.submitButtonDisabled,
+                ]}
+                onPress={isCreatingPrompt ? handleSubmitNewPrompt : handleVote}
+                disabled={
+                  isCreatingPrompt ? !newPromptContent.trim() || isSubmittingPrompt : !selectedPromptId || isVoting
+                }
+              >
+                <Text style={styles.submitButtonText}>
+                  {isCreatingPrompt
+                    ? isSubmittingPrompt
+                      ? 'Submitting...'
+                      : 'Submit'
+                    : isVoting
+                      ? 'Voting...'
+                      : 'Vote'}
                 </Text>
               </TouchableOpacity>
             </View>
-          )}
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                styles.submitButton,
-                (isCreatingPrompt ? !newPromptContent.trim() || isSubmittingPrompt : !selectedPromptId || isVoting) &&
-                  styles.submitButtonDisabled,
-              ]}
-              onPress={isCreatingPrompt ? handleSubmitNewPrompt : handleVote}
-              disabled={
-                isCreatingPrompt ? !newPromptContent.trim() || isSubmittingPrompt : !selectedPromptId || isVoting
-              }
-            >
-              <Text style={styles.submitButtonText}>
-                {isCreatingPrompt ? (isSubmittingPrompt ? 'Submitting...' : 'Submit') : isVoting ? 'Voting...' : 'Vote'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
-    </Animated.View>
+          </KeyboardAvoidingView>
+        </View>
+      </Animated.View>
+    </>
   );
 }
 
@@ -445,5 +451,24 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  promptButton: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  promptButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
-

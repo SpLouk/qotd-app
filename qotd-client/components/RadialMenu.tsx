@@ -58,7 +58,13 @@ export default function RadialMenu() {
   return (
     <View style={styles.menuWrapper}>
       <TouchableOpacity style={styles.profileButton} onPress={() => setVisible(!visible)}>
-        <Image source={{ uri: user.profile_photo_url }} style={styles.profilePhoto} />
+        {user.profile_photo_url ? (
+          <Image source={{ uri: user.profile_photo_url }} style={styles.profilePhoto} />
+        ) : (
+          <View style={styles.placeholderPhoto}>
+            <FontAwesome name="question" size={18} color="#fff" />
+          </View>
+        )}
       </TouchableOpacity>
       {visible && (
         <>
@@ -124,6 +130,14 @@ const styles = StyleSheet.create({
   profilePhoto: {
     width: '100%',
     height: '100%',
+  },
+  placeholderPhoto: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#3498db',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   menuOverlay: {
     position: 'absolute',

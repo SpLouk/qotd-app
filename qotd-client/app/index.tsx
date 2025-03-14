@@ -1,16 +1,17 @@
 import { fetchActivePromptQuestion, fetchPosts } from '@/api/posts';
-import { fetchCurrentUser, fetchFollowerRequests } from '@/api/user';
+import { fetchCurrentUser } from '@/api/user';
+import { useAddDeviceToken } from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
 import PromptDrawer from '@/components/PromptDrawer';
 import RadialMenu from '@/components/RadialMenu';
 import { api } from '@/utils/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AppIndex() {
-  const [menuVisible, setMenuVisible] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -19,12 +20,11 @@ export default function AppIndex() {
     queryFn: fetchCurrentUser,
   });
 
-  const { data: followRequests = [] } = useQuery({
-    queryKey: ['follower_requests'],
-    queryFn: fetchFollowerRequests,
-  });
-
-  const { data: posts = [], isFetching: isFetchingPosts } = useQuery({
+  const {
+    data: posts = [],
+    isFetching: isFetchingPosts,
+    error: postsError,
+  } = useQuery({
     queryKey: ['posts'],
     queryFn: fetchPosts,
   });
@@ -34,11 +34,10 @@ export default function AppIndex() {
     queryFn: fetchActivePromptQuestion,
   });
 
+  useAddDeviceToken();
+
   // Find if the user has a post for the current active prompt
   const ownPost = posts?.find((p) => p.username === user?.username);
-
-  // Check if user has already voted on a prompt (start as true to keep drawer closed initially)
-  const [hasVotedOrCreatedPrompt, setOpenPromptVoter] = useState(true);
 
   // Handle redirecting to write page with useEffect instead of during render
   useEffect(() => {
@@ -53,40 +52,14 @@ export default function AppIndex() {
     }
   }, [user, activePrompt, isFetchingPosts, ownPost]);
 
-  const handleVote = (promptId: string) => {
-    setSuccessMessage('Your vote was submitted successfully!');
-    setOpenPromptVoter(true);
-
-    // Hide the success message after 3 seconds
-    setTimeout(() => {
-      setSuccessMessage(null);
-    }, 3000);
-
-    // Invalidate relevant queries
-    queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
-  };
-
-  const handleCreatePrompt = (content: string) => {
-    setSuccessMessage('Your prompt was submitted successfully!');
-    setOpenPromptVoter(true);
-
-    // Hide the success message after 3 seconds
-    setTimeout(() => {
-      setSuccessMessage(null);
-    }, 3000);
-
-    // Invalidate relevant queries
-    queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['posts'] });
+    queryClient.invalidateQueries({ queryKey: ['promptQuestion'] });
   };
 
   if (!api.getToken() || (!isLoadingUser && !user)) {
     return <Redirect href="/sign-in" />;
   }
-
-  const handleMenuItemPress = (route: '/search' | '/profile' | '/follow-requests') => {
-    setMenuVisible(false);
-    router.push(route);
-  };
 
   return (
     <View style={styles.container}>
@@ -97,40 +70,45 @@ export default function AppIndex() {
       )}
 
       <View style={styles.header}>
-        {activePrompt && (
-          <View style={styles.headerContent}>
-            <View style={styles.promptContainer}>
-              <Text style={styles.promptLabel}>Hoot</Text>
-            </View>
-            {isLoadingUser ? (
-              <View style={styles.profileButton}>
-                <ActivityIndicator color="#AFF" size="small" />
-              </View>
-            ) : (
-              user && <RadialMenu />
-            )}
+        <View style={styles.headerContent}>
+          <View style={styles.promptContainer}>
+            <Text style={styles.promptLabel}>Hoot</Text>
           </View>
-        )}
+          {isLoadingUser ? (
+            <View>
+              <ActivityIndicator color="#AFF" size="small" />
+            </View>
+          ) : (
+            user && <RadialMenu />
+          )}
+        </View>
       </View>
-
-      {/* Prompt Drawer */}
-      <PromptDrawer onVote={handleVote} onCreatePrompt={handleCreatePrompt} hasVoted={hasVotedOrCreatedPrompt} />
 
       <View style={styles.content}>
         {isFetchingPosts ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color="#007AFF" size="large" />
           </View>
+        ) : postsError ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>No active prompt available.</Text>
+            <Text style={styles.errorSubtext}>Check back later for new prompts!</Text>
+            <TouchableOpacity
+              style={[styles.refreshButton, isFetchingPosts && styles.refreshButtonDisabled]}
+              disabled={isFetchingPosts}
+              onPress={handleRefresh}
+            >
+              {isFetchingPosts ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.refreshButtonText}>Refresh</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         ) : (
           <>
             <Feed />
-            <TouchableOpacity
-              style={styles.promptButton}
-              onPress={() => setOpenPromptVoter(false)} // Reopen drawer by setting hasVoted to false
-              disabled={hasVotedOrCreatedPrompt}
-            >
-              <Text style={styles.promptButtonText}>Vote on prompts</Text>
-            </TouchableOpacity>
+            {!postsError && <PromptDrawer setSuccessMessage={setSuccessMessage} />}
           </>
         )}
       </View>
@@ -174,6 +152,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  refreshButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  refreshButtonDisabled: {
+    opacity: 0.7,
+  },
+  refreshButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   successMessage: {
     position: 'absolute',
     top: 0,
@@ -187,26 +205,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     textAlign: 'center',
-  },
-  promptButton: {
-    position: 'absolute',
-    bottom: 20,
-    alignSelf: 'center',
-    flexDirection: 'row',
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    gap: 8,
-  },
-  promptButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

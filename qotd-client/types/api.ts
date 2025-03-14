@@ -8,6 +8,7 @@ export interface User {
   follow_approved?: boolean;
   requested_following_you?: boolean;
   following_you?: boolean;
+  has_device_token?: boolean;
 }
 
 export interface Follow {
