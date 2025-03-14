@@ -170,9 +170,9 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
             ]}
           >
             <View style={styles.container}>
-              <View style={styles.handleContainer}>
+              <TouchableOpacity style={styles.handleContainer} onPress={closeModal}>
                 <View style={styles.handle} />
-              </View>
+              </TouchableOpacity>
 
               <View style={styles.content}>
                 <KeyboardAvoidingView
