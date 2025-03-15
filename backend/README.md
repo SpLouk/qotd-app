@@ -10,7 +10,7 @@ To enable push notifications, you need to configure Apple Push Notification
 service (APNs) credentials. Add the following to your Rails credentials:
 
 ```yaml
-apns:
+apple:
   key_id: YOUR_KEY_ID # From Apple Developer Portal
   team_id: YOUR_TEAM_ID # Your Apple Developer Team ID
   bundle_id: YOUR_BUNDLE_ID # Your app's bundle identifier
