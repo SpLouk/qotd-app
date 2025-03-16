@@ -15,9 +15,7 @@ async function getDeviceToken() {
     throw new Error('Push notifications are only supported on iOS');
   }
 
-  const token = await Notifications.getDevicePushTokenAsync();
-  // Clean the token by removing any whitespace and special characters
-  return token.data.replace(/[^a-zA-Z0-9]/g, '');
+  return await Notifications.getDevicePushTokenAsync();
 }
 
 export function useAddDeviceToken() {

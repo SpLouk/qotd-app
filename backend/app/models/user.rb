@@ -122,7 +122,7 @@ class User < ApplicationRecord
         verify_iss: true,
         iss: "https://appleid.apple.com",
         verify_aud: true,
-        aud: Rails.application.credentials.dig(:apple, :client_id),
+        aud: Rails.application.credentials.dig(:apple, :bundle_id),
         verify_exp: true
       }
     ).first

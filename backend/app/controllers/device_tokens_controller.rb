@@ -3,12 +3,12 @@ class DeviceTokensController < ApplicationController
   rate_limit to: 10, within: 5.minutes, with: -> { render json: { error: "Rate limit exceeded" }, status: :too_many_requests }, track_by: -> { Current.user.id }
 
   def create
-    token = params.require(:device_token).permit(:token)
+    token = params.require(:device_token).permit(:token, :platform)
 
     # Find or create the device token
     device_token = Current.user.device_tokens.find_or_initialize_by(
       token: token[:token],
-      platform: "ios"
+      platform: token[:platform]
     )
 
     if device_token.save

@@ -23,7 +23,7 @@ class ApnsService
         client = create_client
         token_batch.each do |token|
           begin
-            client.call(:post, notification_path(token), body: payload.to_json, headers: request_headers)
+            client.call(:post, notification_path(token.token), body: payload.to_json, headers: request_headers)
           rescue StandardError => e
             handle_error(e, token)
           end
@@ -53,7 +53,7 @@ class ApnsService
     end
 
     def base_url
-      Rails.env.production? ? APNS_PRODUCTION_URL : APNS_DEVELOPMENT_URL
+      APNS_PRODUCTION_URL
     end
 
     def request_headers
