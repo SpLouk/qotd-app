@@ -7,8 +7,7 @@ import RadialMenu from '@/components/RadialMenu';
 import { api } from '@/utils/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
-import React from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AppIndex() {
@@ -32,6 +31,7 @@ export default function AppIndex() {
   const {
     data: posts = [],
     isFetching: isFetchingPosts,
+    isLoading: isLoadingPosts,
     error: postsError,
   } = useQuery({
     queryKey: ['posts'],
@@ -94,7 +94,7 @@ export default function AppIndex() {
       </View>
 
       <View style={styles.content}>
-        {isFetchingPosts ? (
+        {isLoadingPosts ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color="#007AFF" size="large" />
           </View>

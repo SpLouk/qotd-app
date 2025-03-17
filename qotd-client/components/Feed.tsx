@@ -1,7 +1,7 @@
 import { fetchPosts } from '@/api/posts';
 import { Post } from '@/types/api';
 import { useQuery } from '@tanstack/react-query';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Post as PostComponent } from './Post';
 
 export function Feed() {
@@ -10,17 +10,18 @@ export function Feed() {
     isLoading,
     refetch,
     isRefetching,
-  } = useQuery({
+  } = useQuery<Post[]>({
     queryKey: ['posts'],
     queryFn: fetchPosts,
   });
 
-  const posts = allPosts.filter((p) => !p.parent_post_id);
+  const posts = allPosts.filter((post: Post) => !post.parent_post_id);
 
-  if (isLoading) {
+  // Only show loading state on initial load, not during refetch
+  if (isLoading && !allPosts.length) {
     return (
       <View style={styles.centered}>
-        <Text>Loading...</Text>
+        <ActivityIndicator color="#007AFF" size="large" />
       </View>
     );
   }

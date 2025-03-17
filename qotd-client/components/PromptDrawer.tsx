@@ -56,6 +56,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
       if (selectedPromptId) {
         setSuccessMessage('Your vote was updated successfully!');
         queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
+        queryClient.invalidateQueries({ queryKey: ['user'] });
         closeModal();
       }
     },
@@ -68,6 +69,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
     onSuccess: () => {
       setSuccessMessage('Your prompt was submitted successfully!');
       queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
       setIsCreatingPrompt(false);
       setNewPromptContent('');
       closeModal();
@@ -206,7 +208,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                           <View style={styles.submittedPromptContainer}>
                             <Text style={styles.submittedPromptLabel}>Your submitted prompt:</Text>
                             <View style={styles.submittedPrompt}>
-                              <Text style={styles.promptItemText}>{userPrompt?.content}</Text>
+                              <Text style={styles.submittedPromptText}>{userPrompt?.content}</Text>
                             </View>
                           </View>
                         ) : (
@@ -432,5 +434,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
     padding: 16,
+  },
+  submittedPromptText: {
+    fontSize: 16,
+    color: '#333',
   },
 });
