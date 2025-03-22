@@ -1,8 +1,10 @@
 import { searchUsers } from '@/api/user';
 import SearchUserItem from '@/components/SearchUserItem';
+import Colors from '@/constants/Colors';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Search() {
   const [query, setQuery] = useState('');
@@ -25,60 +27,66 @@ export default function Search() {
   });
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.searchInput}
-        placeholderTextColor="#ddd"
-        placeholder="Search users..."
-        value={query}
-        onChangeText={setQuery}
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-
-      {isSearching ? (
-        <Text style={styles.loadingText}>Searching...</Text>
-      ) : (
-        <FlatList
-          data={users}
-          renderItem={(user) => <SearchUserItem user={user.item} />}
-          keyExtractor={(item) => item.username}
-          ListEmptyComponent={
-            debouncedQuery ? (
-              <Text style={styles.emptyText}>No users found</Text>
-            ) : (
-              <Text style={styles.emptyText}>Start typing to search for users</Text>
-            )
-          }
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.content}>
+        <TextInput
+          style={styles.searchInput}
+          placeholderTextColor={Colors.textSecondary}
+          placeholder="Search users..."
+          value={query}
+          onChangeText={setQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
         />
-      )}
-    </View>
+
+        {isSearching ? (
+          <Text style={styles.loadingText}>Searching...</Text>
+        ) : (
+          <FlatList
+            data={users}
+            renderItem={(user) => <SearchUserItem user={user.item} />}
+            keyExtractor={(item) => item.username}
+            ListEmptyComponent={
+              debouncedQuery ? (
+                <Text style={styles.emptyText}>No users found</Text>
+              ) : (
+                <Text style={styles.emptyText}>Start typing to search for users</Text>
+              )
+            }
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.background,
+  },
+  content: {
+    flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
   },
   searchInput: {
     height: 40,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border,
     borderRadius: 8,
     paddingHorizontal: 16,
     marginBottom: 16,
     fontSize: 16,
+    color: Colors.text,
   },
   loadingText: {
     textAlign: 'center',
-    color: '#666',
+    color: Colors.textSecondary,
     marginTop: 20,
   },
   emptyText: {
     textAlign: 'center',
-    color: '#666',
+    color: Colors.textSecondary,
     marginTop: 20,
   },
 });

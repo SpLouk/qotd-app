@@ -10,9 +10,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
+import Colors from '@/constants/Colors';
 
 export default function SignUp() {
   const [username, setUsername] = useState('');
@@ -57,46 +58,52 @@ export default function SignUp() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create Your Profile</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>Create Your Profile</Text>
 
-        <ProfilePhotoChanger
-          onImageSelected={handleImageSelected}
-          onError={setError}
-          size={120}
-        />
+          <ProfilePhotoChanger
+            onImageSelected={handleImageSelected}
+            onError={setError}
+            size={120}
+          />
 
-        <TextInput
-          style={styles.input}
-          value={username}
-          onChangeText={setUsername}
-          placeholder="Username"
-          autoCapitalize="none"
-          autoCorrect={false}
-          maxLength={30}
-        />
+          <TextInput
+            style={styles.input}
+            value={username}
+            onChangeText={setUsername}
+            placeholder="Username"
+            autoCapitalize="none"
+            autoCorrect={false}
+            maxLength={30}
+          />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <TouchableOpacity
-          style={[styles.button, (!username.trim() || !image) && styles.buttonDisabled]}
-          onPress={handleSubmit}
-          disabled={!username.trim() || !image}
-        >
-          <Text style={styles.buttonText}>Continue</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <TouchableOpacity
+            style={[styles.button, (!username.trim() || !image) && styles.buttonDisabled]}
+            onPress={handleSubmit}
+            disabled={!username.trim() || !image}
+          >
+            <Text style={styles.buttonText}>Continue</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  keyboardView: {
     flex: 1,
   },
   scrollContent: {
@@ -110,20 +117,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 30,
     textAlign: 'center',
+    color: Colors.text,
   },
   input: {
     width: '100%',
     maxWidth: 300,
     height: 44,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.border,
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 10,
     fontSize: 16,
+    color: Colors.text,
   },
   error: {
-    color: '#ff3b30',
+    color: Colors.error,
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -131,16 +140,16 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 300,
     height: 44,
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.primary,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   buttonDisabled: {
-    backgroundColor: '#007AFF80',
+    backgroundColor: Colors.primary + '80',
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.background,
     fontSize: 16,
     fontWeight: '600',
   },

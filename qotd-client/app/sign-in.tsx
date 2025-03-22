@@ -1,11 +1,13 @@
 import { api } from '@/utils/api';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Colors from '@/constants/Colors';
 
 export default function SignIn() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Welcome to Hoot</Text>
       <AppleAuthentication.AppleAuthenticationButton
         buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
@@ -37,7 +39,7 @@ export default function SignIn() {
           }
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -53,6 +55,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 40,
     textAlign: 'center',
+    color: Colors.primary,
   },
   button: {
     width: '100%',

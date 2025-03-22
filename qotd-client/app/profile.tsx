@@ -1,9 +1,11 @@
 import { fetchCurrentUser, fetchFollowers, fetchFollowing, unFollowUser } from '@/api/user';
 import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
+import Colors from '@/constants/Colors';
 import { User } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type TabType = 'following' | 'followers' | 'requests';
 
@@ -82,7 +84,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.profileSection}>
         <ProfilePhotoChanger initialPhotoUrl={user.profile_photo_url} onError={setError} autoUpload size={80} />
         <Text style={styles.name}>{user.username}</Text>
@@ -116,14 +118,14 @@ export default function ProfileScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
   profileSection: {
     padding: 16,
@@ -135,17 +137,17 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text,
   },
   errorContainer: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.error + '10',
     padding: 12,
     marginHorizontal: 16,
     borderRadius: 8,
     marginBottom: 16,
   },
   error: {
-    color: '#DC2626',
+    color: Colors.error,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -155,7 +157,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: Colors.border,
   },
   statItem: {
     alignItems: 'center',
@@ -164,16 +166,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   activeStatItem: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.border,
   },
   statCount: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text,
   },
   statLabel: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.textSecondary,
     marginTop: 4,
   },
   listContent: {
@@ -185,7 +187,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.border,
   },
   userInfo: {
     flexDirection: 'row',
@@ -200,28 +202,27 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: 16,
-    color: '#333',
+    color: Colors.text,
   },
   button: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
-    minWidth: 90,
+    minWidth: 100,
     alignItems: 'center',
   },
   unfollowButton: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: '#ff3b30',
+    borderColor: Colors.error,
   },
   unfollowButtonText: {
-    color: '#ff3b30',
+    color: Colors.error,
     fontSize: 14,
     fontWeight: '600',
   },
   mutualText: {
     fontSize: 14,
-    color: '#34c759',
-    fontWeight: '600',
+    color: Colors.primary,
   },
 });

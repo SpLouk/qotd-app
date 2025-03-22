@@ -1,7 +1,9 @@
 import { approveFollow, fetchFollowerRequests, unFollowUser } from '@/api/user';
+import Colors from '@/constants/Colors';
 import { Follow } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FollowRequestsScreen() {
   const queryClient = useQueryClient();
@@ -77,7 +79,7 @@ export default function FollowRequestsScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Follow Requests</Text>
       </View>
@@ -98,26 +100,26 @@ export default function FollowRequestsScreen() {
           contentContainerStyle={styles.listContent}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.border,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text,
   },
   loadingContainer: {
     flex: 1,
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.textSecondary,
   },
   emptyContainer: {
     flex: 1,
@@ -135,7 +137,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.textSecondary,
   },
   listContent: {
     padding: 16,
@@ -146,7 +148,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.border,
   },
   userInfo: {
     flexDirection: 'row',
@@ -162,7 +164,7 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: 16,
-    color: '#333',
+    color: Colors.text,
     marginBottom: 2,
   },
   requestActions: {
@@ -177,21 +179,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   approveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.primary,
     marginRight: 8,
   },
   approveButtonText: {
-    color: '#fff',
+    color: Colors.background,
     fontSize: 14,
     fontWeight: '600',
   },
   deleteButton: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: '#ff3b30',
+    borderColor: Colors.error,
   },
   deleteButtonText: {
-    color: '#ff3b30',
+    color: Colors.error,
     fontSize: 14,
     fontWeight: '600',
   },

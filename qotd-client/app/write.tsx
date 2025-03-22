@@ -1,5 +1,6 @@
 import { createPost } from '@/api/posts';
 import { CreatePostRequest } from '@/types/api';
+import Colors from '@/constants/Colors';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -13,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function WriteResponse() {
   const { promptId, promptContent, initialResponse } = useLocalSearchParams<{
@@ -48,43 +50,48 @@ export default function WriteResponse() {
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-      <TouchableOpacity activeOpacity={1} onPress={Keyboard.dismiss} style={styles.dismissKeyboard}>
-        <View style={styles.header}>
-          <View style={styles.promptContainer}>
-            <Text style={styles.promptText}>{promptContent}</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
+        <TouchableOpacity activeOpacity={1} onPress={Keyboard.dismiss} style={styles.dismissKeyboard}>
+          <View style={styles.header}>
+            <View style={styles.promptContainer}>
+              <Text style={styles.promptText}>{promptContent}</Text>
+            </View>
+            <View style={styles.headerSpacer} />
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={isPending || !response.trim()}
+              style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
+            >
+              <Text style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}>
+                {isPending ? 'Submitting...' : 'Submit'}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.headerSpacer} />
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={isPending || !response.trim()}
-            style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
-          >
-            <Text style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}>
-              {isPending ? 'Submitting...' : 'Submit'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <TextInput
-          style={styles.input}
-          multiline
-          placeholder="Start writing..."
-          placeholderTextColor="#999"
-          value={response}
-          onChangeText={setResponse}
-          autoFocus
-          textAlignVertical="top"
-          editable={!isPending}
-        />
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+          <TextInput
+            style={styles.input}
+            multiline
+            placeholder="Start writing..."
+            placeholderTextColor="#999"
+            value={response}
+            onChangeText={setResponse}
+            autoFocus
+            textAlignVertical="top"
+            editable={!isPending}
+          />
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
+  },
+  keyboardView: {
+    flex: 1,
   },
   dismissKeyboard: {
     flex: 1,
@@ -95,7 +102,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.border,
   },
   headerSpacer: {
     flex: 1,
@@ -109,11 +116,11 @@ const styles = StyleSheet.create({
   },
   headerButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: Colors.primary,
     fontWeight: '600',
   },
   headerButtonTextDisabled: {
-    color: '#999',
+    color: Colors.textSecondary,
   },
   promptContainer: {
     padding: 10,
@@ -122,7 +129,7 @@ const styles = StyleSheet.create({
   promptText: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text,
   },
   input: {
     flex: 1,
@@ -130,6 +137,6 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     fontSize: 17,
     lineHeight: 24,
-    color: '#000',
+    color: Colors.text,
   },
 });
