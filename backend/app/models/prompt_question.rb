@@ -14,6 +14,13 @@ class PromptQuestion < ApplicationRecord
       .order(prompt_votes_count: :desc)
   }
 
+  scope :available_for_voting, -> {
+    where(active: false)
+      .where(activated_at: nil)
+      .where(created_at: (Time.current - 2.days)..Time.current)
+      .order(prompt_votes_count: :desc)
+  }
+
   def self.active_prompt
     active.first
   end

@@ -241,23 +241,36 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                           <ActivityIndicator style={styles.loading} />
                         ) : (
                           <>
-                            <FlatList
-                              data={promptQuestions}
-                              renderItem={renderPromptItem}
-                              keyExtractor={(item) => item.id}
-                              style={styles.promptList}
-                            />
-                            <TouchableOpacity
-                              style={[styles.voteButton, !selectedPromptId && styles.voteButtonDisabled]}
-                              onPress={handleVote}
-                              disabled={!selectedPromptId || isVoting}
-                            >
-                              {isVoting ? (
-                                <ActivityIndicator color="#fff" />
-                              ) : (
-                                <Text style={styles.voteButtonText}>{currentVotedPrompt ? 'Change Vote' : 'Vote'}</Text>
-                              )}
-                            </TouchableOpacity>
+                            {promptQuestions?.length ?? 0 > 0 ? (
+                              <>
+                                <FlatList
+                                  data={promptQuestions}
+                                  renderItem={renderPromptItem}
+                                  keyExtractor={(item) => item.id}
+                                  style={styles.promptList}
+                                />
+                                <TouchableOpacity
+                                  style={[styles.voteButton, !selectedPromptId && styles.voteButtonDisabled]}
+                                  onPress={handleVote}
+                                  disabled={!selectedPromptId || isVoting}
+                                >
+                                  {isVoting ? (
+                                    <ActivityIndicator color="#fff" />
+                                  ) : (
+                                    <Text style={styles.voteButtonText}>
+                                      {currentVotedPrompt ? 'Change Vote' : 'Vote'}
+                                    </Text>
+                                  )}
+                                </TouchableOpacity>
+                              </>
+                            ) : (
+                              <View style={styles.emptyStateContainer}>
+                                <Text style={styles.emptyStateText}>No prompts to vote on yet.</Text>
+                                <TouchableOpacity onPress={toggleCreatePrompt}>
+                                  <Text style={styles.toggleButtonText}>Submit a prompt for tomorrow</Text>
+                                </TouchableOpacity>
+                              </View>
+                            )}
                           </>
                         )}
                       </>
@@ -439,5 +452,22 @@ const styles = StyleSheet.create({
   submittedPromptText: {
     fontSize: 16,
     color: '#333',
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  emptyStateButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
