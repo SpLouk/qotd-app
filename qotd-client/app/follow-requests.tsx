@@ -4,6 +4,7 @@ import { Follow } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import BackButton from '@/components/BackButton';
 
 export default function FollowRequestsScreen() {
   const queryClient = useQueryClient();
@@ -81,6 +82,7 @@ export default function FollowRequestsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
+        <BackButton />
         <Text style={styles.headerTitle}>Follow Requests</Text>
       </View>
 
@@ -120,6 +122,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: Colors.text,
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,

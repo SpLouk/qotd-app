@@ -1,4 +1,5 @@
 import { searchUsers } from '@/api/user';
+import BackButton from '@/components/BackButton';
 import SearchUserItem from '@/components/SearchUserItem';
 import Colors from '@/constants/Colors';
 import { useQuery } from '@tanstack/react-query';
@@ -29,15 +30,18 @@ export default function Search() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.content}>
-        <TextInput
-          style={styles.searchInput}
-          placeholderTextColor={Colors.textSecondary}
-          placeholder="Search users..."
-          value={query}
-          onChangeText={setQuery}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        <View style={styles.searchRow}>
+          <BackButton />
+          <TextInput
+            style={styles.searchInput}
+            placeholderTextColor={Colors.textSecondary}
+            placeholder="Search users..."
+            value={query}
+            onChangeText={setQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
 
         {isSearching ? (
           <Text style={styles.loadingText}>Searching...</Text>
@@ -69,13 +73,18 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   searchInput: {
+    flex: 1,
     height: 40,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 8,
     paddingHorizontal: 16,
-    marginBottom: 16,
     fontSize: 16,
     color: Colors.text,
   },

@@ -1,5 +1,6 @@
 import { fetchCurrentUser, fetchFollowers, fetchFollowing, unFollowUser } from '@/api/user';
 import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
+import BackButton from '@/components/BackButton';
 import Colors from '@/constants/Colors';
 import { User } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -85,9 +86,13 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <BackButton />
+        <Text style={styles.headerTitle}>@{user.username}</Text>
+      </View>
+
       <View style={styles.profileSection}>
         <ProfilePhotoChanger initialPhotoUrl={user.profile_photo_url} onError={setError} autoUpload size={80} />
-        <Text style={styles.name}>{user.username}</Text>
       </View>
       {error ? (
         <View style={styles.errorContainer}>
@@ -127,17 +132,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  profileSection: {
-    padding: 16,
-    paddingHorizontal: 48,
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 32,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    flex: 1,
+  },
+  profileSection: {
+    padding: 16,
+    alignItems: 'center',
   },
   name: {
     fontSize: 20,
     fontWeight: '600',
     color: Colors.text,
+    marginTop: 16,
   },
   errorContainer: {
     backgroundColor: Colors.error + '10',
@@ -155,7 +171,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 16,
-    borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: Colors.border,
   },
