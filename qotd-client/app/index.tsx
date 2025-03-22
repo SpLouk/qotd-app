@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.border,
     padding: 16,
   },
   appName: {
@@ -197,12 +197,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   successMessage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
     backgroundColor: '#4CAF50',
-    padding: 16,
+    padding: 12,
     zIndex: 1000,
   },
   successMessageText: {

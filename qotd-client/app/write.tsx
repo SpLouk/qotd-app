@@ -31,6 +31,7 @@ export default function WriteResponse() {
     mutationFn: createPost,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
       router.replace({
         pathname: '/',
         params: { postId: data.id.toString() },

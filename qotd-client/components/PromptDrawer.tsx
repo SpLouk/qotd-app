@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Dimensions,
   FlatList,
@@ -151,9 +152,20 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
     );
   }
 
+  const handlePromptPress = useCallback(() => {
+    if (!userData?.eligible_to_vote_today) {
+      Alert.alert('Cannot Vote', "You need to answer today's prompt within 30 minutes to vote for tomorrow's prompt");
+    } else {
+      openModal();
+    }
+  }, [userData?.eligible_to_vote_today, openModal]);
+
   return (
     <>
-      <TouchableOpacity style={styles.promptButton} onPress={openModal}>
+      <TouchableOpacity
+        style={[styles.promptButton, !userData?.eligible_to_vote_today && styles.promptButtonDisabled]}
+        onPress={handlePromptPress}
+      >
         <Text style={styles.promptButtonText}>Vote for next prompt</Text>
       </TouchableOpacity>
       <Modal visible={isVisible} animationType="none" transparent onRequestClose={closeModal}>
@@ -430,6 +442,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     padding: 16,
     alignItems: 'center',
+  },
+  promptButtonDisabled: {
+    opacity: 0.5,
   },
   promptButtonText: {
     color: '#fff',

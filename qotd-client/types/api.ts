@@ -3,6 +3,7 @@ export interface User {
   username: string;
   profile_photo_url: string;
   voted_today?: boolean;
+  eligible_to_vote_today?: boolean;
   created_prompt_today?: boolean;
   follow_requested?: boolean;
   follow_approved?: boolean;
