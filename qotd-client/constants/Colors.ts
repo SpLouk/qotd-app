@@ -1,0 +1,18 @@
+const tintColor = '#007AFF';
+
+const Colors = {
+  primary: tintColor,
+  background: '#fff',
+  border: '#f0f0f0',
+  text: '#333',
+  textSecondary: '#666',
+  error: '#FF3B30',
+  success: '#34C759',
+  tint: tintColor,
+  tabIconDefault: '#ccc',
+  tabIconSelected: tintColor,
+} as const;
+
+// For strongly typed theme access
+export type ThemeColors = typeof Colors;
+export default Colors;

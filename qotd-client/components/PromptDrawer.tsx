@@ -1,4 +1,5 @@
 import { createPromptQuestion, fetchPromptQuestions, unvoteForPrompt, voteForPrompt } from '@/api/posts';
+import Colors from '@/constants/Colors';
 import { CreatePromptQuestionRequest, PromptQuestion, User } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -323,7 +324,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   toggleButtonText: {
-    color: '#007AFF',
+    color: Colors.primary,
   },
   createPromptContainer: {
     flex: 1,
@@ -363,7 +364,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   promptItemSelected: {
-    borderColor: '#007AFF',
+    borderColor: Colors.primary,
     backgroundColor: '#F0F8FF',
   },
   promptItemText: {
@@ -385,11 +386,11 @@ const styles = StyleSheet.create({
   },
   userVotedText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: Colors.primary,
     marginLeft: 8,
   },
   voteButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.primary,
     borderRadius: 30,
     padding: 16,
     margin: 36,
@@ -412,7 +413,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 4,
     elevation: 5,
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.primary,
     borderRadius: 30,
     padding: 16,
     alignItems: 'center',

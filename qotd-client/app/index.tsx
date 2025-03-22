@@ -9,6 +9,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 export default function AppIndex() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export default function AppIndex() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {successMessage && (
         <View style={styles.successMessage}>
           <Text style={styles.successMessageText}>{successMessage}</Text>
@@ -79,24 +81,23 @@ export default function AppIndex() {
       )}
 
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.promptContainer}>
-            <Text style={styles.promptLabel}>Hoot</Text>
-          </View>
-          {isLoadingUser ? (
-            <View>
-              <ActivityIndicator color="#AFF" size="small" />
-            </View>
-          ) : (
-            user && <RadialMenu />
-          )}
+        <View>
+          <Text style={styles.appName}>Hoot</Text>
+          <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
         </View>
+        {isLoadingUser ? (
+          <View>
+            <ActivityIndicator color={Colors.primary} size="small" />
+          </View>
+        ) : (
+          user && <RadialMenu />
+        )}
       </View>
 
       <View style={styles.content}>
         {isLoadingPosts ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator color="#007AFF" size="large" />
+            <ActivityIndicator color={Colors.primary} size="large" />
           </View>
         ) : postsError ? (
           <View style={styles.errorContainer}>
@@ -108,7 +109,7 @@ export default function AppIndex() {
               onPress={handleRefresh}
             >
               {isFetchingPosts ? (
-                <ActivityIndicator color="#fff" size="small" />
+                <ActivityIndicator color={Colors.primary} size="small" />
               ) : (
                 <Text style={styles.refreshButtonText}>Refresh</Text>
               )}
@@ -121,7 +122,7 @@ export default function AppIndex() {
           </>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -132,26 +133,20 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  headerContent: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    padding: 16,
   },
-  promptContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  appName: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   promptLabel: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 18,
+    color: Colors.textSecondary,
   },
   content: {
     flex: 1,
@@ -170,7 +165,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text,
     textAlign: 'center',
     marginBottom: 8,
   },
