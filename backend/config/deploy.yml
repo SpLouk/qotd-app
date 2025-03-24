@@ -1,5 +1,5 @@
 # Name of your application. Used to uniquely configure containers.
-service: qotd-app-backend
+service: qotd_backend
 
 # Name of the container image.
 image: loukidelis/qotd-app-backend
@@ -38,8 +38,8 @@ env:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
     SOLID_QUEUE_IN_PUMA: true
-    DB_HOST: qotd-app-backend-db
-    POSTGRES_USER: qotd-app
+    DB_HOST: qotd_backend-db
+    POSTGRES_USER: qotd_app
     POSTGRES_DB: qotd_app_production
     DB_PORT: 5432
 
