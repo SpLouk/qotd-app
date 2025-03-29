@@ -1,3 +1,5 @@
+import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
+import Colors from '@/constants/Colors';
 import { api } from '@/utils/api';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -12,8 +14,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
-import Colors from '@/constants/Colors';
 
 export default function SignUp() {
   const [username, setUsername] = useState('');
@@ -67,11 +67,7 @@ export default function SignUp() {
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Create Your Profile</Text>
 
-          <ProfilePhotoChanger
-            onImageSelected={handleImageSelected}
-            onError={setError}
-            size={120}
-          />
+          <ProfilePhotoChanger onImageSelected={handleImageSelected} onError={setError} size={120} />
 
           <TextInput
             style={styles.input}
@@ -127,7 +123,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: 8,
     paddingHorizontal: 15,
-    marginBottom: 10,
+    marginVertical: 16,
     fontSize: 16,
     color: Colors.text,
   },

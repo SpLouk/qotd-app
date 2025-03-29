@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 24,
+    color: Colors.appTitle,
     fontWeight: '600',
-    color: Colors.primary,
   },
   promptLabel: {
     fontSize: 18,

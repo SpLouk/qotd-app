@@ -8,6 +8,7 @@ const Colors = {
   textSecondary: '#666',
   error: '#FF3B30',
   success: '#34C759',
+  appTitle: 'rgb(233, 168, 61)',
   tint: tintColor,
   tabIconDefault: '#ccc',
   tabIconSelected: tintColor,

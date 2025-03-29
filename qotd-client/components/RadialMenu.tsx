@@ -2,7 +2,7 @@ import { fetchCurrentUser, fetchFollowerRequests } from '@/api/user';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function RadialMenu() {
@@ -34,7 +34,7 @@ export default function RadialMenu() {
     router.push(route);
   };
 
-  const menuItems = [
+  const menuItems: IMenuItem[] = [
     {
       icon: 'search',
       label: 'Find friends',
@@ -97,7 +97,7 @@ export default function RadialMenu() {
                 >
                   <TouchableOpacity style={styles.menuContent} onPress={item.onPress}>
                     <View style={styles.menuItemWithBadge}>
-                      <FontAwesome name={item.icon} size={24} color="#333" />
+                      <FontAwesome name={item.icon as any} size={24} color="#333" />
                       {item.badge !== undefined && item.badge > 0 && (
                         <View style={styles.badge}>
                           <Text style={styles.badgeText}>{item.badge}</Text>
@@ -201,3 +201,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+interface IMenuItem {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  badge?: number;
+}
