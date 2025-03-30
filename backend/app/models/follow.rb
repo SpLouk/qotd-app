@@ -54,7 +54,7 @@ class Follow < ApplicationRecord
   end
 
   def notify_follower_if_approved
-    return unless approved?
+    return unless approved? and follower.device_tokens.any?
 
     notification = Notification.new(
       title: "Follow Request Approved",
