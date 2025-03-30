@@ -18,7 +18,7 @@ async function getDeviceToken() {
   return await Notifications.getDevicePushTokenAsync();
 }
 
-export function useAddDeviceToken() {
+export default function useAddDeviceToken() {
   const queryClient = useQueryClient();
   const [deviceTokenAdded, setDeviceTokenAdded] = useState(false);
 
@@ -26,7 +26,7 @@ export function useAddDeviceToken() {
     mutationFn: async () => {
       const token = await getDeviceToken();
 
-      const response = await api.post('/device_tokens', { token, platform: Platform.OS });
+      const response = await api.post('/device_tokens', { device_token: { token: token.data, platform: Platform.OS } });
 
       if (response.status !== 201) {
         throw new Error('Failed to register device token');
@@ -34,6 +34,9 @@ export function useAddDeviceToken() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+    onSettled: (data, error) => {
+      // only add device token once per session
       setDeviceTokenAdded(true);
     },
   });

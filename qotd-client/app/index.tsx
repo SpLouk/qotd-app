@@ -1,6 +1,6 @@
 import { fetchActivePromptQuestion, fetchPosts } from '@/api/posts';
 import { fetchCurrentUser } from '@/api/user';
-import { useAddDeviceToken } from '@/app/hooks/useAddDeviceToken';
+import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
 import PromptDrawer from '@/components/PromptDrawer';
 import RadialMenu from '@/components/RadialMenu';
