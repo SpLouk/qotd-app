@@ -1,6 +1,6 @@
 import { createPost } from '@/api/posts';
-import { CreatePostRequest } from '@/types/api';
 import Colors from '@/constants/Colors';
+import { CreatePostRequest } from '@/types/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -58,13 +58,14 @@ export default function WriteResponse() {
             <View style={styles.promptContainer}>
               <Text style={styles.promptText}>{promptContent}</Text>
             </View>
-            <View style={styles.headerSpacer} />
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={isPending || !response.trim()}
               style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
             >
-              <Text style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}>
+              <Text
+                style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}
+              >
                 {isPending ? 'Submitting...' : 'Submit'}
               </Text>
             </TouchableOpacity>
@@ -126,11 +127,13 @@ const styles = StyleSheet.create({
   promptContainer: {
     padding: 10,
     paddingLeft: 0,
+    flex: 1,
   },
   promptText: {
     fontSize: 24,
     fontWeight: '600',
     color: Colors.text,
+    flexWrap: 'wrap',
   },
   input: {
     flex: 1,
