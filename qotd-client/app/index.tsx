@@ -74,7 +74,7 @@ export default function AppIndex() {
     queryClient.invalidateQueries({ queryKey: ['promptQuestion'] });
   };
 
-  if (!api.getToken() || (!isLoadingUser && !user)) {
+  if (api.hasToken() === false || (!isLoadingUser && !user)) {
     return <Redirect href="/sign-in" />;
   }
 
@@ -89,11 +89,7 @@ export default function AppIndex() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.appName}>Hoot</Text>
-          <Text style={styles.promptLabel}>
-            {activePrompt
-              ? activePrompt.content
-              : 'No Active Prompt'}
-          </Text>
+          <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
         </View>
         {isLoadingUser ? (
           <View>

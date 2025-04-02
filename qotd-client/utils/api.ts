@@ -5,6 +5,7 @@ const TOKEN_KEY = '@qotd_token';
 
 // Token cache in memory
 let currentToken: string | null = null;
+let hasInitializedToken = false;
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -23,6 +24,8 @@ async function initializeToken() {
     }
   } catch (error) {
     console.error('Failed to load token from storage:', error);
+  } finally {
+    hasInitializedToken = true;
   }
 }
 
@@ -105,6 +108,14 @@ export const api = {
   // Get current token
   getToken() {
     return currentToken;
+  },
+
+  hasToken(): boolean | null {
+    if (hasInitializedToken) {
+      return !!currentToken;
+    } else {
+      return null;
+    }
   },
 
   // Clear token (e.g. for logout)
