@@ -6,15 +6,21 @@ import PromptDrawer from '@/components/PromptDrawer';
 import RadialMenu from '@/components/RadialMenu';
 import Colors from '@/constants/Colors';
 import { api } from '@/utils/api';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { focusManager, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AppIndex() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (status) => focusManager.setFocused(status === 'active'));
+
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     if (successMessage) {
@@ -81,9 +87,13 @@ export default function AppIndex() {
       )}
 
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={styles.appName}>Hoot</Text>
-          <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
+          <Text style={styles.promptLabel}>
+            {activePrompt
+              ? activePrompt.content
+              : 'No Active Prompt'}
+          </Text>
         </View>
         {isLoadingUser ? (
           <View>
@@ -132,12 +142,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
+    maxWidth: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     padding: 16,
+  },
+  headerLeft: {
+    flex: 1,
+    marginRight: 16,
   },
   appName: {
     fontSize: 24,

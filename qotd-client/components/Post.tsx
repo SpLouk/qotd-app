@@ -5,24 +5,26 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import React, { useState } from 'react';
-import { 
-  ActivityIndicator, 
-  Alert, 
+import {
+  ActivityIndicator,
+  Alert,
   Image,
-  Text,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  View 
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface PostProps {
   post: PostType;
+  isFullPage?: boolean;
+  initiallyOpenComment?: boolean;
 }
 
-export const Post: React.FC<PostProps> = ({ post }) => {
+export const Post: React.FC<PostProps> = ({ post, isFullPage = false, initiallyOpenComment = false }) => {
   const [comment, setComment] = useState('');
   const [isCommenting, setIsCommenting] = useState(false);
   const queryClient = useQueryClient();
@@ -119,11 +121,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
   );
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={100}
-      style={styles.postContainer}
-    >
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.postContainer}>
       <View style={styles.postContent}>
         <View style={styles.postHeader}>
           <View style={styles.userInfo}>
@@ -179,7 +177,9 @@ export const Post: React.FC<PostProps> = ({ post }) => {
                 }}
                 disabled={addCommentMutation.isPending}
               >
-                <Text style={[styles.cancelButtonText, addCommentMutation.isPending && styles.disabledText]}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, addCommentMutation.isPending && styles.disabledText]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.submitButton, addCommentMutation.isPending && styles.disabledButton]}

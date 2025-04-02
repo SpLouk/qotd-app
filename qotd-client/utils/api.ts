@@ -42,6 +42,11 @@ async function request(endpoint: string, options: RequestOptions = {}) {
   // Add token if we have one
   if (currentToken) {
     headers.Authorization = `Bearer ${currentToken}`;
+  } else {
+    await initializeToken();
+    if (currentToken) {
+      headers.Authorization = `Bearer ${currentToken}`;
+    }
   }
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -102,16 +107,6 @@ export const api = {
     return currentToken;
   },
 
-  // Set token manually (e.g. after login)
-  async setToken(token: string) {
-    currentToken = token;
-    try {
-      await AsyncStorage.setItem(TOKEN_KEY, token);
-    } catch (error) {
-      console.error('Failed to save token to storage:', error);
-    }
-  },
-
   // Clear token (e.g. for logout)
   async clearToken() {
     currentToken = null;
@@ -120,5 +115,5 @@ export const api = {
     } catch (error) {
       console.error('Failed to remove token from storage:', error);
     }
-  }
+  },
 };

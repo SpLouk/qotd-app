@@ -231,6 +231,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                               value={newPromptContent}
                               onChangeText={setNewPromptContent}
                               placeholder="Type your prompt here..."
+                              placeholderTextColor={Colors.textSecondary}
                               multiline
                             />
                             <TouchableOpacity
