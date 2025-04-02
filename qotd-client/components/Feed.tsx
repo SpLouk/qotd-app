@@ -55,6 +55,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
+    flexGrow: 1,
+    paddingBottom: 100, // Add padding to account for the floating button
   },
   centered: {
     flex: 1,

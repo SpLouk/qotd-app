@@ -11,6 +11,7 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Modal,
+  PanResponder,
   Platform,
   Pressable,
   StyleSheet,
@@ -34,6 +35,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
   const [newPromptContent, setNewPromptContent] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const panY = useRef(new Animated.Value(0)).current;
 
   // Fetch prompts to vote on
   const { data: promptQuestions, isLoading: isLoadingPrompts } = useQuery({
@@ -80,6 +82,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
 
   const openModal = useCallback(() => {
     setIsVisible(true);
+    panY.setValue(0);
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
@@ -88,14 +91,13 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
   }, [fadeAnim]);
 
   const closeModal = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
       setIsVisible(false);
+      panY.setValue(0);
       // Reset state when modal is fully closed
       setSelectedPromptId(null);
       if (!promptQuestions || promptQuestions.length === 0) {
@@ -110,6 +112,30 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
       setIsCreatingPrompt(true);
     }
   }, [isLoadingPrompts, promptQuestions]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return gestureState.dy > 0;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          panY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 50) {
+          closeModal();
+        } else {
+          Animated.spring(panY, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   function handleVote() {
     if (!selectedPromptId) return;
@@ -179,6 +205,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
         >
           <Pressable style={StyleSheet.absoluteFill} onPress={closeModal} />
           <Animated.View
+            {...panResponder.panHandlers}
             style={[
               styles.modalContent,
               {
@@ -188,6 +215,9 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                       inputRange: [0, 1],
                       outputRange: [DRAWER_HEIGHT, 0],
                     }),
+                  },
+                  {
+                    translateY: panY,
                   },
                 ],
               },

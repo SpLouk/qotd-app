@@ -13,7 +13,9 @@ class PostsController < ApplicationController
   end
 
   def create
-    @post = Current.user.posts.build(post_params)
+    trimmed_params = post_params
+    trimmed_params[:content] = trimmed_params[:content]&.strip
+    @post = Current.user.posts.build(trimmed_params)
 
     if @post.save
       render json: @post, status: :created

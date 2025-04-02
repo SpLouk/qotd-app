@@ -8,6 +8,8 @@ export const fetchActivePromptQuestion = (): Promise<PromptQuestion> => api.get(
 export const fetchPromptQuestions = (limit: number = 5): Promise<PromptQuestion[]> =>
   api.get(`/prompt_questions?limit=${limit}`);
 
+export const fetchPost = (postId: string): Promise<Post> => api.get(`/posts/${postId}`);
+
 export const createPost = (data: CreatePostRequest): Promise<Post> => api.post('/posts', data);
 
 export const deletePost = (postId: number): Promise<void> => api.delete(`/posts/${postId}`);
