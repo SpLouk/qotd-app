@@ -58,11 +58,18 @@ export default function RadialMenu() {
   return (
     <View style={styles.menuWrapper}>
       <TouchableOpacity style={styles.profileButton} onPress={() => setVisible(!visible)}>
-        {user.profile_photo_url ? (
-          <Image source={{ uri: user.profile_photo_url }} style={styles.profilePhoto} />
-        ) : (
-          <View style={styles.placeholderPhoto}>
-            <FontAwesome name="question" size={18} color="#fff" />
+        <View style={styles.profileButtonContainer}>
+          {user.profile_photo_url ? (
+            <Image source={{ uri: user.profile_photo_url }} style={styles.profilePhoto} />
+          ) : (
+            <View style={styles.placeholderPhoto}>
+              <FontAwesome name="question" size={18} color="#fff" />
+            </View>
+          )}
+        </View>
+        {followRequests.length > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{followRequests.length}</Text>
           </View>
         )}
       </TouchableOpacity>
@@ -119,9 +126,14 @@ export default function RadialMenu() {
 const styles = StyleSheet.create({
   menuWrapper: {
     position: 'relative',
-    zIndex: 999,
   },
   profileButton: {
+    width: 40,
+    height: 40,
+    position: 'relative',
+  },
+  profileButtonContainer: {
+    position: 'relative',
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -186,8 +198,8 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: -8,
-    right: -8,
+    top: -6,
+    right: -6,
     backgroundColor: '#ff3b30',
     borderRadius: 10,
     minWidth: 20,
