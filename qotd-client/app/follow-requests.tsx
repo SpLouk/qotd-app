@@ -1,11 +1,11 @@
-import { approveFollow, fetchFollowerRequests, unFollowUser } from '@/api/user';
+import { approveFollow, fetchFollowerRequests, fetchFollowingRequests, followUser, unFollowUser } from '@/api/user';
+import BackButton from '@/components/BackButton';
 import Colors from '@/constants/Colors';
 import { Follow } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BackButton from '@/components/BackButton';
 
 export default function FollowRequestsScreen() {
   const queryClient = useQueryClient();
@@ -13,6 +13,11 @@ export default function FollowRequestsScreen() {
   const { data: followRequests = [], isLoading } = useQuery({
     queryKey: ['follower_requests'],
     queryFn: fetchFollowerRequests,
+  });
+
+  const { data: followingRequests = [], isLoading: isFollowingRequestsLoading } = useQuery({
+    queryKey: ['following_requests'],
+    queryFn: fetchFollowingRequests,
   });
 
   const approveFollowMutation = useMutation({
@@ -26,6 +31,13 @@ export default function FollowRequestsScreen() {
     mutationFn: unFollowUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['follower_requests'] });
+    },
+  });
+
+  const followUserMutation = useMutation({
+    mutationFn: followUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['following_requests'] });
     },
   });
 
@@ -47,34 +59,61 @@ export default function FollowRequestsScreen() {
     ]);
   };
 
-  const renderRequestItem = ({ item }: { item: Follow }) => (
-    <View style={styles.requestItem}>
-      <View style={styles.userInfo}>
-        <Image source={{ uri: item.follower_profile_photo_url }} style={styles.profilePhoto} />
-        <Text style={styles.username}>{item.follower_username}</Text>
+  const handleFollowBack = (userId: string) => {
+    followUserMutation.mutate(userId);
+  };
+
+  const renderRequestItem = ({ item }: { item: Follow }) => {
+    const followingRequest = followingRequests.find((request) => request.followed_id === item.follower_id);
+    return (
+      <View style={styles.requestItem}>
+        <View style={styles.userInfo}>
+          <Image source={{ uri: item.follower_profile_photo_url }} style={styles.profilePhoto} />
+          <Text style={styles.username}>{item.follower_username}</Text>
+        </View>
+        <View style={styles.requestActions}>
+          {item.approved && followingRequest ? (
+            <TouchableOpacity style={[styles.button, styles.followRequestedButton]} disabled>
+              <Text style={styles.followRequestedButtonText}>
+                {followingRequest.approved ? 'Following' : 'Requested'}
+              </Text>
+            </TouchableOpacity>
+          ) : item.approved ? (
+            <TouchableOpacity
+              style={[styles.button, styles.followBackButton]}
+              onPress={() => handleFollowBack(item.follower_id)}
+              disabled={followUserMutation.variables === item.follower_id}
+            >
+              <Text style={styles.followBackButtonText}>
+                {followUserMutation.variables === item.follower_id ? 'Following...' : 'Follow Back'}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={[styles.button, styles.approveButton]}
+                onPress={() => handleApproveFollow(item.follower_id)}
+                disabled={approveFollowMutation.variables === item.follower_id}
+              >
+                <Text style={styles.approveButtonText}>
+                  {approveFollowMutation.variables === item.follower_id ? 'Approving...' : 'Approve'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.deleteButton]}
+                onPress={() => handleDeleteRequest(item.follower_id, item.follower_username)}
+                disabled={deleteRequestMutation.variables === item.follower_id}
+              >
+                <Text style={styles.deleteButtonText}>
+                  {deleteRequestMutation.variables === item.follower_id ? 'Deleting...' : 'Delete'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
-      <View style={styles.requestActions}>
-        <TouchableOpacity
-          style={[styles.button, styles.approveButton]}
-          onPress={() => handleApproveFollow(item.follower_id)}
-          disabled={approveFollowMutation.variables === item.follower_id}
-        >
-          <Text style={styles.approveButtonText}>
-            {approveFollowMutation.variables === item.follower_id ? 'Approving...' : 'Approve'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
-          onPress={() => handleDeleteRequest(item.follower_id, item.follower_username)}
-          disabled={deleteRequestMutation.variables === item.follower_id}
-        >
-          <Text style={styles.deleteButtonText}>
-            {deleteRequestMutation.variables === item.follower_id ? 'Deleting...' : 'Delete'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -194,6 +233,26 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: Colors.error,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  followBackButton: {
+    backgroundColor: Colors.primary,
+    minWidth: 120,
+  },
+  followRequestedButton: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    minWidth: 120,
+  },
+  followRequestedButtonText: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  followBackButtonText: {
+    color: Colors.background,
     fontSize: 14,
     fontWeight: '600',
   },

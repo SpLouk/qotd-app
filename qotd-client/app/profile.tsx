@@ -1,4 +1,4 @@
-import { fetchCurrentUser, fetchFollowers, fetchFollowing, unFollowUser } from '@/api/user';
+import { fetchCurrentUser, fetchFollowers, fetchFollowing, unFollowUser, logout } from '@/api/user';
 import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
 import BackButton from '@/components/BackButton';
 import Colors from '@/constants/Colors';
@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { api } from '@/utils/api';
+import { router } from 'expo-router';
 
 type TabType = 'following' | 'followers' | 'requests';
 
@@ -65,6 +67,18 @@ function UserListItem({ user }: UserListItemProps) {
 export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('following');
   const [error, setError] = useState('');
+  const queryClient = useQueryClient();
+
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: async () => {
+      // Clear token and invalidate all queries
+      await api.clearToken();
+      queryClient.clear();
+      // Redirect to sign in
+      router.replace('/sign-in');
+    },
+  });
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -90,6 +104,31 @@ export default function ProfileScreen() {
       <View style={styles.header}>
         <BackButton />
         <Text style={styles.headerTitle}>@{user.username}</Text>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => {
+            Alert.alert(
+              'Logout',
+              'Are you sure you want to logout?',
+              [
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                },
+                {
+                  text: 'Logout',
+                  style: 'destructive',
+                  onPress: () => logoutMutation.mutate(),
+                },
+              ]
+            );
+          }}
+          disabled={logoutMutation.isPending}
+        >
+          <Text style={styles.logoutButtonText}>
+            {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.profileSection}>
@@ -240,5 +279,15 @@ const styles = StyleSheet.create({
   mutualText: {
     fontSize: 14,
     color: Colors.primary,
+  },
+  logoutButton: {
+    position: 'absolute',
+    right: 16,
+    padding: 8,
+  },
+  logoutButtonText: {
+    color: Colors.error,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

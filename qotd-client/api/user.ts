@@ -16,3 +16,7 @@ export const fetchFollowing = (): Promise<User[]> => api.get(`/following`);
 export const fetchFollowers = (): Promise<User[]> => api.get(`/followers`);
 
 export const fetchFollowerRequests = (): Promise<Follow[]> => api.get(`/follow_requests`);
+
+export const fetchFollowingRequests = (): Promise<Follow[]> => api.get(`/following_requests`);
+
+export const logout = () => api.delete('/session')

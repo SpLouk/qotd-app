@@ -26,10 +26,13 @@ class FollowsController < ApplicationController
   end
 
   def follow_requests
-    render json: Current.user.follows_as_followed.where(approved: false)
+    render json: Current.user.follows_as_followed.where(
+      "approved = false OR updated_at > ?",
+      1.day.ago
+    )
   end
 
   def following_requests
-    render json: Current.user.follows_as_following.where(approved: false)
+    render json: Current.user.follows_as_follower
   end
 end

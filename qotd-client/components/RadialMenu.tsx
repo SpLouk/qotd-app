@@ -15,10 +15,12 @@ export default function RadialMenu() {
     queryFn: fetchCurrentUser,
   });
 
-  const { data: followRequests = [] } = useQuery({
+  const { data: _followRequests = [] } = useQuery({
     queryKey: ['follower_requests'],
     queryFn: fetchFollowerRequests,
   });
+
+  const unapprovedFollowRequests = _followRequests.filter((request) => !request.approved);
 
   // Update animation when visibility changes
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function RadialMenu() {
       icon: 'user-plus',
       label: 'Requests',
       onPress: () => handleMenuItemPress('/follow-requests'),
-      badge: followRequests.length,
+      badge: unapprovedFollowRequests.length,
     },
   ] as const;
 
@@ -68,9 +70,9 @@ export default function RadialMenu() {
             </View>
           )}
         </View>
-        {followRequests.length > 0 && (
+        {unapprovedFollowRequests.length > 0 && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{followRequests.length}</Text>
+            <Text style={styles.badgeText}>{unapprovedFollowRequests.length}</Text>
           </View>
         )}
       </TouchableOpacity>
