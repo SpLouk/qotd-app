@@ -72,10 +72,8 @@ export default function ProfileScreen() {
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: async () => {
-      // Clear token and invalidate all queries
       await api.clearToken();
       queryClient.clear();
-      // Redirect to sign in
       router.replace('/sign-in');
     },
   });
