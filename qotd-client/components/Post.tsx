@@ -6,7 +6,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
-import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 
 interface PostProps {
   post: PostType;
@@ -15,6 +16,9 @@ interface PostProps {
 export const Post: React.FC<PostProps> = ({ post }) => {
   const queryClient = useQueryClient();
   const router = useRouter();
+
+  const blurhash =
+    '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
   const { data: currentUser } = useQuery({
     queryKey: ['user'],
@@ -31,7 +35,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
       posts
         .filter((p) => p.parent_post_id === post.id)
         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
-    [posts],
+    [posts, post.id],
   );
 
   const deletePostMutation = useMutation({
@@ -76,7 +80,13 @@ export const Post: React.FC<PostProps> = ({ post }) => {
       <View style={styles.commentHeader}>
         <View style={styles.userInfo}>
           {comment.user_photo_url ? (
-            <Image source={{ uri: comment.user_photo_url }} style={styles.commentProfilePhoto} />
+            <Image
+              source={{ uri: comment.user_photo_url }}
+              style={styles.commentProfilePhoto}
+              placeholder={{ blurhash }}
+              contentFit="cover"
+              transition={1000}
+            />
           ) : null}
           <Text style={styles.commentUserName}>{comment.username ?? 'Anonymous'}</Text>
         </View>
