@@ -2,7 +2,8 @@ import { approveFollow, fetchFollowerRequests, unFollowUser } from '@/api/user';
 import Colors from '@/constants/Colors';
 import { Follow } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '@/components/BackButton';
 
@@ -33,21 +34,17 @@ export default function FollowRequestsScreen() {
   };
 
   const handleDeleteRequest = (userId: string, username: string) => {
-    Alert.alert(
-      'Delete Request',
-      `Are you sure you want to delete the follow request from ${username}?`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => deleteRequestMutation.mutate(userId),
-        },
-      ]
-    );
+    Alert.alert('Delete Request', `Are you sure you want to delete the follow request from ${username}?`, [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => deleteRequestMutation.mutate(userId),
+      },
+    ]);
   };
 
   const renderRequestItem = ({ item }: { item: Follow }) => (

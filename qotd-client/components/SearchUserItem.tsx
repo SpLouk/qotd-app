@@ -3,7 +3,8 @@ import { User } from '@/types/api';
 import { api } from '@/utils/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useMemo } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 
 interface UserItemProps {
   user: User;
@@ -38,7 +39,7 @@ const SearchUserItem: React.FC<UserItemProps> = ({ user }) => {
   }, [user]);
 
   const handleFollowAction = (userId: string) => {
-    if ( followStatus === 'requested') {
+    if (followStatus === 'requested') {
       mutateUnfollowUser(userId);
     } else {
       mutateFollowUser(userId);

@@ -17,9 +17,6 @@ export const Post: React.FC<PostProps> = ({ post }) => {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  const blurhash =
-    '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
-
   const { data: currentUser } = useQuery({
     queryKey: ['user'],
     queryFn: fetchCurrentUser,
@@ -80,13 +77,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
       <View style={styles.commentHeader}>
         <View style={styles.userInfo}>
           {comment.user_photo_url ? (
-            <Image
-              source={{ uri: comment.user_photo_url }}
-              style={styles.commentProfilePhoto}
-              placeholder={{ blurhash }}
-              contentFit="cover"
-              transition={1000}
-            />
+            <Image source={{ uri: comment.user_photo_url }} style={styles.commentProfilePhoto} />
           ) : null}
           <Text style={styles.commentUserName}>{comment.username ?? 'Anonymous'}</Text>
         </View>
@@ -243,7 +234,6 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   noCommentsText: {
-    marginVertical: 16,
     fontSize: 14,
     color: '#666',
     fontStyle: 'italic',
@@ -254,6 +244,6 @@ const styles = StyleSheet.create({
   },
   replyButtonText: {
     color: '#007AFF',
-    fontSize: 14,
+    fontSize: 16,
   },
 });

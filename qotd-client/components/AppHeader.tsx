@@ -2,17 +2,9 @@ import { fetchCurrentUser } from '@/api/user';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { 
-  ActivityIndicator, 
-  Image, 
-  Modal, 
-  Pressable, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  View 
-} from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 
 interface AppHeaderProps {
   title?: string;
@@ -40,11 +32,11 @@ export function AppHeader({ title = 'Hoot', showProfileButton = true, rightButto
           <View style={styles.titleContainer}>
             <Text style={styles.titleText}>{title}</Text>
           </View>
-          
+
           {rightButton && <View>{rightButton}</View>}
-          
-          {showProfileButton && (
-            isLoadingUser ? (
+
+          {showProfileButton &&
+            (isLoadingUser ? (
               <View style={styles.profileButton}>
                 <ActivityIndicator color="#AFF" size="small" />
               </View>
@@ -54,8 +46,7 @@ export function AppHeader({ title = 'Hoot', showProfileButton = true, rightButto
                   <Image source={{ uri: user.profile_photo_url }} style={styles.profilePhoto} />
                 </TouchableOpacity>
               )
-            )
-          )}
+            ))}
         </View>
       </View>
 
@@ -148,3 +139,4 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 });
+

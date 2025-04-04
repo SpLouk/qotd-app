@@ -3,7 +3,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 
 export default function RadialMenu() {
   const [visible, setVisible] = useState(false);

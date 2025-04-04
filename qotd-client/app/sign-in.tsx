@@ -2,7 +2,8 @@ import Colors from '@/constants/Colors';
 import { api } from '@/utils/api';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
-import { Image, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SignIn() {
