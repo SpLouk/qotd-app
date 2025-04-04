@@ -1,0 +1,57 @@
+const IS_DEV = process.env.APP_VARIANT === 'development';
+
+export default {
+  expo: {
+    name: IS_DEV ? 'Hoot (dev)' : 'Hoot',
+    slug: 'qotd',
+    version: '1.0.0',
+    orientation: 'portrait',
+    icon: './assets/images/icon.png',
+    scheme: 'myapp',
+    userInterfaceStyle: 'automatic',
+    newArchEnabled: true,
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: IS_DEV ? 'com.loukidelis.qotd.dev' : 'com.loukidelis.qotd',
+      usesAppleSignIn: true,
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: './assets/images/adaptive-icon.png',
+        backgroundColor: '#ffffff',
+      },
+    },
+    web: {
+      bundler: 'metro',
+      output: 'static',
+      favicon: './assets/images/favicon.png',
+    },
+    plugins: [
+      'expo-router',
+      [
+        'expo-splash-screen',
+        {
+          image: './assets/images/splash-icon.png',
+          imageWidth: 200,
+          resizeMode: 'contain',
+          backgroundColor: '#ffffff',
+        },
+      ],
+      'expo-apple-authentication',
+    ],
+    experiments: {
+      typedRoutes: true,
+    },
+    extra: {
+      router: {
+        origin: false,
+      },
+      eas: {
+        projectId: '53970d8e-d45a-4ae9-a8de-d9a51b746d0a',
+      },
+    },
+  },
+};

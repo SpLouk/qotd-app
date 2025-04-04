@@ -1,6 +1,7 @@
 import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
 import Colors from '@/constants/Colors';
 import { api } from '@/utils/api';
+import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -17,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SignUp() {
   const [username, setUsername] = useState('');
+  const queryClient = useQueryClient();
   const [error, setError] = useState('');
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
 
@@ -46,6 +48,7 @@ export default function SignUp() {
       } as any);
 
       await api.patch('/user', formData);
+      queryClient.invalidateQueries({ queryKey: ['user'] });
       router.replace('/');
     } catch (e: any) {
       if (e.message.includes('422')) {
