@@ -3,15 +3,17 @@ Rails.application.routes.draw do
     delete :destroy, on: :collection
   end
 
-  resources :prompt_questions, only: [ :index, :create ] do
-    member do
-      post :vote
-      delete :unvote
+  resources :groups do
+    resources :prompt_questions, only: [ :index, :create ] do
+      member do
+        post :vote
+        delete :unvote
+      end
+      get :active, on: :collection
     end
-    get :active, on: :collection
-  end
 
-  resources :posts, only: [ :create, :destroy, :index ]
+    resources :posts, only: [ :create, :destroy, :index ]
+  end
 
   # Routes for other users
   resources :users do
@@ -31,7 +33,6 @@ Rails.application.routes.draw do
   get "following_requests", to: "follows#following_requests"
 
   resource :session
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

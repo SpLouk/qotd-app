@@ -1,10 +1,12 @@
 class Post < ApplicationRecord
   belongs_to :user
   belongs_to :prompt_question, optional: true
+  belongs_to :group, optional: true
   belongs_to :parent_post, class_name: "Post", optional: true
   has_many :replies, class_name: "Post", foreign_key: :parent_post_id, dependent: :destroy
 
   validates :content, presence: true
+  validate :user_in_group, if: :group_id?
 
   after_create :notify_parent_post_author, if: :is_reply?
 
@@ -19,6 +21,11 @@ class Post < ApplicationRecord
 
   def is_reply?
     parent_post.present?
+  end
+
+  def user_in_group
+    return if group.users.approved.exists?(id: user_id)
+    errors.add(:group, "user must be an approved member of the group")
   end
 
   def notify_parent_post_author

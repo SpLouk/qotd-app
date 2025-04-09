@@ -1,11 +1,11 @@
 class PostsController < ApplicationController
+  before_action :set_group
+
   def index
-    active_prompt = PromptQuestion.active_prompt
+    active_prompt = @group.active_prompt
     return render json: [], status: :not_found unless active_prompt
 
-    user_ids = [ Current.user.following.pluck(:followed_id), Current.user.id ].flatten
-    posts = Post.where(user_id: user_ids)
-                .where(prompt_question_id: active_prompt.id)
+    posts = Post.where(prompt_question_id: active_prompt.id)
                 .includes(:user)
                 .order(created_at: :desc)
 
@@ -16,6 +16,7 @@ class PostsController < ApplicationController
     trimmed_params = post_params
     trimmed_params[:content] = trimmed_params[:content]&.strip
     @post = Current.user.posts.build(trimmed_params)
+    @post.group = @group
 
     if @post.save
       render json: @post, status: :created
@@ -35,6 +36,10 @@ class PostsController < ApplicationController
   end
 
   private
+
+  def set_group
+    @group = Group.find(params[:group_id])
+  end
 
   def post_params
     params.require(:post).permit(:content, :prompt_question_id, :parent_post_id)

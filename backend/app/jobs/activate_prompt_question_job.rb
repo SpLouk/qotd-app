@@ -15,8 +15,8 @@ class ActivatePromptQuestionJob < ApplicationJob
     device_tokens = DeviceToken.all
 
     notification = Notification.new(
-      title: "Time to write",
-      body: "A new question is active. Respond to it now!",
+      title: "It's time to hoot!",
+      body: "A new question has been posted.",
       category: "new_prompt",
       thread_id: "prompt_#{prompt.id}",
       target_content_id: prompt.id.to_s

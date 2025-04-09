@@ -1,18 +1,19 @@
 class PromptQuestionsController < ApplicationController
+  before_action :set_group
   before_action :set_prompt_question, only: [ :vote, :unvote ]
 
   def index
     # Get prompts a user can vote for (those not already active)
-    @prompt_questions = PromptQuestion.available_for_voting
+    @prompt_questions = @group.prompt_questions.available_for_voting
     render json: @prompt_questions.as_json(include_votes: true, current_user: Current.user)
   end
 
   def active
-    render json: PromptQuestion.active_prompt
+    render json: @group.active_prompt
   end
 
   def create
-    @prompt_question = PromptQuestion.new(prompt_question_params)
+    @prompt_question = @group.prompt_questions.build(prompt_question_params)
     @prompt_question.created_by = Current.user
 
     if @prompt_question.save
@@ -47,8 +48,12 @@ class PromptQuestionsController < ApplicationController
 
   private
 
+  def set_group
+    @group = Group.find(params[:group_id])
+  end
+
   def set_prompt_question
-    @prompt_question = PromptQuestion.find(params[:id])
+    @prompt_question = @group.prompt_questions.find(params[:id])
   end
 
   def prompt_question_params

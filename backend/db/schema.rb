@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_07_201106) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_07_225948) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -60,6 +60,29 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_07_201106) do
     t.index ["follower_id"], name: "index_follows_on_follower_id"
   end
 
+  create_table "group_users", force: :cascade do |t|
+    t.integer "group_id", null: false
+    t.integer "user_id", null: false
+    t.integer "role", default: 0, null: false
+    t.boolean "approved", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["group_id", "user_id"], name: "index_group_users_on_group_id_and_user_id", unique: true
+    t.index ["group_id"], name: "index_group_users_on_group_id"
+    t.index ["user_id"], name: "index_group_users_on_user_id"
+  end
+
+  create_table "groups", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.integer "created_by_id", null: false
+    t.datetime "next_scheduled_activation"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_groups_on_created_by_id"
+    t.index ["name"], name: "index_groups_on_name", unique: true
+  end
+
   create_table "posts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "prompt_question_id"
@@ -67,6 +90,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_07_201106) do
     t.text "content", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "group_id"
+    t.index ["group_id"], name: "index_posts_on_group_id"
     t.index ["parent_post_id"], name: "index_posts_on_parent_post_id"
     t.index ["prompt_question_id"], name: "index_posts_on_prompt_question_id"
     t.index ["user_id"], name: "index_posts_on_user_id"
@@ -81,7 +106,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_07_201106) do
     t.integer "prompt_votes_count", default: 0
     t.datetime "activated_at"
     t.datetime "deactivated_at"
+    t.integer "group_id"
     t.index ["created_by_id"], name: "index_prompt_questions_on_created_by_id"
+    t.index ["group_id", "active"], name: "index_prompt_questions_on_group_id_and_active", where: "active = true"
+    t.index ["group_id"], name: "index_prompt_questions_on_group_id"
     t.index ["prompt_votes_count"], name: "index_prompt_questions_on_prompt_votes_count"
   end
 
@@ -122,9 +150,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_07_201106) do
   add_foreign_key "device_tokens", "users"
   add_foreign_key "follows", "users", column: "followed_id"
   add_foreign_key "follows", "users", column: "follower_id"
+  add_foreign_key "group_users", "groups"
+  add_foreign_key "group_users", "users"
+  add_foreign_key "groups", "users", column: "created_by_id"
+  add_foreign_key "posts", "groups"
   add_foreign_key "posts", "posts", column: "parent_post_id"
   add_foreign_key "posts", "prompt_questions"
   add_foreign_key "posts", "users"
+  add_foreign_key "prompt_questions", "groups"
   add_foreign_key "prompt_questions", "users", column: "created_by_id"
   add_foreign_key "prompt_votes", "prompt_questions"
   add_foreign_key "prompt_votes", "users"
