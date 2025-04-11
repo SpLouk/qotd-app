@@ -20,6 +20,10 @@ class SchedulePromptActivationJob < ApplicationJob
     # Schedule the activation job
     ActivatePromptQuestionJob.set(wait_until: activation_time).perform_later
 
+    Group.find_each do |group|
+      group.update(next_scheduled_activation: activation_time)
+    end
+
     Rails.logger.info "Scheduled next prompt activation for #{activation_time}"
   end
 end

@@ -4,7 +4,7 @@ class PromptQuestionsController < ApplicationController
 
   def index
     # Get prompts a user can vote for (those not already active)
-    @prompt_questions = @group.prompt_questions.available_for_voting
+    @prompt_questions = @group.prompt_questions.available_for_voting(@group)
     render json: @prompt_questions.as_json(include_votes: true, current_user: Current.user)
   end
 

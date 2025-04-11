@@ -30,4 +30,27 @@ class SchedulePromptActivationJobTest < ActiveJob::TestCase
       assert scheduled_time_est.hour <= 17
     end
   end
+
+  test "updates all groups with the next scheduled activation time" do
+    group1 = groups(:one)
+    group2 = groups(:two)
+
+    assert_equal group1.next_scheduled_activation, nil
+    assert_equal group2.next_scheduled_activation, nil
+
+    travel_to Time.current do
+      # Run the job
+      SchedulePromptActivationJob.perform_now
+
+      # Get the activation job to find the scheduled time
+      activation_job = ActiveJob::Base.queue_adapter.enqueued_jobs.find { |job| job[:job] == ActivatePromptQuestionJob }
+      scheduled_time = Time.at(activation_job[:at])
+
+      # Verify each group was updated with the correct activation time
+      [group1, group2].each do |group|
+        group.reload
+        assert_equal scheduled_time, group.next_scheduled_activation
+      end
+    end
+  end
 end

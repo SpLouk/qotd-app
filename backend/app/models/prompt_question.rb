@@ -6,7 +6,6 @@ class PromptQuestion < ApplicationRecord
   has_many :voters, through: :prompt_votes, source: :user
 
   validates :content, presence: true
-  validate :only_one_active_prompt_per_group
 
   scope :active, -> { where(active: true) }
   scope :available_for_activation, -> {
@@ -15,35 +14,14 @@ class PromptQuestion < ApplicationRecord
       .order(prompt_votes_count: :desc)
   }
 
-  scope :available_for_voting, -> {
+  scope :available_for_voting, ->(group) {
+    next_activation = group.next_scheduled_activation || Time.current
     where(active: false)
       .where(activated_at: nil)
-      .where(created_at: (Time.current - 2.days)..Time.current)
+      .where(group_id: group.id)
+      .where(created_at: (next_activation - 2.days)..Time.current)
       .order(prompt_votes_count: :desc)
   }
-
-  def self.active_prompt
-    active.first
-  end
-
-  def activate!
-    ActiveRecord::Base.transaction do
-      # Deactivate currently active prompt in this group and record deactivation time
-      currently_active = group.prompt_questions.active.first
-      if currently_active
-        currently_active.update!(
-          active: false,
-          deactivated_at: Time.current
-        )
-      end
-
-      # Activate this prompt and record activation time
-      update!(
-        active: true,
-        activated_at: Time.current
-      )
-    end
-  end
 
   def user_voted?(user)
     return false unless user
@@ -61,15 +39,5 @@ class PromptQuestion < ApplicationRecord
     end
 
     json
-  end
-
-  private
-
-  def only_one_active_prompt_per_group
-    return unless active
-    return unless group_id
-
-    other_active = group.prompt_questions.active.where.not(id: id).exists?
-    errors.add(:active, "cannot have multiple active prompts in the same group") if other_active
   end
 end

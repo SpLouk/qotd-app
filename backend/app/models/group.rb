@@ -7,30 +7,40 @@ class Group < ApplicationRecord
   has_many :posts, dependent: :nullify
 
   validates :name, presence: true, uniqueness: true
-
-  def approved_users
-    users.merge(GroupUser.where(approved: true))
-  end
+  validate :only_one_active_prompt
 
   def active_prompt
     prompt_questions.active.first
   end
 
-  def prompt_history
-    prompt_questions.order(activated_at: :desc)
-  end
+  def activate_new_prompt!
+    ActiveRecord::Base.transaction do
+      if active_prompt
+        active_prompt.update!(
+          active: false,
+          deactivated_at: Time.current
+        )
+      end
 
-  def set_active_prompt(prompt)
-    return unless prompt.group_id == id
-    prompt.activate!
+      # Activate this prompt and record activation time
+      prompt_to_activate = prompt_questions.available_for_activation.first
+
+      return unless prompt_to_activate
+
+      prompt_to_activate.update!(
+        active: true,
+        activated_at: Time.current
+      )
+      prompt_to_activate
+    end
   end
 
   private
 
   def only_one_active_prompt
-    return unless active
+    return if prompt_questions.empty?
 
-    other_active = PromptQuestion.active.where.not(id: id).exists?
-    errors.add(:active, "cannot have multiple active prompts") if other_active
+    active_count = prompt_questions.count { |q| q.active? || (q.active_changed? && q.active) }
+    errors.add(:base, "Group can only have one active prompt at a time") if active_count > 1
   end
 end

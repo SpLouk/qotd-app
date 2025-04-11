@@ -5,13 +5,10 @@ class ActivatePromptQuestionJob < ApplicationJob
     # Activate prompts for each group
     Group.find_each do |group|
       # Find the most voted prompt that's available for activation in this group
-      prompt = group.prompt_questions.available_for_activation.first
+      prompt = group.activate_new_prompt!
 
       # Skip if no available prompt for this group
       next unless prompt
-
-      # Activate the prompt
-      prompt.activate!
 
       # Send push notifications to users in this group
       device_tokens = DeviceToken.includes(:user)

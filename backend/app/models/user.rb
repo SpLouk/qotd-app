@@ -44,6 +44,7 @@ class User < ApplicationRecord
       attrs[:voted_today] = has_voted_today?
       attrs[:eligible_to_vote_today] = responded_to_current_prompt_within_30_minutes?
       attrs[:created_prompt_today] = has_created_prompt_today?
+      attrs[:groups] = groups.map { |g| { id: g.id, name: g.name } }
     else
       attrs[:follow_requested] = follows_as_followed.exists?(follower_id: Current.user.id)
       attrs[:follow_approved] = follows_as_followed.exists?(follower_id: Current.user.id, approved: true)
@@ -58,7 +59,7 @@ class User < ApplicationRecord
   end
 
   def responded_to_current_prompt_within_30_minutes?
-    active_prompt = PromptQuestion.active_prompt
+    active_prompt = group.active_prompt
     return false unless active_prompt
 
     # Check if user has posted a response to the active prompt within the last 30 minutes
