@@ -1,4 +1,5 @@
 import { createPost, fetchPosts } from '@/api/posts';
+import { fetchCurrentUser } from '@/api/user';
 import BackButton from '@/components/BackButton';
 import Colors from '@/constants/Colors';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -23,24 +24,34 @@ export default function ReplyToPostPage() {
   const [reply, setReply] = useState('');
   const queryClient = useQueryClient();
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: fetchCurrentUser,
+  });
+
+  const groupId = user?.groups?.[0]?.id;
+
   const { data: posts = [], isLoading: isLoadingPosts } = useQuery({
-    queryKey: ['posts'],
-    queryFn: fetchPosts,
+    queryKey: ['posts', groupId],
+    queryFn: () => (groupId ? fetchPosts(groupId) : Promise.reject('No group ID available')),
+    enabled: !!groupId,
   });
 
   const post = posts.find((post) => post.id === Number.parseInt(id));
 
   const addReplyMutation = useMutation({
-    mutationFn: (content: string) =>
-      createPost({
+    mutationFn: (content: string) => {
+      if (!groupId) throw new Error('No group ID available');
+      return createPost(groupId, {
         post: {
           content,
           parent_post_id: Number.parseInt(id),
           prompt_question_id: post?.prompt_question_id ?? 0,
         },
-      }),
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
       setReply('');
       router.back();
     },
@@ -62,11 +73,7 @@ export default function ReplyToPostPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardAvoidingView}>
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <BackButton />
@@ -94,18 +101,16 @@ export default function ReplyToPostPage() {
           </View>
         </View>
 
-        <View style={styles.replyContainer}>
-          <TextInput
-            style={styles.replyInput}
-            value={reply}
-            onChangeText={setReply}
-            placeholder="Write your reply..."
-            placeholderTextColor="#666"
-            multiline
-            autoFocus
-            editable={!addReplyMutation.isPending}
-          />
-        </View>
+        <TextInput
+          style={styles.replyInput}
+          value={reply}
+          onChangeText={setReply}
+          placeholder="Write your reply..."
+          placeholderTextColor="#666"
+          multiline
+          autoFocus
+          editable={!addReplyMutation.isPending}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -176,11 +181,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
   },
-  replyContainer: {
-    flex: 1,
-    padding: 16,
-  },
   replyInput: {
+    paddingHorizontal: 16,
     flex: 1,
     fontSize: 16,
     lineHeight: 22,

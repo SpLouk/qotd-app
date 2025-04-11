@@ -10,6 +10,13 @@ export interface User {
   requested_following_you?: boolean;
   following_you?: boolean;
   has_device_token?: boolean;
+  groups?: Group[];
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
 }
 
 export interface Follow {

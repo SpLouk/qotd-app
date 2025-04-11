@@ -26,7 +26,7 @@ class Post < ApplicationRecord
   end
 
   def user_in_group
-    return if group.users.approved.exists?(id: user_id)
+    return if group.approved_users.exists?(id: user_id)
     errors.add(:group, "user must be an approved member of the group")
   end
 
@@ -59,7 +59,7 @@ class Post < ApplicationRecord
 
   def validate_group_consistency
     return unless group_id?
-    
+
     if parent_post.present?
       errors.add(:group, "must match parent post's group") if group_id != parent_post.group_id
     elsif prompt_question.present?

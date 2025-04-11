@@ -37,29 +37,33 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
 
-  // Fetch prompts to vote on
-  const { data: promptQuestions, isLoading: isLoadingPrompts } = useQuery({
-    queryKey: ['promptQuestions'],
-    queryFn: () => fetchPromptQuestions(5),
-  });
-
   // Get the current user data from the cache
   const userData = queryClient.getQueryData<User>(['user']);
-  const userPrompt = promptQuestions?.find((p) => p.created_by_username === userData?.username);
+  const groupId = userData?.groups?.[0]?.id;
 
+  // Fetch prompts to vote on
+  const { data: promptQuestions, isLoading: isLoadingPrompts } = useQuery({
+    queryKey: ['promptQuestions', groupId],
+    queryFn: () => groupId ? fetchPromptQuestions(groupId) : Promise.reject('No group ID available'),
+    enabled: !!groupId,
+  });
+
+  const userPrompt = promptQuestions?.find((p) => p.created_by_username === userData?.username);
   const currentVotedPrompt = promptQuestions?.find((p) => p.user_voted)?.id;
+
   const { mutate: votePrompt, isPending: isVoting } = useMutation({
     mutationKey: ['votePrompt'],
     mutationFn: async (promptId: string) => {
+      if (!groupId) throw new Error('No group ID available');
       if (currentVotedPrompt && currentVotedPrompt !== promptId) {
-        await unvoteForPrompt(currentVotedPrompt);
+        await unvoteForPrompt(groupId, currentVotedPrompt);
       }
-      return voteForPrompt(promptId);
+      return voteForPrompt(groupId, promptId);
     },
     onSuccess: () => {
       if (selectedPromptId) {
         setSuccessMessage('Your vote was updated successfully!');
-        queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
+        queryClient.invalidateQueries({ queryKey: ['promptQuestions', groupId] });
         queryClient.invalidateQueries({ queryKey: ['user'] });
         closeModal();
       }
@@ -69,10 +73,13 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
   // Create a new prompt
   const { mutate: submitPrompt, isPending: isSubmittingPrompt } = useMutation({
     mutationKey: ['createPrompt'],
-    mutationFn: createPromptQuestion,
+    mutationFn: (data: CreatePromptQuestionRequest) => {
+      if (!groupId) throw new Error('No group ID available');
+      return createPromptQuestion(groupId, data);
+    },
     onSuccess: () => {
       setSuccessMessage('Your prompt was submitted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['promptQuestions'] });
+      queryClient.invalidateQueries({ queryKey: ['promptQuestions', groupId] });
       queryClient.invalidateQueries({ queryKey: ['user'] });
       setIsCreatingPrompt(false);
       setNewPromptContent('');

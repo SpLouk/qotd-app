@@ -4,10 +4,10 @@ import { Post as PostType } from '@/types/api';
 import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Image } from 'expo-image';
 
 interface PostProps {
   post: PostType;
@@ -22,9 +22,12 @@ export const Post: React.FC<PostProps> = ({ post }) => {
     queryFn: fetchCurrentUser,
   });
 
+  const groupId = currentUser?.groups?.[0]?.id;
+
   const { data: posts = [], isLoading: isLoadingComments } = useQuery({
-    queryKey: ['posts'],
-    queryFn: fetchPosts,
+    queryKey: ['posts', groupId],
+    queryFn: () => groupId ? fetchPosts(groupId) : Promise.reject('No group ID available'),
+    enabled: !!groupId,
   });
 
   const comments = useMemo(
@@ -37,9 +40,12 @@ export const Post: React.FC<PostProps> = ({ post }) => {
 
   const deletePostMutation = useMutation({
     mutationKey: ['posts'],
-    mutationFn: deletePost,
+    mutationFn: (postId: number) => {
+      if (!groupId) throw new Error('No group ID available');
+      return deletePost(groupId, postId);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
     },
     onError: (error) => {
       console.error('Failed to delete post:', error);

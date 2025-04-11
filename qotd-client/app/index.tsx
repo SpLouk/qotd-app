@@ -36,19 +36,23 @@ export default function AppIndex() {
     queryFn: fetchCurrentUser,
   });
 
+  const groupId = user?.groups?.[0]?.id;
+
   const {
     data: posts = [],
     isFetching: isFetchingPosts,
     isLoading: isLoadingPosts,
     error: postsError,
   } = useQuery({
-    queryKey: ['posts'],
-    queryFn: fetchPosts,
+    queryKey: ['posts', groupId],
+    queryFn: () => (groupId ? fetchPosts(groupId) : Promise.reject('No group ID available')),
+    enabled: !!groupId,
   });
 
   const { data: activePrompt } = useQuery({
-    queryKey: ['promptQuestion'],
-    queryFn: fetchActivePromptQuestion,
+    queryKey: ['promptQuestion', groupId],
+    queryFn: () => (groupId ? fetchActivePromptQuestion(groupId) : Promise.reject('No group ID available')),
+    enabled: !!groupId,
   });
 
   useAddDeviceToken();
@@ -70,8 +74,8 @@ export default function AppIndex() {
   }, [user, activePrompt, isFetchingPosts, ownPost]);
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['posts'] });
-    queryClient.invalidateQueries({ queryKey: ['promptQuestion'] });
+    queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
+    queryClient.invalidateQueries({ queryKey: ['promptQuestion', groupId] });
   };
 
   if (api.hasToken() === false || (!isLoadingUser && !user)) {
@@ -88,7 +92,7 @@ export default function AppIndex() {
 
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.appName}>Hoot</Text>
+          <Text style={styles.appName}>{user?.groups?.[0]?.name ?? 'Hoot'}</Text>
           <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
         </View>
         {isLoadingUser ? (
@@ -101,6 +105,11 @@ export default function AppIndex() {
       </View>
 
       <View style={styles.content}>
+        {!groupId && (
+          <SafeAreaView style={styles.errorContainer}>
+            <Text style={styles.errorText}>You need to be a member of a group to access this app.</Text>
+          </SafeAreaView>
+        )}
         {isLoadingPosts ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color={Colors.primary} size="large" />
@@ -164,11 +173,13 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
   },
   errorContainer: {
     flex: 1,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -178,7 +189,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.text,
     textAlign: 'center',
-    marginBottom: 8,
   },
   errorSubtext: {
     fontSize: 16,
@@ -214,7 +224,6 @@ const styles = StyleSheet.create({
   },
   successMessageText: {
     color: '#fff',
-    fontSize: 16,
     textAlign: 'center',
   },
 });

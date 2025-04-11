@@ -1,6 +1,5 @@
-import { fetchCurrentUser } from '@/api/user';
 import { api } from '@/utils/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
@@ -19,7 +18,6 @@ async function getDeviceToken() {
 }
 
 export default function useAddDeviceToken() {
-  const queryClient = useQueryClient();
   const [deviceTokenAdded, setDeviceTokenAdded] = useState(false);
 
   const addDeviceToken = useMutation({
@@ -32,22 +30,15 @@ export default function useAddDeviceToken() {
         throw new Error('Failed to register device token');
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-    },
-    onSettled: (data, error) => {
+    onSettled: () => {
       // only add device token once per session
       setDeviceTokenAdded(true);
     },
   });
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: fetchCurrentUser,
-  });
 
   useEffect(() => {
-    if (user && !user.has_device_token && !deviceTokenAdded) {
+    if (!deviceTokenAdded) {
       addDeviceToken.mutate();
     }
-  }, [user, addDeviceToken, deviceTokenAdded]);
+  }, [deviceTokenAdded]);
 }

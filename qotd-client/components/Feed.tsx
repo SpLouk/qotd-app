@@ -15,14 +15,17 @@ export function Feed() {
     queryFn: fetchCurrentUser,
   });
 
+  const groupId = user?.groups?.[0]?.id;
+
   const {
     data: allPosts = [],
     isLoading,
     refetch,
     isRefetching,
   } = useQuery<Post[]>({
-    queryKey: ['posts'],
-    queryFn: fetchPosts,
+    queryKey: ['posts', groupId],
+    queryFn: () => (groupId ? fetchPosts(groupId) : Promise.reject('No group ID available')),
+    enabled: !!groupId,
   });
 
   const posts = allPosts.filter((post: Post) => !post.parent_post_id);

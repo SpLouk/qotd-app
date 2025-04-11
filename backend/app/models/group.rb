@@ -9,6 +9,10 @@ class Group < ApplicationRecord
   validates :name, presence: true, uniqueness: true
   validate :only_one_active_prompt
 
+  def approved_users
+    users.merge(GroupUser.where(approved: true))
+  end
+
   def active_prompt
     prompt_questions.active.first
   end
@@ -33,6 +37,11 @@ class Group < ApplicationRecord
       )
       prompt_to_activate
     end
+  end
+
+  def add_user(user, role = :member)
+    new_group_user = group_users.build(user: user, role: role, approved: true)
+    new_group_user.save!
   end
 
   private
