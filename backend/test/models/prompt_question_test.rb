@@ -1,11 +1,6 @@
 require "test_helper"
 
 class PromptQuestionTest < ActiveSupport::TestCase
-  test "most_voted returns the prompt with the most votes" do
-    # The inactive prompt has 2 votes, should be first
-    assert_equal prompt_questions(:inactive), PromptQuestion.most_voted
-  end
-
   test "activate! makes a prompt active and deactivates other prompts" do
     # Setup
     active_prompt = prompt_questions(:active_group_one)

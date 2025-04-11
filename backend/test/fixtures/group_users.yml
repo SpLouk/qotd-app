@@ -8,4 +8,4 @@ two:
 
 three:
   user: three
-  group: one
+  group: two

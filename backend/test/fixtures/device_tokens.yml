@@ -9,3 +9,8 @@ another_ios_token:
   token: test_ios_token_2
   platform: ios
   user: two
+
+device_token_3:
+  token: test_ios_token_3
+  platform: ios
+  user: three

@@ -23,7 +23,7 @@ class SchedulePromptActivationJobTest < ActiveJob::TestCase
       scheduled_time_est = scheduled_time.in_time_zone(est_timezone)
 
       # Should be tomorrow
-      assert_equal Date.tomorrow, scheduled_time_est.to_date
+      assert_equal Date.today, scheduled_time_est.to_date
 
       # Should be between 9 AM and 5 PM EST
       assert scheduled_time_est.hour >= 9

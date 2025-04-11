@@ -2,6 +2,7 @@ require "net-http2"
 require "jwt"
 class ApnsService
   APNS_PRODUCTION_URL = "https://api.push.apple.com".freeze
+  APNS_SANDBOX_URL = "https://api.sandbox.push.apple.com".freeze
   ALGORITHM = "ES256".freeze
   TOKEN_EXPIRY = 50.minutes.freeze # Apple recommends < 60 minutes
 
@@ -39,7 +40,7 @@ class ApnsService
     end
 
     def create_client
-      uri = URI.parse(APNS_PRODUCTION_URL)
+      uri = URI.parse(Rails.env.test? ? APNS_SANDBOX_URL : APNS_PRODUCTION_URL)
       NetHttp2::Client.new(uri).tap do |client|
         client.on(:error) { |exception| Rails.logger.error("APNs Error: #{exception}") }
       end

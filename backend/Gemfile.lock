@@ -158,6 +158,8 @@ GEM
     marcel (1.0.4)
     mini_mime (1.1.5)
     minitest (5.25.4)
+    mocha (2.7.1)
+      ruby2_keywords (>= 0.0.5)
     msgpack (1.7.5)
     net-http2 (0.19.0)
       http-2 (>= 1.0)
@@ -275,6 +277,7 @@ GEM
       rubocop-performance
       rubocop-rails
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
     securerandom (0.4.1)
     solid_cable (3.0.5)
       actioncable (>= 7.2)
@@ -343,6 +346,7 @@ DEPENDENCIES
   debug
   jwt (~> 2.10)
   kamal
+  mocha
   net-http2 (~> 0.18)
   net-smtp (~> 0.5.0)
   pg (~> 1.5, >= 1.5.6)

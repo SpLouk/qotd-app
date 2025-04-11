@@ -26,10 +26,6 @@ class PromptQuestion < ApplicationRecord
     active.first
   end
 
-  def self.most_voted
-    available_for_activation.first
-  end
-
   def activate!
     ActiveRecord::Base.transaction do
       # Deactivate currently active prompt in this group and record deactivation time
