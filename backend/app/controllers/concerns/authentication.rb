@@ -10,6 +10,10 @@ module Authentication
     def allow_unauthenticated_access(**options)
       skip_before_action :require_authentication, **options
     end
+
+    def skip_session_refresh(**options)
+      skip_after_action :refresh_session, **options
+    end
   end
 
   private
