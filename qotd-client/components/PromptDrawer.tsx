@@ -44,19 +44,19 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
   // Fetch prompts to vote on
   const { data: promptQuestions, isLoading: isLoadingPrompts } = useQuery({
     queryKey: ['promptQuestions', groupId],
-    queryFn: () => groupId ? fetchPromptQuestions(groupId) : Promise.reject('No group ID available'),
+    queryFn: () => (groupId ? fetchPromptQuestions(groupId) : Promise.reject('No group ID available')),
     enabled: !!groupId,
   });
 
   const userPrompt = promptQuestions?.find((p) => p.created_by_username === userData?.username);
-  const currentVotedPrompt = promptQuestions?.find((p) => p.user_voted)?.id;
+  const currentVotedPromptId = promptQuestions?.find((p) => p.user_voted)?.id;
 
   const { mutate: votePrompt, isPending: isVoting } = useMutation({
     mutationKey: ['votePrompt'],
     mutationFn: async (promptId: string) => {
       if (!groupId) throw new Error('No group ID available');
-      if (currentVotedPrompt && currentVotedPrompt !== promptId) {
-        await unvoteForPrompt(groupId, currentVotedPrompt);
+      if (currentVotedPromptId && currentVotedPromptId !== promptId) {
+        await unvoteForPrompt(groupId, currentVotedPromptId);
       }
       return voteForPrompt(groupId, promptId);
     },
@@ -95,7 +95,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [fadeAnim]);
+  }, [fadeAnim, panY]);
 
   const closeModal = useCallback(() => {
     Animated.timing(fadeAnim, {
@@ -111,7 +111,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
         setIsCreatingPrompt(true);
       }
     });
-  }, [fadeAnim, promptQuestions]);
+  }, [fadeAnim, promptQuestions, panY]);
 
   // Automatically switch to creating a prompt when there are no prompts available
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
           }).start();
         }
       },
-    })
+    }),
   ).current;
 
   function handleVote() {
@@ -291,7 +291,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                           <ActivityIndicator style={styles.loading} />
                         ) : (
                           <>
-                            {promptQuestions?.length ?? 0 > 0 ? (
+                            {(promptQuestions?.length ?? 0 > 0) ? (
                               <>
                                 <FlatList
                                   data={promptQuestions}
@@ -300,15 +300,19 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                                   style={styles.promptList}
                                 />
                                 <TouchableOpacity
-                                  style={[styles.voteButton, !selectedPromptId && styles.voteButtonDisabled]}
+                                  style={[
+                                    styles.voteButton,
+                                    (!selectedPromptId || selectedPromptId === currentVotedPromptId) &&
+                                      styles.voteButtonDisabled,
+                                  ]}
                                   onPress={handleVote}
-                                  disabled={!selectedPromptId || isVoting}
+                                  disabled={!selectedPromptId || isVoting || selectedPromptId === currentVotedPromptId}
                                 >
                                   {isVoting ? (
                                     <ActivityIndicator color="#fff" />
                                   ) : (
                                     <Text style={styles.voteButtonText}>
-                                      {currentVotedPrompt ? 'Change Vote' : 'Vote'}
+                                      {currentVotedPromptId ? 'Change Vote' : 'Vote'}
                                     </Text>
                                   )}
                                 </TouchableOpacity>
