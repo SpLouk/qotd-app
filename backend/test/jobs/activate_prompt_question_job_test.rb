@@ -3,7 +3,7 @@ require "test_helper"
 class ActivatePromptQuestionJobTest < ActiveJob::TestCase
   test "activates the highest-voted prompt and deactivates currently active prompt" do
     # Setup - active_prompt is currently active
-    active_prompt = prompt_questions(:active)
+    active_prompt = prompt_questions(:active_group_one)
     assert active_prompt.active?
 
     # Highest voted prompt is inactive with 2 votes

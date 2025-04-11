@@ -8,7 +8,7 @@ class PromptQuestionTest < ActiveSupport::TestCase
 
   test "activate! makes a prompt active and deactivates other prompts" do
     # Setup
-    active_prompt = prompt_questions(:active)
+    active_prompt = prompt_questions(:active_group_one)
     inactive_prompt = prompt_questions(:inactive)
 
     # Execute

@@ -7,6 +7,8 @@ class Post < ApplicationRecord
 
   validates :content, presence: true
   validate :user_in_group, if: :group_id?
+  validate :validate_parent_or_prompt_presence
+  validate :validate_group_consistency
 
   after_create :notify_parent_post_author, if: :is_reply?
 
@@ -48,5 +50,20 @@ class Post < ApplicationRecord
     )
 
     ApnsService.notify(notification, parent_post.user.device_tokens)
+  end
+
+  def validate_parent_or_prompt_presence
+    return if parent_post.present? || prompt_question.present?
+    errors.add(:base, "must have either a parent post or prompt question")
+  end
+
+  def validate_group_consistency
+    return unless group_id?
+    
+    if parent_post.present?
+      errors.add(:group, "must match parent post's group") if group_id != parent_post.group_id
+    elsif prompt_question.present?
+      errors.add(:group, "must match prompt question's group") if group_id != prompt_question.group_id
+    end
   end
 end

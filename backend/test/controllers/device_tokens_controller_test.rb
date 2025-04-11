@@ -10,7 +10,7 @@ class DeviceTokensControllerTest < ActionDispatch::IntegrationTest
   test "create registers a new device token" do
     assert_difference "DeviceToken.count" do
       post device_tokens_path,
-        params: { device_token: { token: @token } },
+        params: { device_token: { token: @token, platform: "ios" } },
         headers: auth_headers
     end
 
@@ -26,7 +26,7 @@ class DeviceTokensControllerTest < ActionDispatch::IntegrationTest
 
     assert_no_difference "DeviceToken.count" do
       post device_tokens_path,
-        params: { device_token: { token: @token } },
+        params: { device_token: { token: @token, platform: "ios" } },
         headers: auth_headers
     end
 

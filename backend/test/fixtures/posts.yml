@@ -1,19 +1,23 @@
-followed_user_active_post:
+group_one_active_post:
   user: two
-  prompt_question: active
+  prompt_question: active_group_one
   content: "Ruby is my favorite!"
+  group: one
 
-followed_user_inactive_post:
+group_one_inactive_post:
   user: two
   prompt_question: inactive
   content: "Pizza is my favorite!"
+  group: one
 
-not_followed_user_post:
+group_two_user_post:
   user: three
-  prompt_question: active
+  prompt_question: active_group_two
   content: "Python is my favorite!"
+  group: two
 
 current_user_active_post:
   user: one
-  prompt_question: active
+  prompt_question: active_group_one
   content: "JavaScript is my favorite!"
+  group: one

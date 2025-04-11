@@ -1,0 +1,9 @@
+one:
+  created_by: one
+  name: "Test Group One"
+  description: "A test group for testing posts"
+
+two:
+  created_by: two
+  name: "Test Group Two"
+  description: "Another test group for testing posts"

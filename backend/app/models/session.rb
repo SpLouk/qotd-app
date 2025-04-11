@@ -3,7 +3,7 @@ class Session < ApplicationRecord
   before_create :generate_token
 
   def token_is_stale?
-    token_refreshed_at < 5.days.ago
+    token_refreshed_at < 5.minutes.ago
   end
 
   def regenerate_token!

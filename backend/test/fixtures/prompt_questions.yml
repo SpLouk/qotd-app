@@ -1,25 +1,36 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-active:
-  content: "This is the currently active prompt"
+active_group_one:
+  content: "This is the active group one prompt"
   active: true
   activated_at: <%= 1.day.ago %>
   created_by: one
+  group: one
 
 inactive:
   content: "This is an inactive prompt with votes"
   active: false
   prompt_votes_count: 2
   created_by: two
+  group: one
 
 inactive_with_votes:
   content: "This is another inactive prompt with votes"
   active: false
   prompt_votes_count: 1
   created_by: three
+  group: one
 
 unused:
   content: "This is an unused prompt"
   active: false
   prompt_votes_count: 0
   created_by: one
+  group: one
+
+active_group_two:
+  content: "This is the active group two prompt"
+  active: true
+  activated_at: <%= 1.day.ago %>
+  created_by: one
+  group: two

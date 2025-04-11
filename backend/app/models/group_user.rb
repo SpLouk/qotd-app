@@ -4,5 +4,5 @@ class GroupUser < ApplicationRecord
 
   validates :user_id, uniqueness: { scope: :group_id }
 
-  enum role: [ :member, :admin ]
+  enum :role, [ :member, :admin ]
 end
