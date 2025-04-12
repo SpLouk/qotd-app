@@ -105,11 +105,6 @@ export default function AppIndex() {
       </View>
 
       <View style={styles.content}>
-        {!groupId && (
-          <SafeAreaView style={styles.errorContainer}>
-            <Text style={styles.errorText}>You need to be a member of a group to access this app.</Text>
-          </SafeAreaView>
-        )}
         {isLoadingPosts ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color={Colors.primary} size="large" />

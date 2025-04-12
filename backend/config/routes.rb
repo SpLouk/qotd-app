@@ -4,6 +4,10 @@ Rails.application.routes.draw do
   end
 
   resources :groups do
+    member do
+      post :join
+      post :approve_request
+    end
     resources :prompt_questions, only: [ :index, :create ] do
       member do
         post :vote

@@ -8,7 +8,8 @@ namespace :group do
       admin = User.first # Using first user as admin, modify as needed
       group = Group.create!(
         name: "Hoot (Beta Testers)",
-        created_by: admin
+        created_by: admin,
+        privacy_level: :open
       )
       puts "Created group: #{group.name}"
 

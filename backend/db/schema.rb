@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_07_225948) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_12_010851) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -79,6 +79,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_07_225948) do
     t.datetime "next_scheduled_activation"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "privacy_level", default: 0, null: false
     t.index ["created_by_id"], name: "index_groups_on_created_by_id"
     t.index ["name"], name: "index_groups_on_name", unique: true
   end

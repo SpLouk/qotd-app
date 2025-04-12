@@ -2,8 +2,40 @@ one:
   created_by: one
   name: "Test Group One"
   description: "A test group for testing posts"
+  privacy_level: closed
 
 two:
   created_by: two
   name: "Test Group Two"
   description: "Another test group for testing posts"
+  privacy_level: secret
+
+open:
+  created_by: one
+  name: "Public Group"
+  description: "A public test group"
+  privacy_level: open
+
+closed:
+  created_by: two
+  name: "Closed Group"
+  description: "A closed test group"
+  privacy_level: closed
+
+secret:
+  created_by: two
+  name: "Private Group"
+  description: "A private test group"
+  privacy_level: secret
+
+public_searchable:
+  created_by: one
+  name: "Searchable Test Group"
+  description: "A searchable public group"
+  privacy_level: open
+
+secret_two:
+  created_by: three
+  name: "Private Group Two"
+  description: "Another private test group"
+  privacy_level: secret

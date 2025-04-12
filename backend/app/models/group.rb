@@ -6,7 +6,10 @@ class Group < ApplicationRecord
   has_many :prompt_questions, dependent: :destroy
   has_many :posts, dependent: :nullify
 
+  enum :privacy_level, [ :secret, :closed, :open ]
+
   validates :name, presence: true, uniqueness: true
+  validates :privacy_level, presence: true
   validate :only_one_active_prompt
 
   def approved_users
