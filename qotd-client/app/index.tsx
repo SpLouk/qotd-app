@@ -3,12 +3,12 @@ import { fetchCurrentUser } from '@/api/user';
 import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
 import PromptDrawer from '@/components/PromptDrawer';
-import RadialMenu from '@/components/RadialMenu';
 import Colors from '@/constants/Colors';
+import { GroupContext, useGroup, useGroupId } from '@/context/GroupContext';
 import { api } from '@/utils/api';
 import { focusManager, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -35,8 +35,17 @@ export default function AppIndex() {
     queryKey: ['user'],
     queryFn: fetchCurrentUser,
   });
+  const groupContext = useContext(GroupContext);
+  const firstGroup = user?.groups?.[0];
 
-  const groupId = user?.groups?.[0]?.id;
+  useEffect(() => {
+    if (firstGroup) {
+      groupContext?.setSelectedGroup(firstGroup);
+    }
+  }, [firstGroup, groupContext]);
+
+  const groupId = useGroupId();
+  const { selectedGroup } = useGroup();
 
   const {
     data: posts = [],
@@ -91,17 +100,8 @@ export default function AppIndex() {
       )}
 
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.appName}>{user?.groups?.[0]?.name ?? 'Hoot'}</Text>
-          <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
-        </View>
-        {isLoadingUser ? (
-          <View>
-            <ActivityIndicator color={Colors.primary} size="small" />
-          </View>
-        ) : (
-          user && <RadialMenu />
-        )}
+        <Text style={styles.appName}>{selectedGroup?.name}</Text>
+        <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
       </View>
 
       <View style={styles.content}>
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   header: {
     maxWidth: '100%',
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,

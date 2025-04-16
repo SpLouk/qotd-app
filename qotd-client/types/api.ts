@@ -1,5 +1,5 @@
 export interface User {
-  id: string;
+  id: number;
   username: string;
   profile_photo_url: string;
   voted_today?: boolean;
@@ -17,6 +17,7 @@ export interface Group {
   id: string;
   name: string;
   description: string;
+  members: Pick<User, 'id' | 'username' | 'profile_photo_url'>[];
 }
 
 export interface Follow {

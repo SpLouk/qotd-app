@@ -42,6 +42,12 @@ class Group < ApplicationRecord
     end
   end
 
+  def as_json
+    attrs = slice(:id, :name, :description, :privacy_level, :created_at, :created_by_id, :next_scheduled_activation)
+    attrs[:members] = approved_users.as_json(only: [ :id, :username, :profile_photo_url ])
+    attrs
+  end
+
   def add_user(user, role = :member)
     new_group_user = group_users.build(user: user, role: role, approved: true)
     new_group_user.save!

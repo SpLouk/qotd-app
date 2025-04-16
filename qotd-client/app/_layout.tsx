@@ -1,3 +1,4 @@
+import { GroupProvider } from '@/context/GroupContext';
 import { QueryProvider } from '@/providers/query';
 import { focusManager } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -13,15 +14,17 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryProvider>
-      <SafeAreaProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: '#fff' },
-          }}
-        />
-      </SafeAreaProvider>
-    </QueryProvider>
+    <GroupProvider>
+      <QueryProvider>
+        <SafeAreaProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: '#fff' },
+            }}
+          />
+        </SafeAreaProvider>
+      </QueryProvider>
+    </GroupProvider>
   );
 }

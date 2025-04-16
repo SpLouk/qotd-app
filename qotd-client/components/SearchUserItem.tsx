@@ -38,7 +38,7 @@ const SearchUserItem: React.FC<UserItemProps> = ({ user }) => {
     return 'none';
   }, [user]);
 
-  const handleFollowAction = (userId: string) => {
+  const handleFollowAction = (userId: number) => {
     if (followStatus === 'requested') {
       mutateUnfollowUser(userId);
     } else {

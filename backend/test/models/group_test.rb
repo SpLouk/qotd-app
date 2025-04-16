@@ -41,12 +41,12 @@ class GroupTest < ActiveSupport::TestCase
     group = groups(:one)
     # Deactivate all prompts first
     group.prompt_questions.update_all(active: false)
-    
+
     # Make sure there are no available prompts
     group.prompt_questions.available_for_activation.destroy_all
 
     result = group.activate_new_prompt!
-    assert_nil result
+    assert_equal nil, result
   end
 
   test "group requires a name" do
@@ -64,5 +64,31 @@ class GroupTest < ActiveSupport::TestCase
 
     assert_not new_group.valid?
     assert_includes new_group.errors.full_messages, "Name has already been taken"
+  end
+
+  test "as_json includes correct attributes and approved members" do
+    group = groups(:one)
+    json = group.as_json
+
+    # Test basic attributes
+    assert_equal group.id, json[:id]
+    assert_equal group.name, json[:name]
+    assert_equal group.description, json[:description]
+    assert_equal group.privacy_level, json[:privacy_level]
+    assert_equal group.created_at, json[:created_at]
+    assert_equal group.created_by_id, json[:created_by_id]
+    assert_equal group.next_scheduled_activation, json[:next_scheduled_activation]
+
+    # Test members serialization
+    members_json = json[:members]
+    assert_kind_of Array, members_json
+
+    group.approved_users.each_with_index do |user, index|
+      member = members_json[index]
+      assert_equal user.id, member[:id]
+      assert_equal user.username, member[:username]
+      assert_equal user.profile_photo_url, member[:profile_photo_url]
+      assert_nil member[:email], "should not include sensitive user data"
+    end
   end
 end

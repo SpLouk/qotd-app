@@ -1,10 +1,10 @@
 import { deletePost, fetchPosts } from '@/api/posts';
 import { fetchCurrentUser } from '@/api/user';
+import { UserProfileHeader } from '@/components/UserProfileHeader';
 import { Post as PostType } from '@/types/api';
 import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -26,7 +26,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
 
   const { data: posts = [], isLoading: isLoadingComments } = useQuery({
     queryKey: ['posts', groupId],
-    queryFn: () => groupId ? fetchPosts(groupId) : Promise.reject('No group ID available'),
+    queryFn: () => (groupId ? fetchPosts(groupId) : Promise.reject('No group ID available')),
     enabled: !!groupId,
   });
 
@@ -82,10 +82,11 @@ export const Post: React.FC<PostProps> = ({ post }) => {
     <View key={comment.id} style={styles.comment}>
       <View style={styles.commentHeader}>
         <View style={styles.userInfo}>
-          {comment.user_photo_url ? (
-            <Image source={{ uri: comment.user_photo_url }} style={styles.commentProfilePhoto} />
-          ) : null}
-          <Text style={styles.commentUserName}>{comment.username ?? 'Anonymous'}</Text>
+          <UserProfileHeader
+            user_id={comment.user_id}
+            username={comment.username}
+            user_photo_url={comment.user_photo_url}
+          />
         </View>
         <View style={styles.commentActions}>
           <Text style={styles.commentDate}>
@@ -110,8 +111,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.userInfo}>
-          {post.user_photo_url ? <Image source={{ uri: post.user_photo_url }} style={styles.profilePhoto} /> : null}
-          <Text style={styles.userName}>{post.username ?? 'Anonymous'}</Text>
+          <UserProfileHeader user_id={post.user_id} username={post.username} user_photo_url={post.user_photo_url} />
         </View>
         <View style={styles.headerActions}>
           <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
@@ -138,7 +138,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
       </View>
       <TouchableOpacity
         style={styles.replyButton}
-        onPress={(e) => {
+        onPress={() => {
           navigateToPost(true);
         }}
       >

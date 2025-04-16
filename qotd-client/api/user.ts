@@ -5,11 +5,11 @@ export const fetchCurrentUser = (): Promise<User> => api.get('/user');
 
 export const searchUsers = (query: string): Promise<User[]> => api.get(`/users/search?q=${encodeURIComponent(query)}`);
 
-export const followUser = (userId: string): Promise<void> => api.post(`/users/${userId}/follow`, {});
+export const followUser = (userId: number): Promise<void> => api.post(`/users/${userId}/follow`, {});
 
-export const unFollowUser = (userId: string): Promise<void> => api.delete(`/users/${userId}/follow`);
+export const unFollowUser = (userId: number): Promise<void> => api.delete(`/users/${userId}/follow`);
 
-export const approveFollow = (userId: string): Promise<void> => api.put(`/users/${userId}/follow/approve`, {});
+export const approveFollow = (userId: number): Promise<void> => api.put(`/users/${userId}/follow/approve`, {});
 
 export const fetchFollowing = (): Promise<User[]> => api.get(`/following`);
 
@@ -19,4 +19,5 @@ export const fetchFollowerRequests = (): Promise<Follow[]> => api.get(`/follow_r
 
 export const fetchFollowingRequests = (): Promise<Follow[]> => api.get(`/following_requests`);
 
-export const logout = () => api.delete('/session')
+export const logout = () => api.delete('/session');
+
