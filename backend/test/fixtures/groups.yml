@@ -39,3 +39,4 @@ secret_two:
   name: "Private Group Two"
   description: "Another private test group"
   privacy_level: secret
+

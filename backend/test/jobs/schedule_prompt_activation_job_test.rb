@@ -35,8 +35,8 @@ class SchedulePromptActivationJobTest < ActiveJob::TestCase
     group1 = groups(:one)
     group2 = groups(:two)
 
-    assert_equal group1.next_scheduled_activation, nil
-    assert_equal group2.next_scheduled_activation, nil
+    assert_nil group1.next_scheduled_activation
+    assert_nil group2.next_scheduled_activation
 
     travel_to Time.current do
       # Run the job
@@ -47,7 +47,7 @@ class SchedulePromptActivationJobTest < ActiveJob::TestCase
       scheduled_time = Time.at(activation_job[:at])
 
       # Verify each group was updated with the correct activation time
-      [group1, group2].each do |group|
+      [ group1, group2 ].each do |group|
         group.reload
         assert_equal scheduled_time, group.next_scheduled_activation
       end

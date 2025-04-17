@@ -22,6 +22,12 @@ class Group < ApplicationRecord
 
   def activate_new_prompt!
     ActiveRecord::Base.transaction do
+      prompts = prompt_questions.available_for_voting.to_a
+      winning_prompt, *runner_up_prompts = prompts.first(4)
+      runner_up_ids = runner_up_prompts.map(&:id)
+
+      return unless winning_prompt
+
       if active_prompt
         active_prompt.update!(
           active: false,
@@ -30,19 +36,14 @@ class Group < ApplicationRecord
         )
       end
 
-      # Restrict eligibility to top 3 most-voted prompts
-      prompts = prompt_questions.available_for_voting.to_a
-      winning_prompt, *runner_up_prompts = prompts.first(4)
-      runner_up_ids = runner_up_prompts.map(&:id)
       prompt_questions.where.not(id: runner_up_ids).update_all(eligible_for_votes: false)
       prompt_questions.where(id: runner_up_ids).update_all(eligible_for_votes: true)
-
-      return unless winning_prompt
 
       winning_prompt.update!(
         active: true,
         activated_at: Time.current
       )
+      winning_prompt
     end
   end
 

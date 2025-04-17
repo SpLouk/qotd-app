@@ -46,7 +46,7 @@ class GroupTest < ActiveSupport::TestCase
     group.prompt_questions.available_for_voting.destroy_all
 
     result = group.activate_new_prompt!
-    assert_equal nil, result
+    assert_nil result
   end
 
   test "group requires a name" do
@@ -77,7 +77,7 @@ class GroupTest < ActiveSupport::TestCase
     assert_equal group.privacy_level, json[:privacy_level]
     assert_equal group.created_at, json[:created_at]
     assert_equal group.created_by_id, json[:created_by_id]
-    assert_equal group.next_scheduled_activation, json[:next_scheduled_activation]
+    assert_nil json[:next_scheduled_activation]
 
     # Test members serialization
     members_json = json[:members]
