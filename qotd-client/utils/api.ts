@@ -23,10 +23,6 @@ export function useFetchApiAndParseJson() {
     async (endpoint: string, options: RequestOptions = {}) => {
       const response = await fetchApi(endpoint, options);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       return response.json();
     },
     [fetchApi],
@@ -59,6 +55,9 @@ export function useFetchApi() {
       });
       if (response.status === 401 && path !== '/sign-in' && isInitialized) {
         router.replace('/sign-in');
+      }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response;
     },

@@ -9,6 +9,7 @@ export function useUserApi() {
   const queryClient = useQueryClient();
   const { clearSession } = useSession();
   const router = useRouter();
+  const { isInitialized } = useSession();
 
   const invalidateUser = () => {
     queryClient.invalidateQueries({ queryKey: ['user'] });
@@ -17,6 +18,7 @@ export function useUserApi() {
   const currentUserQuery = useQuery<User, Error>({
     queryKey: ['user'],
     queryFn: () => api('/user'),
+    enabled: isInitialized,
   });
 
   const logoutMutation = useMutation<void, Error, void>({
