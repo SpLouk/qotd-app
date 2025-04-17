@@ -43,7 +43,7 @@ class GroupTest < ActiveSupport::TestCase
     group.prompt_questions.update_all(active: false)
 
     # Make sure there are no available prompts
-    group.prompt_questions.available_for_activation.destroy_all
+    group.prompt_questions.available_for_voting.destroy_all
 
     result = group.activate_new_prompt!
     assert_equal nil, result

@@ -8,18 +8,10 @@ class PromptQuestion < ApplicationRecord
   validates :content, presence: true
 
   scope :active, -> { where(active: true) }
-  scope :available_for_activation, -> {
-    where(active: false)
-      .where(activated_at: nil)
-      .order(prompt_votes_count: :desc)
-  }
 
-  scope :available_for_voting, ->(group) {
-    next_activation = group.next_scheduled_activation || Time.current
-    where(active: false)
-      .where(activated_at: nil)
-      .where(group_id: group.id)
-      .where(created_at: (next_activation - 2.days)..Time.current)
+  scope :available_for_voting, -> {
+      where(activated_at: nil)
+      .where(eligible_for_votes: true)
       .order(prompt_votes_count: :desc)
   }
 

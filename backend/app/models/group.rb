@@ -25,26 +25,30 @@ class Group < ApplicationRecord
       if active_prompt
         active_prompt.update!(
           active: false,
-          deactivated_at: Time.current
+          deactivated_at: Time.current,
+          eligible_for_votes: false
         )
       end
 
-      # Activate this prompt and record activation time
-      prompt_to_activate = prompt_questions.available_for_activation.first
+      # Restrict eligibility to top 3 most-voted prompts
+      prompts = prompt_questions.available_for_voting.to_a
+      winning_prompt, *runner_up_prompts = prompts.first(4)
+      runner_up_ids = runner_up_prompts.map(&:id)
+      prompt_questions.where.not(id: runner_up_ids).update_all(eligible_for_votes: false)
+      prompt_questions.where(id: runner_up_ids).update_all(eligible_for_votes: true)
 
-      return unless prompt_to_activate
+      return unless winning_prompt
 
-      prompt_to_activate.update!(
+      winning_prompt.update!(
         active: true,
         activated_at: Time.current
       )
-      prompt_to_activate
     end
   end
 
   def as_json
     attrs = slice(:id, :name, :description, :privacy_level, :created_at, :created_by_id, :next_scheduled_activation)
-    attrs[:members] = approved_users.as_json(only: [ :id, :username, :profile_photo_url ])
+    attrs[:members] = approved_users.as_json
     attrs
   end
 

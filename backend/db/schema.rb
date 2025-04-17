@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_16_191653) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_17_030414) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -108,6 +108,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_16_191653) do
     t.datetime "activated_at"
     t.datetime "deactivated_at"
     t.integer "group_id"
+    t.boolean "eligible_for_votes", default: false, null: false
     t.index ["created_by_id"], name: "index_prompt_questions_on_created_by_id"
     t.index ["group_id", "active"], name: "index_prompt_questions_on_group_id_and_active", where: "active = true"
     t.index ["group_id"], name: "index_prompt_questions_on_group_id"

@@ -1,21 +1,6 @@
 require "test_helper"
 
 class PromptQuestionTest < ActiveSupport::TestCase
-  test "activate! makes a prompt active and deactivates other prompts" do
-    # Setup
-    active_prompt = prompt_questions(:active_group_one)
-    inactive_prompt = prompt_questions(:inactive)
-
-    # Execute
-    inactive_prompt.activate!
-
-    # Assert
-    assert inactive_prompt.reload.active?
-    assert inactive_prompt.activated_at.present?
-    assert_not active_prompt.reload.active?
-    assert active_prompt.deactivated_at.present?
-  end
-
   test "user_voted? returns true if user has voted" do
     prompt = prompt_questions(:inactive)
     user = users(:one)

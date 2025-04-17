@@ -4,7 +4,7 @@ class PromptQuestionsController < ApplicationController
 
   def index
     # Get prompts a user can vote for (those not already active)
-    @prompt_questions = @group.prompt_questions.available_for_voting(@group)
+    @prompt_questions = @group.prompt_questions.available_for_voting()
     render json: @prompt_questions.as_json(include_votes: true, current_user: Current.user)
   end
 
@@ -15,6 +15,7 @@ class PromptQuestionsController < ApplicationController
   def create
     @prompt_question = @group.prompt_questions.build(prompt_question_params)
     @prompt_question.created_by = Current.user
+    @prompt_question.eligible_for_votes = true
 
     if @prompt_question.save
       render json: @prompt_question, status: :created

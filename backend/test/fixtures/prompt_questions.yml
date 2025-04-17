@@ -6,6 +6,7 @@ active_group_one:
   activated_at: <%= 1.day.ago %>
   created_by: one
   group: one
+  eligible_for_votes: true
 
 inactive:
   content: "This is an inactive prompt with votes"
@@ -13,6 +14,7 @@ inactive:
   prompt_votes_count: 2
   created_by: two
   group: one
+  eligible_for_votes: true
 
 inactive_with_votes:
   content: "This is another inactive prompt with votes"
@@ -20,6 +22,7 @@ inactive_with_votes:
   prompt_votes_count: 1
   created_by: three
   group: one
+  eligible_for_votes: true
 
 unused:
   content: "This is an unused prompt"
@@ -27,6 +30,7 @@ unused:
   prompt_votes_count: 0
   created_by: one
   group: one
+  eligible_for_votes: true
 
 active_group_two:
   content: "This is the active group two prompt"
@@ -34,3 +38,4 @@ active_group_two:
   activated_at: <%= 1.day.ago %>
   created_by: one
   group: two
+  eligible_for_votes: true
