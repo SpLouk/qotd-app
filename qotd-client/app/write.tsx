@@ -1,7 +1,11 @@
 import { usePostsApi } from '@/api/usePostsApi';
+import { useUserApi } from '@/api/useUserApi';
 import Colors from '@/constants/Colors';
-import { CreatePostRequest } from '@/types/api';
-import { useLocalSearchParams } from 'expo-router';
+import { useGroupId } from '@/context/GroupContext';
+import { CreatePostRequest, Post } from '@/types/api';
+import { useFetchApiAndParseJson } from '@/utils/api';
+import { useMutation } from '@tanstack/react-query';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Keyboard,
@@ -22,10 +26,22 @@ export default function WriteResponse() {
     initialResponse: string;
   }>();
   const [response, setResponse] = useState(initialResponse || '');
+  const router = useRouter();
 
-  const {
-    createPostMutation: { mutate: submitPost, isPending },
-  } = usePostsApi();
+  const { invalidatePosts } = usePostsApi();
+  const { invalidateUser } = useUserApi();
+  const fetchAndParseJson = useFetchApiAndParseJson();
+  const groupId = useGroupId();
+
+  const { mutate: submitPost, isPending } = useMutation<Post, Error, CreatePostRequest>({
+    mutationKey: ['posts', groupId],
+    mutationFn: (data) => fetchAndParseJson(`/groups/${groupId}/posts`, { body: JSON.stringify(data), method: 'POST' }),
+    onSuccess: () => {
+      invalidatePosts();
+      invalidateUser();
+      router.replace('/');
+    },
+  });
 
   function handleSubmit() {
     if (!response.trim()) {

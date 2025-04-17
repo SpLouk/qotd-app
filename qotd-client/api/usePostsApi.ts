@@ -1,4 +1,4 @@
-import { CreatePostRequest, Post, PromptQuestion } from '@/types/api';
+import { Post, PromptQuestion } from '@/types/api';
 import { useCallback } from 'react';
 import { useFetchApi, useFetchApiAndParseJson } from '@/utils/api';
 import { useGroupId } from '@/context/GroupContext';
@@ -32,12 +32,6 @@ export function usePostsApi() {
     enabled: !!groupId,
   });
 
-  const createPostMutation = useMutation<Post, Error, CreatePostRequest>({
-    mutationKey: ['posts', groupId],
-    mutationFn: (data) => fetchAndParseJson(`/groups/${groupId}/posts`, { body: JSON.stringify(data), method: 'POST' }),
-    onSuccess: invalidatePosts,
-  });
-
   const deletePostMutation = useMutation<Response, Error, number>({
     mutationKey: ['posts', groupId],
     mutationFn: (postId) => fetchApi(`/groups/${groupId}/posts/${postId}`, { method: 'DELETE' }),
@@ -50,7 +44,6 @@ export function usePostsApi() {
     activePromptQuestionQuery,
 
     // Mutations
-    createPostMutation,
     deletePostMutation,
 
     // Cache invalidation helpers

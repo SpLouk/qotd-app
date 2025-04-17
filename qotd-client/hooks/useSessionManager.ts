@@ -1,11 +1,34 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useSession } from '@/context/SessionContext';
+import { useFetchApiAndParseJson } from '@/utils/api';
 
 export function useSessionManager() {
   const router = useRouter();
   const { session, isInitialized, setSession } = useSession();
   const refreshTimeoutRef = useRef<NodeJS.Timeout>();
+  const api = useFetchApiAndParseJson();
+
+  const refreshSession = useCallback(async () => {
+    if (!session) {
+      return;
+    }
+    try {
+      const newSession = await api('/session/refresh', {
+        method: 'POST',
+        body: JSON.stringify({
+          refresh_token: session.refresh_token,
+        }),
+      });
+
+      await setSession(newSession);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      // If refresh fails, redirect to sign-in
+      console.log(error);
+      router.replace('/sign-in');
+    }
+  }, [api, router, session, setSession]);
 
   useEffect(() => {
     const checkAndManageSession = async () => {
@@ -27,28 +50,7 @@ export function useSessionManager() {
 
       // If session is expired, try to refresh
       if (timeUntilExpiry <= 0) {
-        try {
-          const response = await fetch('/session/refresh', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              refresh_token: session.refresh_token,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to refresh session');
-          }
-
-          const newSession = await response.json();
-          await setSession(newSession);
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (error) {
-          // If refresh fails, redirect to sign-in
-          router.replace('/sign-in');
-        }
+        refreshSession();
         return;
       }
 
@@ -61,29 +63,7 @@ export function useSessionManager() {
         clearTimeout(refreshTimeoutRef.current);
       }
 
-      refreshTimeoutRef.current = setTimeout(async () => {
-        try {
-          const response = await fetch('/session/refresh', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              refresh_token: session.refresh_token,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to refresh session');
-          }
-
-          const newSession = await response.json();
-          await setSession(newSession);
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (error) {
-          router.replace('/sign-in');
-        }
-      }, refreshTime);
+      refreshTimeoutRef.current = setTimeout(refreshSession, refreshTime);
     };
 
     // Initial check
@@ -95,5 +75,5 @@ export function useSessionManager() {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [router, session, isInitialized, setSession]);
+  }, [router, session, isInitialized, setSession, refreshSession]);
 }
