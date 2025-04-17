@@ -19,7 +19,7 @@ class SessionsController < ApplicationController
   def refresh
     session = Session.find_by(refresh_token: params.require(:refresh_token))
 
-    if session&.refresh!(params[:user_agent])
+    if session&.refresh!(request.user_agent)
       render json: {
         token: session.token,
         token_expires_at: session.token_expires_at

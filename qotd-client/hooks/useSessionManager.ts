@@ -21,7 +21,7 @@ export function useSessionManager() {
         }),
       });
 
-      await setSession(newSession);
+      await setSession({ ...session, ...newSession });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // If refresh fails, redirect to sign-in

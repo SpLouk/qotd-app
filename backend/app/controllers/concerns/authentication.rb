@@ -17,7 +17,7 @@ module Authentication
     end
     def resume_session
       token = request.headers["Authorization"]&.split(" ")&.last
-      Current.session = Session.find_by(token: token)
+      Current.session = Session.active.find_by(token: token)
     end
     def render_unauthorized
       render json: { error: "Unauthorized" }, status: :unauthorized

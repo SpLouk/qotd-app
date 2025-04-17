@@ -6,6 +6,10 @@ class Session < ApplicationRecord
 
   encrypts :refresh_token, deterministic: true
 
+  scope :active, -> {
+    where("token_expires_at > ?", Time.current)
+  }
+
   def expired?
     token_expires_at < Time.current
   end

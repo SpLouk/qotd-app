@@ -1,15 +1,17 @@
 import { useSession } from '@/context/SessionContext';
 import { User } from '@/types/api';
-import { useFetchApiAndParseJson } from '@/utils/api';
+import { useFetchApi, useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 
 export function useUserApi() {
-  const api = useFetchApiAndParseJson();
+  const fetchApiAndParseJson = useFetchApiAndParseJson();
+  const fetchApi = useFetchApi();
   const queryClient = useQueryClient();
   const { clearSession } = useSession();
   const router = useRouter();
-  const { isInitialized } = useSession();
+  const { isInitialized, session } = useSession();
+  const isSessionActive = !!session && new Date(session.token_expires_at).valueOf() > Date.now();
 
   const invalidateUser = () => {
     queryClient.invalidateQueries({ queryKey: ['user'] });
@@ -17,12 +19,12 @@ export function useUserApi() {
 
   const currentUserQuery = useQuery<User, Error>({
     queryKey: ['user'],
-    queryFn: () => api('/user'),
-    enabled: isInitialized,
+    queryFn: () => fetchApiAndParseJson('/user'),
+    enabled: isInitialized && isSessionActive,
   });
 
-  const logoutMutation = useMutation<void, Error, void>({
-    mutationFn: () => api('/session', { method: 'DELETE' }),
+  const logoutMutation = useMutation({
+    mutationFn: () => fetchApi('/session', { method: 'DELETE' }),
     onSuccess: async () => {
       invalidateUser();
       await clearSession();
