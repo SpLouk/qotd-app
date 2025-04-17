@@ -1,26 +1,17 @@
-import { fetchActivePromptQuestion, fetchPosts } from '@/api/posts';
-import { fetchCurrentUser } from '@/api/user';
+import { usePostsApi } from '@/api/usePostsApi';
+import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
 import PromptDrawer from '@/components/PromptDrawer';
 import Colors from '@/constants/Colors';
-import { GroupContext, useGroup, useGroupId } from '@/context/GroupContext';
-import { api } from '@/utils/api';
-import { focusManager, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Redirect, router } from 'expo-router';
-import React, { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useGroup } from '@/context/GroupContext';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AppIndex() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (status) => focusManager.setFocused(status === 'active'));
-
-    return () => subscription.remove();
-  }, []);
 
   useEffect(() => {
     if (successMessage) {
@@ -31,40 +22,19 @@ export default function AppIndex() {
     }
   }, [successMessage]);
 
-  const { data: user, isLoading: isLoadingUser } = useQuery({
-    queryKey: ['user'],
-    queryFn: fetchCurrentUser,
-  });
-  const groupContext = useContext(GroupContext);
-  const firstGroup = user?.groups?.[0];
-
-  useEffect(() => {
-    if (firstGroup) {
-      groupContext?.setSelectedGroup(firstGroup);
-    }
-  }, [firstGroup, groupContext]);
-
-  const groupId = useGroupId();
   const { selectedGroup } = useGroup();
-
   const {
     data: posts = [],
     isFetching: isFetchingPosts,
     isLoading: isLoadingPosts,
     error: postsError,
-  } = useQuery({
-    queryKey: ['posts', groupId],
-    queryFn: () => (groupId ? fetchPosts(groupId) : Promise.reject('No group ID available')),
-    enabled: !!groupId,
-  });
+    activePromptQuestionQuery,
+    invalidatePosts,
+    invalidatePrompts,
+  } = usePostsApi();
+  const { data: user } = useUserApi();
 
-  const { data: activePrompt } = useQuery({
-    queryKey: ['promptQuestion', groupId],
-    queryFn: () => (groupId ? fetchActivePromptQuestion(groupId) : Promise.reject('No group ID available')),
-    enabled: !!groupId,
-  });
-
-  useAddDeviceToken();
+  const { data: activePrompt } = activePromptQuestionQuery;
 
   // Find if the user has a post for the current active prompt
   const ownPost = posts?.find((p) => p.username === user?.username);
@@ -82,14 +52,13 @@ export default function AppIndex() {
     }
   }, [user, activePrompt, isFetchingPosts, ownPost]);
 
-  const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
-    queryClient.invalidateQueries({ queryKey: ['promptQuestion', groupId] });
-  };
+  // Add user device token
+  useAddDeviceToken();
 
-  if (api.hasToken() === false || (!isLoadingUser && !user)) {
-    return <Redirect href="/sign-in" />;
-  }
+  const handleRefresh = () => {
+    invalidatePosts();
+    invalidatePrompts();
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

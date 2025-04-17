@@ -1,9 +1,8 @@
-import { deletePost, fetchPosts } from '@/api/posts';
-import { fetchCurrentUser } from '@/api/user';
+import { usePostsApi } from '@/api/usePostsApi';
+import { useUserApi } from '@/api/useUserApi';
 import { UserProfileHeader } from '@/components/UserProfileHeader';
 import { Post as PostType } from '@/types/api';
 import { FontAwesome } from '@expo/vector-icons';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
@@ -14,21 +13,10 @@ interface PostProps {
 }
 
 export const Post: React.FC<PostProps> = ({ post }) => {
-  const queryClient = useQueryClient();
   const router = useRouter();
 
-  const { data: currentUser } = useQuery({
-    queryKey: ['user'],
-    queryFn: fetchCurrentUser,
-  });
-
-  const groupId = currentUser?.groups?.[0]?.id;
-
-  const { data: posts = [], isLoading: isLoadingComments } = useQuery({
-    queryKey: ['posts', groupId],
-    queryFn: () => (groupId ? fetchPosts(groupId) : Promise.reject('No group ID available')),
-    enabled: !!groupId,
-  });
+  const { data: currentUser } = useUserApi();
+  const { data: posts = [], isLoading: isLoadingComments, deletePostMutation } = usePostsApi();
 
   const comments = useMemo(
     () =>
@@ -37,20 +25,6 @@ export const Post: React.FC<PostProps> = ({ post }) => {
         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
     [posts, post.id],
   );
-
-  const deletePostMutation = useMutation({
-    mutationKey: ['posts'],
-    mutationFn: (postId: number) => {
-      if (!groupId) throw new Error('No group ID available');
-      return deletePost(groupId, postId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
-    },
-    onError: (error) => {
-      console.error('Failed to delete post:', error);
-    },
-  });
 
   const handleDelete = (postToDelete: PostType) => {
     Alert.alert('Delete Post', 'Are you sure you want to delete this post?', [

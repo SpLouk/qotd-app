@@ -1,8 +1,9 @@
-import { createPost, fetchPosts } from '@/api/posts';
-import { fetchCurrentUser } from '@/api/user';
+import { usePostsApi } from '@/api/usePostsApi';
+import { useUserApi } from '@/api/useUserApi';
 import BackButton from '@/components/BackButton';
 import Colors from '@/constants/Colors';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useFetchApiAndParseJson } from '@/utils/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useState } from 'react';
@@ -23,33 +24,25 @@ export default function ReplyToPostPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [reply, setReply] = useState('');
   const queryClient = useQueryClient();
+  const api = useFetchApiAndParseJson();
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: fetchCurrentUser,
-  });
+  const { data: user } = useUserApi();
 
   const groupId = user?.groups?.[0]?.id;
 
-  const { data: posts = [], isLoading: isLoadingPosts } = useQuery({
-    queryKey: ['posts', groupId],
-    queryFn: () => (groupId ? fetchPosts(groupId) : Promise.reject('No group ID available')),
-    enabled: !!groupId,
-  });
+  const { data: posts = [], isLoading: isLoadingPosts } = usePostsApi();
 
   const post = posts.find((post) => post.id === Number.parseInt(id));
 
-  const addReplyMutation = useMutation({
-    mutationFn: (content: string) => {
-      if (!groupId) throw new Error('No group ID available');
-      return createPost(groupId, {
-        post: {
-          content,
-          parent_post_id: Number.parseInt(id),
-          prompt_question_id: post?.prompt_question_id ?? 0,
-        },
-      });
+  const body = {
+    post: {
+      content: reply.trim(),
+      parent_post_id: Number.parseInt(id),
+      prompt_question_id: post?.prompt_question_id ?? 0,
     },
+  };
+  const addReplyMutation = useMutation({
+    mutationFn: () => api(`/groups/${groupId}/posts`, { body: JSON.stringify(body), method: 'POST' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
       setReply('');
@@ -67,7 +60,7 @@ export default function ReplyToPostPage() {
 
   const handleSubmitReply = () => {
     if (reply.trim()) {
-      addReplyMutation.mutate(reply.trim());
+      addReplyMutation.mutate();
     }
   };
 

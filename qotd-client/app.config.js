@@ -36,11 +36,12 @@ export default {
         {
           image: './assets/images/splash-icon.png',
           imageWidth: 200,
-          resizeMode: 'contain',
+          contentFix: 'contain',
           backgroundColor: '#ffffff',
         },
       ],
       'expo-apple-authentication',
+      'expo-secure-store',
     ],
     experiments: {
       typedRoutes: true,
@@ -49,6 +50,7 @@ export default {
       router: {
         origin: false,
       },
+
       eas: {
         projectId: '53970d8e-d45a-4ae9-a8de-d9a51b746d0a',
       },

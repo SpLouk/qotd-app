@@ -1,6 +1,6 @@
-import { createPromptQuestion, fetchPromptQuestions, unvoteForPrompt, voteForPrompt } from '@/api/posts';
 import Colors from '@/constants/Colors';
 import { CreatePromptQuestionRequest, PromptQuestion, User } from '@/types/api';
+import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -41,12 +41,14 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
   const userData = queryClient.getQueryData<User>(['user']);
   const groupId = userData?.groups?.[0]?.id;
 
-  // Fetch prompts to vote on
-  const { data: promptQuestions, isLoading: isLoadingPrompts } = useQuery({
+  //error Fetch prompts to vote on
+  const { data: promptQuestions, isLoading: isLoadingPrompts } = useQuery<PromptQuestion[]>({
     queryKey: ['promptQuestions', groupId],
-    queryFn: () => (groupId ? fetchPromptQuestions(groupId) : Promise.reject('No group ID available')),
+    queryFn: () => (groupId ? api(`/groups/${groupId}/prompt_questions`) : Promise.reject('No group ID available')),
     enabled: !!groupId,
   });
+
+  const api = useFetchApiAndParseJson();
 
   const userPrompt = promptQuestions?.find((p) => p.created_by_username === userData?.username);
   const currentVotedPromptId = promptQuestions?.find((p) => p.user_voted)?.id;
@@ -55,10 +57,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
     mutationKey: ['votePrompt'],
     mutationFn: async (promptId: string) => {
       if (!groupId) throw new Error('No group ID available');
-      if (currentVotedPromptId && currentVotedPromptId !== promptId) {
-        await unvoteForPrompt(groupId, currentVotedPromptId);
-      }
-      return voteForPrompt(groupId, promptId);
+      return api(`/groups/${groupId}/prompt_questions/${promptId}/vote`, { body: JSON.stringify({}), method: 'POST' });
     },
     onSuccess: () => {
       if (selectedPromptId) {
@@ -75,7 +74,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
     mutationKey: ['createPrompt'],
     mutationFn: (data: CreatePromptQuestionRequest) => {
       if (!groupId) throw new Error('No group ID available');
-      return createPromptQuestion(groupId, data);
+      return api(`/groups/${groupId}/prompt_questions`, { body: JSON.stringify(data), method: 'POST' });
     },
     onSuccess: () => {
       setSuccessMessage('Your prompt was submitted successfully!');

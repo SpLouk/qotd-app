@@ -1,31 +1,15 @@
-import { fetchCurrentUser, logout } from '@/api/user';
 import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
 import BackButton from '@/components/BackButton';
 import Colors from '@/constants/Colors';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api } from '@/utils/api';
-import { router } from 'expo-router';
+import { useUserApi } from '@/api/useUserApi';
 
 export default function ProfileScreen() {
   const [error, setError] = useState('');
-  const queryClient = useQueryClient();
 
-  const logoutMutation = useMutation({
-    mutationFn: logout,
-    onSuccess: async () => {
-      await api.clearToken();
-      queryClient.clear();
-      router.replace('/sign-in');
-    },
-  });
-
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: fetchCurrentUser,
-  });
+  const { data: user, logoutMutation } = useUserApi();
 
   if (!user) {
     return null;

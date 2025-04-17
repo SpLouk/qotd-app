@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_12_010851) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_16_191653) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -132,6 +132,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_12_010851) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "token_refreshed_at"
+    t.string "refresh_token", null: false
+    t.datetime "token_expires_at", null: false
+    t.datetime "refresh_token_expires_at", null: false
+    t.index ["refresh_token"], name: "index_sessions_on_refresh_token", unique: true
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 

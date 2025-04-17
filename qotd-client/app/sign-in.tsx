@@ -1,12 +1,12 @@
 import Colors from '@/constants/Colors';
-import { api } from '@/utils/api';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { router } from 'expo-router';
 import { StyleSheet, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useHandleSignIn } from '@/app/hooks/useHandleSignIn';
 
 export default function SignIn() {
+  const handleSignIn = useHandleSignIn();
   return (
     <SafeAreaView style={styles.container}>
       <Image source={require('../assets/images/icon.png')} style={styles.logo} />
@@ -16,30 +16,7 @@ export default function SignIn() {
         buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
         cornerRadius={5}
         style={styles.button}
-        onPress={async () => {
-          try {
-            const { identityToken } = await AppleAuthentication.signInAsync({
-              requestedScopes: [
-                AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-                AppleAuthentication.AppleAuthenticationScope.EMAIL,
-              ],
-            });
-
-            const user = await api.post('/session', { identityToken });
-            if (user.needs_registration) {
-              router.replace('/sign-up');
-            } else {
-              router.replace('/');
-            }
-          } catch (e) {
-            if ((e as any)?.code === 'ERR_REQUEST_CANCELED') {
-              // handle that the user canceled the sign-in flow
-            } else {
-              console.log(e);
-              // handle other errors
-            }
-          }
-        }}
+        onPress={handleSignIn}
       />
     </SafeAreaView>
   );

@@ -36,7 +36,9 @@ Rails.application.routes.draw do
   get "follow_requests", to: "follows#follow_requests"
   get "following_requests", to: "follows#following_requests"
 
-  resource :session
+  resource :session do
+    post :refresh, on: :collection
+  end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

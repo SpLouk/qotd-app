@@ -1,9 +1,7 @@
-import { createPost } from '@/api/posts';
-import { fetchCurrentUser } from '@/api/user';
+import { usePostsApi } from '@/api/usePostsApi';
 import Colors from '@/constants/Colors';
 import { CreatePostRequest } from '@/types/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
   Keyboard,
@@ -24,31 +22,10 @@ export default function WriteResponse() {
     initialResponse: string;
   }>();
   const [response, setResponse] = useState(initialResponse || '');
-  const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: fetchCurrentUser,
-  });
-
-  const groupId = user?.groups?.[0]?.id;
-
-  // Submit the post
-  const { mutate: submitPost, isPending } = useMutation({
-    mutationKey: ['posts'],
-    mutationFn: (payload: CreatePostRequest) => {
-      if (!groupId) throw new Error('No group ID available');
-      return createPost(groupId, payload);
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      router.replace({
-        pathname: '/',
-        params: { postId: data.id.toString() },
-      });
-    },
-  });
+  const {
+    createPostMutation: { mutate: submitPost, isPending },
+  } = usePostsApi();
 
   function handleSubmit() {
     if (!response.trim()) {

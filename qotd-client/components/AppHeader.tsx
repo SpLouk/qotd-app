@@ -1,10 +1,9 @@
-import { fetchCurrentUser } from '@/api/user';
 import { FontAwesome } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
+import { useUserApi } from '@/api/useUserApi';
 
 interface AppHeaderProps {
   title?: string;
@@ -15,10 +14,7 @@ interface AppHeaderProps {
 export function AppHeader({ title = 'Hoot', showProfileButton = true, rightButton }: AppHeaderProps) {
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const { data: user, isLoading: isLoadingUser } = useQuery({
-    queryKey: ['user'],
-    queryFn: fetchCurrentUser,
-  });
+  const { data: user, isLoading: isLoadingUser } = useUserApi();
 
   const handleMenuItemPress = (route: '/search' | '/profile') => {
     setMenuVisible(false);
@@ -139,4 +135,3 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 });
-

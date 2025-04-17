@@ -11,6 +11,7 @@ export interface User {
   following_you?: boolean;
   has_device_token?: boolean;
   groups?: Group[];
+  needs_registration?: boolean;
 }
 
 export interface Group {

@@ -1,4 +1,5 @@
-import { api } from '@/utils/api';
+import { useUserApi } from '@/api/useUserApi';
+import { useFetchApi } from '@/utils/api';
 import { useMutation } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
@@ -19,26 +20,29 @@ async function getDeviceToken() {
 
 export default function useAddDeviceToken() {
   const [deviceTokenAdded, setDeviceTokenAdded] = useState(false);
+  const api = useFetchApi();
+  const { data: user } = useUserApi();
 
   const addDeviceToken = useMutation({
     mutationFn: async () => {
       const token = await getDeviceToken();
 
-      const response = await api.post('/device_tokens', { device_token: { token: token.data, platform: Platform.OS } });
+      const body = JSON.stringify({ device_token: { token: token.data, platform: Platform.OS } });
+      const response = await api('/device_tokens', {
+        body,
+        method: 'POST',
+      });
 
       if (response.status !== 201) {
         throw new Error('Failed to register device token');
       }
     },
-    onSettled: () => {
-      // only add device token once per session
-      setDeviceTokenAdded(true);
-    },
   });
 
   useEffect(() => {
-    if (!deviceTokenAdded) {
+    if (!deviceTokenAdded && user) {
       addDeviceToken.mutate();
+      setDeviceTokenAdded(true);
     }
-  }, [deviceTokenAdded]);
+  }, [deviceTokenAdded, addDeviceToken, user]);
 }
