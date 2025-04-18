@@ -3,12 +3,15 @@ import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
 import PromptDrawer from '@/components/PromptDrawer';
+import { JoinGroupModal } from '@/components/JoinGroupModal';
 import Colors from '@/constants/Colors';
 import { useGroup } from '@/context/GroupContext';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome6 } from '@expo/vector-icons';
+import { ActionSheetIOS, Platform, Alert } from 'react-native';
 
 export default function AppIndex() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -21,6 +24,8 @@ export default function AppIndex() {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+
+  const [joinGroupModalVisible, setJoinGroupModalVisible] = React.useState(false);
 
   const { data: selectedGroup } = useGroup();
   const {
@@ -60,6 +65,31 @@ export default function AppIndex() {
     invalidatePrompts();
   };
 
+  const handlePlusPress = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Join a Group', 'Create a Group'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) setJoinGroupModalVisible(true);
+          else if (buttonIndex === 2) router.push('/create-group');
+        }
+      );
+    } else {
+      Alert.alert(
+        'Group Options',
+        undefined,
+        [
+          { text: 'Join a Group', onPress: () => setJoinGroupModalVisible(true) },
+          { text: 'Create a Group', onPress: () => router.push('/create-group') },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {successMessage && (
@@ -68,10 +98,15 @@ export default function AppIndex() {
         </View>
       )}
 
-      <Pressable style={styles.header} onPress={() => router.replace('/group')}>
-        <Text style={styles.appName}>{selectedGroup?.name}</Text>
-        <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
-      </Pressable>
+      <View style={styles.header}>
+        <Pressable style={styles.headerLeft} onPress={() => router.push('/group')}>
+          <Text style={styles.appName}>{selectedGroup?.name}</Text>
+          <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
+        </Pressable>
+        <Pressable onPress={handlePlusPress} style={styles.plusButton} accessibilityLabel="Add or join group">
+          <FontAwesome6 name="plus" size={24} color={Colors.primary} weight="thin" />
+        </Pressable>
+      </View>
 
       <View style={styles.content}>
         {isLoadingPosts ? (
@@ -101,6 +136,11 @@ export default function AppIndex() {
           </>
         )}
       </View>
+
+      <JoinGroupModal
+        visible={joinGroupModalVisible}
+        onClose={() => setJoinGroupModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -112,7 +152,7 @@ const styles = StyleSheet.create({
   },
   header: {
     maxWidth: '100%',
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
@@ -121,7 +161,6 @@ const styles = StyleSheet.create({
   },
   headerLeft: {
     flex: 1,
-    marginRight: 16,
   },
   appName: {
     fontSize: 24,
@@ -188,5 +227,11 @@ const styles = StyleSheet.create({
   successMessageText: {
     color: '#fff',
     textAlign: 'center',
+  },
+  plusButton: {
+    padding: 8,
+    marginLeft: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

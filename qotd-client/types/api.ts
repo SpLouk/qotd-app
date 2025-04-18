@@ -14,6 +14,7 @@ export interface Group {
   description: string;
   next_scheduled_activation?: string;
   active_invite_codes?: string[];
+  privacy_level?: 'secret' | 'closed' | 'open';
   members: Pick<User, 'id' | 'username' | 'profile_photo_url'>[];
 }
 

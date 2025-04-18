@@ -51,7 +51,8 @@ export function useFetchApi() {
         headers,
       });
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const error = await response.json().then(({ error }: { error: string }) => error);
+        throw new Error(error);
       }
       return response;
     },

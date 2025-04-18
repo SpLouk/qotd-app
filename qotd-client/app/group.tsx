@@ -1,13 +1,12 @@
+import { UserProfileHeader } from '@/components/UserProfileHeader';
 import Colors from '@/constants/Colors';
 import { useGroup } from '@/context/GroupContext';
 import { formatDistanceToNow, isFuture } from 'date-fns';
-import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { UserProfileHeader } from '@/components/UserProfileHeader';
 
 export default function GroupPage() {
   const { data: selectedGroup, isLoading: isLoadingGroup } = useGroup();
@@ -38,7 +37,7 @@ export default function GroupPage() {
           <Text style={styles.successMessageText}>Copied invite code!</Text>
         </View>
       )}
-      <Pressable style={styles.header} onPress={() => router.replace('/')}>
+      <Pressable style={styles.header} onPress={() => router.back()}>
         <Text style={styles.groupName}>{selectedGroup.name}</Text>
         {selectedGroup.description && <Text style={styles.nextActivation}>{selectedGroup.description}</Text>}
         {nextActivationText && <Text style={styles.nextActivation}>Next prompt: {nextActivationText}</Text>}

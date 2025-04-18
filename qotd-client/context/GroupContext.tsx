@@ -26,7 +26,7 @@ export function useGroup() {
   const { selectedGroupId } = context;
 
   return useQuery<Group, Error>({
-    queryKey: ['group'],
+    queryKey: ['group', selectedGroupId],
     queryFn: () => fetchApiAndParseJson(`/groups/${selectedGroupId}`),
     enabled: !!selectedGroupId, // Only enable when groupId is provided
   });
