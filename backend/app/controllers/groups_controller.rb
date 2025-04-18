@@ -1,9 +1,10 @@
 class GroupsController < ApplicationController
   before_action :set_group, only: [ :show, :update, :destroy, :join, :approve_request ]
-  before_action :authorize_admin!, only: [ :approve_request, :update, :destroy, :show ]
+  before_action :authorize_admin!, only: [ :approve_request, :update, :destroy ]
+  before_action :authorize_member!, only: [ :show ]
 
   def index
-    @groups = Group.where(privacy_level: [:closed, :open])
+    @groups = Group.where(privacy_level: [ :closed, :open ])
                   .or(Group.where(id: Current.user&.group_ids || []))
 
     if params[:query].present?
@@ -123,6 +124,11 @@ class GroupsController < ApplicationController
 
   def authorize_admin!
     unless @group.group_users.admin.exists?(user: Current.user)
+      render json: { error: "Not authorized" }, status: :forbidden
+    end
+  end
+  def authorize_member!
+    unless @group.group_users.member.exists?(user: Current.user)
       render json: { error: "Not authorized" }, status: :forbidden
     end
   end

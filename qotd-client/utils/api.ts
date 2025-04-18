@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useSession } from '@/context/SessionContext';
-import { usePathname, useRouter } from 'expo-router';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -30,9 +29,7 @@ export function useFetchApiAndParseJson() {
 }
 
 export function useFetchApi() {
-  const { session, isInitialized } = useSession();
-  const path = usePathname();
-  const router = useRouter();
+  const { session } = useSession();
 
   return useCallback(
     async (endpoint: string, options: RequestOptions = {}) => {
@@ -53,14 +50,11 @@ export function useFetchApi() {
         ...options,
         headers,
       });
-      if (response.status === 401 && path !== '/sign-in' && isInitialized) {
-        router.replace('/sign-in');
-      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response;
     },
-    [session, router, path, isInitialized],
+    [session],
   );
 }

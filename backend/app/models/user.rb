@@ -44,11 +44,6 @@ class User < ApplicationRecord
       attrs[:eligible_to_vote_today] = responded_to_current_prompt_within_30_minutes?
       attrs[:created_prompt_today] = has_created_prompt_today?
       attrs[:groups] = groups.map { |g| { id: g.id, name: g.name, description: g.description } }
-    else
-      attrs[:follow_requested] = follows_as_followed.exists?(follower_id: Current.user.id)
-      attrs[:follow_approved] = follows_as_followed.exists?(follower_id: Current.user.id, approved: true)
-      attrs[:requested_following_you] = follows_as_follower.exists?(followed_id: Current.user.id, approved: true)
-      attrs[:following_you] = follows_as_follower.exists?(followed_id: Current.user.id, approved: true)
     end
     attrs
   end

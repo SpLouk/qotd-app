@@ -52,6 +52,5 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 16,
-    fontWeight: '600',
   },
 });

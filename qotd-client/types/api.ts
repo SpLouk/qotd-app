@@ -4,7 +4,6 @@ export interface User {
   profile_photo_url: string;
   voted_today?: boolean;
   eligible_to_vote_today?: boolean;
-  created_prompt_today?: boolean;
   groups?: Group[];
   needs_registration?: boolean;
 }
@@ -13,6 +12,8 @@ export interface Group {
   id: string;
   name: string;
   description: string;
+  next_scheduled_activation?: string;
+  active_invite_codes?: string[];
   members: Pick<User, 'id' | 'username' | 'profile_photo_url'>[];
 }
 

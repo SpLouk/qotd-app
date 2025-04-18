@@ -1,13 +1,13 @@
+import { useUserApi } from '@/api/useUserApi';
 import { GroupContext, GroupProvider } from '@/context/GroupContext';
 import { SessionProvider } from '@/context/SessionContext';
+import { useSessionManager } from '@/hooks/useSessionManager';
 import { QueryProvider } from '@/providers/query';
 import { focusManager } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { useContext, useEffect } from 'react';
 import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useSessionManager } from '@/hooks/useSessionManager';
-import { useUserApi } from '@/api/useUserApi';
 
 function AppContent() {
   // Handle app state changes for react-query
@@ -25,7 +25,7 @@ function AppContent() {
 
   useEffect(() => {
     if (firstGroup) {
-      groupContext?.setSelectedGroup(firstGroup);
+      groupContext?.setSelectedGroupId(firstGroup.id);
     }
   }, [firstGroup, groupContext]);
 
@@ -42,13 +42,13 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <SessionProvider>
-      <GroupProvider>
-        <QueryProvider>
+      <QueryProvider>
+        <GroupProvider>
           <SafeAreaProvider>
             <AppContent />
           </SafeAreaProvider>
-        </QueryProvider>
-      </GroupProvider>
+        </GroupProvider>
+      </QueryProvider>
     </SessionProvider>
   );
 }

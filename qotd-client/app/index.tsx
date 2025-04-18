@@ -7,7 +7,7 @@ import Colors from '@/constants/Colors';
 import { useGroup } from '@/context/GroupContext';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AppIndex() {
@@ -22,7 +22,7 @@ export default function AppIndex() {
     }
   }, [successMessage]);
 
-  const { selectedGroup } = useGroup();
+  const { data: selectedGroup } = useGroup();
   const {
     data: posts = [],
     isFetching: isFetchingPosts,
@@ -68,10 +68,10 @@ export default function AppIndex() {
         </View>
       )}
 
-      <View style={styles.header}>
+      <Pressable style={styles.header} onPress={() => router.replace('/group')}>
         <Text style={styles.appName}>{selectedGroup?.name}</Text>
         <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
-      </View>
+      </Pressable>
 
       <View style={styles.content}>
         {isLoadingPosts ? (
@@ -184,7 +184,6 @@ const styles = StyleSheet.create({
   successMessage: {
     backgroundColor: '#4CAF50',
     padding: 12,
-    zIndex: 1000,
   },
   successMessageText: {
     color: '#fff',

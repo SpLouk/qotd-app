@@ -51,6 +51,7 @@ class Group < ApplicationRecord
   def as_json
     attrs = slice(:id, :name, :description, :privacy_level, :created_at, :created_by_id, :next_scheduled_activation)
     attrs[:members] = approved_users.as_json
+    attrs[:active_invite_codes] = invite_codes.active.map(&:code)
     attrs
   end
 
