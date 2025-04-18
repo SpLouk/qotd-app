@@ -25,7 +25,6 @@ export function useSessionManager() {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // If refresh fails, redirect to sign-in
-      console.log(error);
       router.replace('/sign-in');
     }
   }, [api, router, session, setSession]);

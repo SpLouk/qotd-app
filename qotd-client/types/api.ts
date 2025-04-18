@@ -5,11 +5,6 @@ export interface User {
   voted_today?: boolean;
   eligible_to_vote_today?: boolean;
   created_prompt_today?: boolean;
-  follow_requested?: boolean;
-  follow_approved?: boolean;
-  requested_following_you?: boolean;
-  following_you?: boolean;
-  has_device_token?: boolean;
   groups?: Group[];
   needs_registration?: boolean;
 }
@@ -19,15 +14,6 @@ export interface Group {
   name: string;
   description: string;
   members: Pick<User, 'id' | 'username' | 'profile_photo_url'>[];
-}
-
-export interface Follow {
-  followed_id: string;
-  follower_id: string;
-  follower_profile_photo_url?: string;
-  follower_username: string;
-  approved: boolean;
-  created_at: string;
 }
 
 export interface PromptQuestion {

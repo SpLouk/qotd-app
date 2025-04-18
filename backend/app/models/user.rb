@@ -36,7 +36,6 @@ class User < ApplicationRecord
   def as_json
     attrs = slice(:id, :username, :needs_registration)
     attrs[:profile_photo_url] = profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(profile_photo) : nil
-    attrs[:has_device_token] = device_tokens.exists?
     unless Current.user
       return attrs
     end

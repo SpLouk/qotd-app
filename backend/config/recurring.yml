@@ -1,17 +1,17 @@
 # Recurring job configuration
-# See: https://github.com/rails/solid_queue/tree/main/docs/recurring
+# See: https://github.com/rails/solid_queue/tree/main?tab=readme-ov-file#recurring-tasks
 
 # Default configuration to be inherited
 default: &default
   schedule_prompt_activation:
     class: SchedulePromptActivationJob
     queue: default
-    schedule: at 12am every day
+    schedule: every Monday, Wednesday, and Friday at 12AM
 
 # Development environment configuration
 development:
   <<: *default
 
-# Production environment configuration  
+# Production environment configuration
 production:
   <<: *default

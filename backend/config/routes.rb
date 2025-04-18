@@ -19,6 +19,9 @@ Rails.application.routes.draw do
     resources :posts, only: [ :create, :destroy, :index ]
   end
 
+  # Join group via invite code (no group id required)
+  post "groups/join_with_code", to: "groups#join_with_invite_code"
+
   # Routes for other users
   resources :users do
     resource :follow, only: [ :create, :destroy ] do

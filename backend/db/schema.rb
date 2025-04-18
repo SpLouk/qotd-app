@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_17_030414) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_18_162000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -82,6 +82,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_17_030414) do
     t.integer "privacy_level", default: 0, null: false
     t.index ["created_by_id"], name: "index_groups_on_created_by_id"
     t.index ["name"], name: "index_groups_on_name", unique: true
+  end
+
+  create_table "invite_codes", force: :cascade do |t|
+    t.string "code", null: false
+    t.integer "group_id", null: false
+    t.integer "created_by_id"
+    t.datetime "expires_at"
+    t.integer "max_uses"
+    t.integer "uses_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_invite_codes_on_code", unique: true
+    t.index ["created_by_id"], name: "index_invite_codes_on_created_by_id"
+    t.index ["group_id"], name: "index_invite_codes_on_group_id"
   end
 
   create_table "posts", force: :cascade do |t|
@@ -159,6 +173,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_17_030414) do
   add_foreign_key "group_users", "groups"
   add_foreign_key "group_users", "users"
   add_foreign_key "groups", "users", column: "created_by_id"
+  add_foreign_key "invite_codes", "groups"
+  add_foreign_key "invite_codes", "users", column: "created_by_id"
   add_foreign_key "posts", "groups"
   add_foreign_key "posts", "posts", column: "parent_post_id"
   add_foreign_key "posts", "prompt_questions"

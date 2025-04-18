@@ -5,6 +5,7 @@ class Group < ApplicationRecord
   has_many :users, through: :group_users
   has_many :prompt_questions, dependent: :destroy
   has_many :posts, dependent: :nullify
+  has_many :invite_codes, dependent: :destroy
 
   enum :privacy_level, [ :secret, :closed, :open ]
 

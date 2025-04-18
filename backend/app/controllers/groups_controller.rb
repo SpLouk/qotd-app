@@ -68,6 +68,38 @@ class GroupsController < ApplicationController
     end
   end
 
+  # POST /groups/join_with_code
+  def join_with_invite_code
+    invite_code = InviteCode.find_by!(code: params[:invite_code])
+    @group = invite_code.group
+
+    existing_membership = @group.group_users.find_by(user: Current.user)
+    if existing_membership
+      render json: { error: "Already a member or request pending" }, status: :unprocessable_entity
+      return
+    end
+
+    unless invite_code.valid_for_use?
+      render json: { error: "Invite code is expired or maxed out" }, status: :unprocessable_entity
+      return
+    end
+
+    @group_user = @group.group_users.build(
+      user: Current.user,
+      role: :member,
+      approved: true
+    )
+
+    ActiveRecord::Base.transaction do
+      @group_user.save!
+      invite_code.use!
+    end
+
+    render json: @group_user, status: :created
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: @group_user.errors.full_messages }, status: :unprocessable_entity
+  end
+
   # POST /groups/:id/approve_request
   def approve_request
     @group_user = @group.group_users.find_by!(user_id: params[:user_id])
