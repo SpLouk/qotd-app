@@ -13,6 +13,8 @@ class Group < ApplicationRecord
   validates :privacy_level, presence: true
   validate :only_one_active_prompt
 
+  after_create :create_default_invite_code
+
   def approved_users
     users.merge(GroupUser.where(approved: true))
   end
@@ -67,5 +69,9 @@ class Group < ApplicationRecord
 
     active_count = prompt_questions.count { |q| q.active? || (q.active_changed? && q.active) }
     errors.add(:base, "Group can only have one active prompt at a time") if active_count > 1
+  end
+
+  def create_default_invite_code
+    invite_codes.create!(created_by: created_by)
   end
 end

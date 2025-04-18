@@ -128,7 +128,7 @@ class GroupsController < ApplicationController
     end
   end
   def authorize_member!
-    unless @group.group_users.member.exists?(user: Current.user)
+    unless @group.group_users.member.exists?(user: Current.user) || @group.group_users.admin.exists?(user: Current.user)
       render json: { error: "Not authorized" }, status: :forbidden
     end
   end

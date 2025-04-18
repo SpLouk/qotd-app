@@ -24,7 +24,7 @@ function AppContent() {
   const firstGroup = user?.groups?.[0];
 
   useEffect(() => {
-    if (firstGroup) {
+    if (firstGroup && groupContext && !groupContext.selectedGroupId) {
       groupContext?.setSelectedGroupId(firstGroup.id);
     }
   }, [firstGroup, groupContext]);

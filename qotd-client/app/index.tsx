@@ -2,16 +2,26 @@ import { usePostsApi } from '@/api/usePostsApi';
 import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
-import PromptDrawer from '@/components/PromptDrawer';
 import { JoinGroupModal } from '@/components/JoinGroupModal';
+import PromptDrawer from '@/components/PromptDrawer';
 import Colors from '@/constants/Colors';
-import { useGroup } from '@/context/GroupContext';
-import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { GroupContext } from '@/context/GroupContext';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { ActionSheetIOS, Platform, Alert } from 'react-native';
+import { router } from 'expo-router';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AppIndex() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -27,7 +37,10 @@ export default function AppIndex() {
 
   const [joinGroupModalVisible, setJoinGroupModalVisible] = React.useState(false);
 
-  const { data: selectedGroup } = useGroup();
+  const { data: user } = useUserApi();
+  const groupList = user?.groups || [];
+  const { setSelectedGroupId, selectedGroupId } = useContext(GroupContext)!;
+
   const {
     data: posts = [],
     isFetching: isFetchingPosts,
@@ -37,7 +50,6 @@ export default function AppIndex() {
     invalidatePosts,
     invalidatePrompts,
   } = usePostsApi();
-  const { data: user } = useUserApi();
 
   const { data: activePrompt } = activePromptQuestionQuery;
 
@@ -75,18 +87,14 @@ export default function AppIndex() {
         (buttonIndex) => {
           if (buttonIndex === 1) setJoinGroupModalVisible(true);
           else if (buttonIndex === 2) router.push('/create-group');
-        }
+        },
       );
     } else {
-      Alert.alert(
-        'Group Options',
-        undefined,
-        [
-          { text: 'Join a Group', onPress: () => setJoinGroupModalVisible(true) },
-          { text: 'Create a Group', onPress: () => router.push('/create-group') },
-          { text: 'Cancel', style: 'cancel' },
-        ]
-      );
+      Alert.alert('Group Options', undefined, [
+        { text: 'Join a Group', onPress: () => setJoinGroupModalVisible(true) },
+        { text: 'Create a Group', onPress: () => router.push('/create-group') },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
     }
   };
 
@@ -99,10 +107,44 @@ export default function AppIndex() {
       )}
 
       <View style={styles.header}>
-        <Pressable style={styles.headerLeft} onPress={() => router.push('/group')}>
-          <Text style={styles.appName}>{selectedGroup?.name}</Text>
+        <View style={styles.headerLeft}>
+          <FlatList
+            data={groupList}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item, index }) => (
+              <Pressable
+                style={styles.groupPill}
+                onPress={() => {
+                  if (selectedGroupId === item.id) {
+                    router.push('/group');
+                  } else {
+                    setSelectedGroupId(item.id);
+                  }
+                }}
+              >
+                <Text style={styles.appName} numberOfLines={1} ellipsizeMode="tail">
+                  {item.name}
+                </Text>
+              </Pressable>
+            )}
+            contentContainerStyle={styles.groupListContainer}
+            snapToInterval={256}
+            decelerationRate="fast"
+            snapToAlignment="start"
+            getItemLayout={(_data, index) => ({ length: 256, offset: 256 * index, index })}
+            onMomentumScrollEnd={(event) => {
+              const offset = event.nativeEvent.contentOffset.x;
+              const index = Math.round(offset / 256);
+              const group = groupList[index];
+              if (group && group.id !== selectedGroupId) {
+                setSelectedGroupId(group.id);
+              }
+            }}
+          />
           <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
-        </Pressable>
+        </View>
         <Pressable onPress={handlePlusPress} style={styles.plusButton} accessibilityLabel="Add or join group">
           <FontAwesome6 name="plus" size={24} color={Colors.primary} weight="thin" />
         </Pressable>
@@ -137,10 +179,7 @@ export default function AppIndex() {
         )}
       </View>
 
-      <JoinGroupModal
-        visible={joinGroupModalVisible}
-        onClose={() => setJoinGroupModalVisible(false)}
-      />
+      <JoinGroupModal visible={joinGroupModalVisible} onClose={() => setJoinGroupModalVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -233,5 +272,24 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  groupListContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingRight: 8,
+  },
+  groupPill: {
+    paddingVertical: 8,
+    marginRight: 128,
+  },
+  groupPillSelected: {
+    backgroundColor: Colors.primary,
+  },
+  groupPillText: {
+    color: Colors.text,
+    fontWeight: '600',
+    fontSize: 16,
+    maxWidth: 120,
   },
 });

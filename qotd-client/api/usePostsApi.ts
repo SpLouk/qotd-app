@@ -1,8 +1,8 @@
-import { Post, PromptQuestion } from '@/types/api';
-import { useCallback } from 'react';
-import { useFetchApi, useFetchApiAndParseJson } from '@/utils/api';
 import { useGroupId } from '@/context/GroupContext';
+import { Post, PromptQuestion } from '@/types/api';
+import { useFetchApi, useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 export function usePostsApi() {
   const fetchAndParseJson = useFetchApiAndParseJson();

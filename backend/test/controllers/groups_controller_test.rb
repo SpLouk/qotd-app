@@ -134,6 +134,15 @@ class GroupsControllerTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  test "non-member cannot access show endpoint" do
+    # Use a group where the user is NOT a member
+    non_member = users(:three)
+    sign_in_as(non_member)
+
+    get group_path(@private_group), headers: auth_headers
+    assert_response :forbidden
+  end
+
   test "requires authentication" do
     get groups_path
     assert_response :unauthorized

@@ -3,7 +3,7 @@ class PostsController < ApplicationController
 
   def index
     active_prompt = @group.active_prompt
-    return render json: [], status: :not_found unless active_prompt
+    return render json: [] unless active_prompt
 
     posts = Post.where(prompt_question_id: active_prompt.id)
                 .includes(:user)
