@@ -1,9 +1,9 @@
-import React, { useContext, useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useMutation } from '@tanstack/react-query';
 import Colors from '@/constants/Colors';
-import { useFetchApiAndParseJson } from '@/utils/api';
 import { GroupContext } from '@/context/GroupContext';
+import { useFetchApiAndParseJson } from '@/utils/api';
+import { useMutation } from '@tanstack/react-query';
+import React, { useContext, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 interface JoinGroupModalProps {
   visible: boolean;
@@ -63,17 +63,27 @@ export function JoinGroupModal({ visible, onClose, onSuccess }: JoinGroupModalPr
             editable={!joinGroupMutation.isPending}
           />
           {joinError && <Text style={styles.errorText}>{joinError}</Text>}
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 16, marginTop: 16 }}>
-            <TouchableOpacity onPress={onClose} disabled={joinGroupMutation.isPending}>
+          <View style={styles.modalButtons}>
+            <Pressable
+              onPress={onClose}
+              disabled={joinGroupMutation.isPending}
+              style={({ pressed }) => [
+                styles.modalOption,
+                { opacity: joinGroupMutation.isPending ? 0.5 : pressed ? 0.5 : 1 },
+              ]}
+            >
               <Text style={styles.modalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalOption, { opacity: inviteCode ? 1 : 0.7 }]}
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalOption,
+                { opacity: !inviteCode || joinGroupMutation.isPending ? 0.7 : pressed ? 0.5 : 1 },
+              ]}
               onPress={handleJoinGroup}
               disabled={!inviteCode || joinGroupMutation.isPending}
             >
               <Text style={styles.modalOptionText}>{joinGroupMutation.isPending ? 'Joining...' : 'Join'}</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </View>
@@ -116,13 +126,19 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 32,
+    marginTop: 16,
+  },
   modalOptionText: {
     fontSize: 18,
     color: Colors.primary,
   },
   modalCancelText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    color: Colors.textSecondary,
   },
   errorText: {
     color: Colors.error || 'red',

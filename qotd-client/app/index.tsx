@@ -2,6 +2,7 @@ import { usePostsApi } from '@/api/usePostsApi';
 import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
+import { GroupTitlePager } from '@/components/GroupTitlePager';
 import { JoinGroupModal } from '@/components/JoinGroupModal';
 import PromptDrawer from '@/components/PromptDrawer';
 import Colors from '@/constants/Colors';
@@ -13,7 +14,6 @@ import {
   ActionSheetIOS,
   ActivityIndicator,
   Alert,
-  FlatList,
   Platform,
   Pressable,
   StyleSheet,
@@ -38,7 +38,7 @@ export default function AppIndex() {
   const [joinGroupModalVisible, setJoinGroupModalVisible] = React.useState(false);
 
   const { data: user } = useUserApi();
-  const groupList = user?.groups || [];
+  const groupList = user?.groups;
   const { setSelectedGroupId, selectedGroupId } = useContext(GroupContext)!;
 
   const {
@@ -108,40 +108,11 @@ export default function AppIndex() {
 
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <FlatList
-            data={groupList}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item, index }) => (
-              <Pressable
-                style={styles.groupPill}
-                onPress={() => {
-                  if (selectedGroupId === item.id) {
-                    router.push('/group');
-                  } else {
-                    setSelectedGroupId(item.id);
-                  }
-                }}
-              >
-                <Text style={styles.appName} numberOfLines={1} ellipsizeMode="tail">
-                  {item.name}
-                </Text>
-              </Pressable>
-            )}
-            contentContainerStyle={styles.groupListContainer}
-            snapToInterval={256}
-            decelerationRate="fast"
-            snapToAlignment="start"
-            getItemLayout={(_data, index) => ({ length: 256, offset: 256 * index, index })}
-            onMomentumScrollEnd={(event) => {
-              const offset = event.nativeEvent.contentOffset.x;
-              const index = Math.round(offset / 256);
-              const group = groupList[index];
-              if (group && group.id !== selectedGroupId) {
-                setSelectedGroupId(group.id);
-              }
-            }}
+          <GroupTitlePager
+            groupList={groupList}
+            selectedGroupId={selectedGroupId}
+            setSelectedGroupId={setSelectedGroupId}
+            router={router}
           />
           <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
         </View>
@@ -191,6 +162,7 @@ const styles = StyleSheet.create({
   },
   header: {
     maxWidth: '100%',
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -200,6 +172,7 @@ const styles = StyleSheet.create({
   },
   headerLeft: {
     flex: 1,
+    width: '100%',
   },
   appName: {
     fontSize: 24,
@@ -272,24 +245,5 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  groupListContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingRight: 8,
-  },
-  groupPill: {
-    paddingVertical: 8,
-    marginRight: 128,
-  },
-  groupPillSelected: {
-    backgroundColor: Colors.primary,
-  },
-  groupPillText: {
-    color: Colors.text,
-    fontWeight: '600',
-    fontSize: 16,
-    maxWidth: 120,
   },
 });

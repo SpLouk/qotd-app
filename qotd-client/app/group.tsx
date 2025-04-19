@@ -1,3 +1,4 @@
+import BackButton from '@/components/BackButton';
 import { UserProfileHeader } from '@/components/UserProfileHeader';
 import Colors from '@/constants/Colors';
 import { useGroup } from '@/context/GroupContext';
@@ -37,11 +38,14 @@ export default function GroupPage() {
           <Text style={styles.successMessageText}>Copied invite code!</Text>
         </View>
       )}
-      <Pressable style={styles.header} onPress={() => router.back()}>
-        <Text style={styles.groupName}>{selectedGroup.name}</Text>
+      <View style={styles.header}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+          <BackButton onPress={() => router.back()} />
+          <Text style={styles.groupName}>{selectedGroup.name}</Text>
+        </View>
         {selectedGroup.description && <Text style={styles.nextActivation}>{selectedGroup.description}</Text>}
         {nextActivationText && <Text style={styles.nextActivation}>Next prompt: {nextActivationText}</Text>}
-      </Pressable>
+      </View>
 
       <View style={styles.content}>
         <View style={styles.section}>
@@ -58,13 +62,13 @@ export default function GroupPage() {
         </View>
 
         {selectedGroup.active_invite_codes && selectedGroup.active_invite_codes.length > 0 && (
-          <View style={styles.section}>
+          <View style={styles.sectionCentered}>
             <Text style={styles.sectionTitle}>Invite Code</Text>
             <View style={styles.inviteCodes}>
               {selectedGroup.active_invite_codes.map((code) => (
                 <Pressable
                   key={code}
-                  style={styles.inviteCode}
+                  style={({ pressed }) => [styles.inviteCode, pressed && { opacity: 0.5 }]}
                   onPress={async () => {
                     await Clipboard.setStringAsync(code);
                     setCopiedCode(true);
@@ -75,7 +79,9 @@ export default function GroupPage() {
                 </Pressable>
               ))}
             </View>
-            <Text>Send this code to a friend so they can join {selectedGroup.name}</Text>
+            <Text style={styles.inviteCodeExplanation}>
+              Send this code to a friend so they can join {selectedGroup.name}
+            </Text>
           </View>
         )}
       </View>
@@ -120,6 +126,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     gap: 12,
   },
+  sectionCentered: {
+    marginBottom: 24,
+    gap: 12,
+    alignItems: 'center',
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '500',
@@ -141,7 +152,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 20,
     marginRight: 8,
     marginBottom: 8,
     alignItems: 'center',
@@ -152,6 +162,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '500',
+  },
+  inviteCodeExplanation: {
+    textAlign: 'center',
+    color: Colors.textSecondary,
   },
   successMessage: {
     backgroundColor: '#4CAF50',
