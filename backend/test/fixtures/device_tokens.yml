@@ -14,3 +14,8 @@ device_token_3:
   token: test_ios_token_3
   platform: ios
   user: three
+
+device_token_4:
+  token: test_ios_token_4
+  platform: ios
+  user: four

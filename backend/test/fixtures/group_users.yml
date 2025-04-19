@@ -9,3 +9,7 @@ two:
 three:
   user: three
   group: two
+
+four:
+  user: four
+  group: one

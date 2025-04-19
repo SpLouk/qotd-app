@@ -9,3 +9,7 @@ two:
 three:
   email_address: three@example.com
   username: foobar
+
+four:
+  email_address: four@example.com
+  username: test_user_4

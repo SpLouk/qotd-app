@@ -23,6 +23,8 @@ class ActivatePromptQuestionJob < ApplicationJob
         target_content_id: prompt.id.to_s
       )
       ApnsService.notify(notification, device_tokens) if device_tokens.any?
+
+      NotifyAboutRecentPostsJob.set(wait_until: 1.hour.from_now).perform_later(group)
     end
   end
 end

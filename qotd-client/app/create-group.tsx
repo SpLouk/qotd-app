@@ -1,7 +1,7 @@
 import Colors from '@/constants/Colors';
 import { GroupContext } from '@/context/GroupContext';
 import { useFetchApiAndParseJson } from '@/utils/api';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useContext, useState } from 'react';
 import {
@@ -21,6 +21,7 @@ export default function CreateGroupPage() {
   const [error, setError] = useState<string | null>(null);
   const fetchApiAndParseJson = useFetchApiAndParseJson();
   const groupContext = useContext(GroupContext);
+  const queryClient = useQueryClient();
 
   if (!groupContext) throw new Error('Must be used within GroupProvider');
   const { setSelectedGroupId } = groupContext;
@@ -35,6 +36,7 @@ export default function CreateGroupPage() {
     },
     onSuccess: (data) => {
       setSelectedGroupId(data.group_id);
+      queryClient.invalidateQueries({ queryKey: ['user'] });
       router.back();
     },
     onError: (err: any) => {
