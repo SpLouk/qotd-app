@@ -3,11 +3,14 @@ import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
 import { GroupTitlePager } from '@/components/GroupTitlePager';
+import { InlineJoinGroup } from '@/components/InlineJoinGroup';
 import { JoinGroupModal } from '@/components/JoinGroupModal';
 import PromptDrawer from '@/components/PromptDrawer';
 import Colors from '@/constants/Colors';
 import { GroupContext } from '@/context/GroupContext';
+import { useFetchApiAndParseJson } from '@/utils/api';
 import { FontAwesome6 } from '@expo/vector-icons';
+import { useMutation } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useState } from 'react';
 import {
@@ -18,6 +21,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -98,6 +102,27 @@ export default function AppIndex() {
     }
   };
 
+  const [inviteCode, setInviteCode] = useState('');
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const fetchApiAndParseJson = useFetchApiAndParseJson();
+  const joinGroupMutation = useMutation({
+    mutationFn: async (code: string) => {
+      return fetchApiAndParseJson('/groups/join_with_code', {
+        method: 'POST',
+        body: JSON.stringify({ invite_code: code }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+    onSuccess: (data) => {
+      setInviteCode('');
+      setJoinError(null);
+      setSelectedGroupId(data.group_id);
+    },
+    onError: (err: any) => {
+      setJoinError(err?.message || 'Could not join group.');
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {successMessage && (
@@ -122,6 +147,9 @@ export default function AppIndex() {
       </View>
 
       <View style={styles.content}>
+        {!isLoadingPosts && (!groupList || groupList.length === 0) && (
+          <InlineJoinGroup onSuccess={setSelectedGroupId} />
+        )}
         {isLoadingPosts ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color={Colors.primary} size="large" />

@@ -1,8 +1,9 @@
 import Colors from '@/constants/Colors';
+import { GroupContext } from '@/context/GroupContext';
 import { CreatePromptQuestionRequest, PromptQuestion, User } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -39,13 +40,14 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
 
   // Get the current user data from the cache
   const userData = queryClient.getQueryData<User>(['user']);
-  const groupId = userData?.groups?.[0]?.id;
+  const { selectedGroupId } = useContext(GroupContext)!;
 
   //error Fetch prompts to vote on
   const { data: promptQuestions, isLoading: isLoadingPrompts } = useQuery<PromptQuestion[]>({
-    queryKey: ['promptQuestions', groupId],
-    queryFn: () => (groupId ? api(`/groups/${groupId}/prompt_questions`) : Promise.reject('No group ID available')),
-    enabled: !!groupId,
+    queryKey: ['promptQuestions', selectedGroupId],
+    queryFn: () =>
+      selectedGroupId ? api(`/groups/${selectedGroupId}/prompt_questions`) : Promise.reject('No group ID available'),
+    enabled: !!selectedGroupId,
   });
 
   const api = useFetchApiAndParseJson();
@@ -55,13 +57,16 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
   const { mutate: votePrompt, isPending: isVoting } = useMutation({
     mutationKey: ['votePrompt'],
     mutationFn: async (promptId: string) => {
-      if (!groupId) throw new Error('No group ID available');
-      return api(`/groups/${groupId}/prompt_questions/${promptId}/vote`, { body: JSON.stringify({}), method: 'POST' });
+      if (!selectedGroupId) throw new Error('No group ID available');
+      return api(`/groups/${selectedGroupId}/prompt_questions/${promptId}/vote`, {
+        body: JSON.stringify({}),
+        method: 'POST',
+      });
     },
     onSuccess: () => {
       if (selectedPromptId) {
         setSuccessMessage('Your vote was updated successfully!');
-        queryClient.invalidateQueries({ queryKey: ['promptQuestions', groupId] });
+        queryClient.invalidateQueries({ queryKey: ['promptQuestions', selectedGroupId] });
         queryClient.invalidateQueries({ queryKey: ['user'] });
         closeModal();
       }
@@ -72,12 +77,12 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
   const { mutate: submitPrompt, isPending: isSubmittingPrompt } = useMutation({
     mutationKey: ['createPrompt'],
     mutationFn: (data: CreatePromptQuestionRequest) => {
-      if (!groupId) throw new Error('No group ID available');
-      return api(`/groups/${groupId}/prompt_questions`, { body: JSON.stringify(data), method: 'POST' });
+      if (!selectedGroupId) throw new Error('No group ID available');
+      return api(`/groups/${selectedGroupId}/prompt_questions`, { body: JSON.stringify(data), method: 'POST' });
     },
     onSuccess: () => {
       setSuccessMessage('Your prompt was submitted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['promptQuestions', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['promptQuestions', selectedGroupId] });
       queryClient.invalidateQueries({ queryKey: ['user'] });
       setIsCreatingPrompt(false);
       setNewPromptContent('');

@@ -41,8 +41,9 @@ export default function GroupPage() {
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
           <BackButton onPress={() => router.back()} />
-          <Text style={styles.groupName}>{selectedGroup.name}</Text>
+          <Text style={{ color: Colors.textSecondary }}>Back</Text>
         </View>
+        <Text style={styles.groupName}>{selectedGroup.name}</Text>
         {selectedGroup.description && <Text style={styles.nextActivation}>{selectedGroup.description}</Text>}
         {nextActivationText && <Text style={styles.nextActivation}>Next prompt: {nextActivationText}</Text>}
       </View>
