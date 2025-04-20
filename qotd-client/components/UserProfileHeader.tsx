@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useUserApi } from '@/api/useUserApi';
+import Colors from '@/constants/Colors';
 
 type ProfileHeaderProps = Pick<Post, 'user_id' | 'username' | 'user_photo_url'>;
 
@@ -17,7 +18,13 @@ export const UserProfileHeader = ({ user_id, username, user_photo_url }: Profile
   };
   return (
     <Pressable onPress={handlePress} style={styles.userInfo}>
-      <Image source={{ uri: user_photo_url }} style={styles.profilePhoto} />
+      <Image
+        source={{ uri: user_photo_url }}
+        style={[
+          styles.profilePhoto,
+          isCurrentUser && styles.currentUserRing,
+        ]}
+      />
       <Text style={styles.userName}>{username ?? 'Unknown'}</Text>
     </Pressable>
   );
@@ -52,5 +59,9 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 16,
+  },
+  currentUserRing: {
+    borderWidth: 2,
+    borderColor: Colors.primary
   },
 });

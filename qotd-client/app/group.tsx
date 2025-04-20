@@ -39,52 +39,50 @@ export default function GroupPage() {
         </View>
       )}
       <View style={styles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-          <BackButton onPress={() => router.back()} />
-          <Text style={{ color: Colors.textSecondary }}>Back</Text>
+        <BackButton onPress={() => router.back()} />
+        <View>
+          <Text style={styles.groupName}>{selectedGroup.name}</Text>
+          {selectedGroup.description && <Text style={styles.nextActivation}>{selectedGroup.description}</Text>}
+          {nextActivationText && <Text style={styles.nextActivation}>Next prompt: {nextActivationText}</Text>}
         </View>
-        <Text style={styles.groupName}>{selectedGroup.name}</Text>
-        {selectedGroup.description && <Text style={styles.nextActivation}>{selectedGroup.description}</Text>}
-        {nextActivationText && <Text style={styles.nextActivation}>Next prompt: {nextActivationText}</Text>}
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Members ({selectedGroup.members.length})</Text>
-          <FlatList
-            data={selectedGroup.members}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.memberItem}>
-                <UserProfileHeader user_id={item.id} username={item.username} user_photo_url={item.profile_photo_url} />
-              </View>
-            )}
-          />
-        </View>
-
-        {selectedGroup.active_invite_codes && selectedGroup.active_invite_codes.length > 0 && (
-          <View style={styles.sectionCentered}>
-            <Text style={styles.sectionTitle}>Invite Code</Text>
-            <View style={styles.inviteCodes}>
-              {selectedGroup.active_invite_codes.map((code) => (
-                <Pressable
-                  key={code}
-                  style={({ pressed }) => [styles.inviteCode, pressed && { opacity: 0.5 }]}
-                  onPress={async () => {
-                    await Clipboard.setStringAsync(code);
-                    setCopiedCode(true);
-                    setTimeout(() => setCopiedCode(false), 1200);
-                  }}
-                >
-                  <Text style={styles.inviteCodeText}>{code}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <Text style={styles.inviteCodeExplanation}>
-              Send this code to a friend so they can join {selectedGroup.name}
-            </Text>
+      {selectedGroup.active_invite_codes && selectedGroup.active_invite_codes.length > 0 && (
+        <View style={styles.sectionCentered}>
+          <Text style={styles.sectionTitle}>Invite Code</Text>
+          <View style={styles.inviteCodes}>
+            {selectedGroup.active_invite_codes.map((code) => (
+              <Pressable
+                key={code}
+                style={({ pressed }) => [styles.inviteCode, pressed && { opacity: 0.5 }]}
+                onPress={async () => {
+                  await Clipboard.setStringAsync(code);
+                  setCopiedCode(true);
+                  setTimeout(() => setCopiedCode(false), 1200);
+                }}
+              >
+                <Text style={styles.inviteCodeText}>{code}</Text>
+              </Pressable>
+            ))}
           </View>
-        )}
+          <Text style={styles.inviteCodeExplanation}>
+            Send this code to a friend so they can join {selectedGroup.name}
+          </Text>
+        </View>
+      )}
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Members ({selectedGroup.members.length})</Text>
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={selectedGroup.members}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.memberItem}>
+              <UserProfileHeader user_id={item.id} username={item.username} user_photo_url={item.profile_photo_url} />
+            </View>
+          )}
+        />
       </View>
     </SafeAreaView>
   );
@@ -93,6 +91,7 @@ export default function GroupPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    gap: 16,
     backgroundColor: '#fff',
   },
   loadingContainer: {
@@ -102,10 +101,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    maxWidth: '100%',
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     padding: 16,
@@ -119,16 +116,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.textSecondary,
   },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
   section: {
-    marginBottom: 24,
+    paddingHorizontal: 16,
     gap: 12,
   },
   sectionCentered: {
-    marginBottom: 24,
     gap: 12,
     alignItems: 'center',
   },
