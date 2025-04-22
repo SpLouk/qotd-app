@@ -11,6 +11,7 @@ class Post < ApplicationRecord
   validate :validate_group_consistency
 
   after_create :notify_parent_post_author, if: :is_reply?
+  after_create :notify_other_repliers, if: :is_reply?
 
   def as_json
     attrs = super
@@ -28,6 +29,34 @@ class Post < ApplicationRecord
   def user_in_group
     return if group.approved_users.exists?(id: user_id)
     errors.add(:group, "user must be an approved member of the group")
+  end
+
+  def notify_other_repliers
+    # Get parent post author and all previous repliers (excluding current reply author)
+    recipient_ids = parent_post.replies.pluck(:user_id)
+    recipient_ids = recipient_ids.uniq - [ user_id, parent_post.user_id ]
+    return if recipient_ids.empty?
+
+    device_tokens = DeviceToken.where(user_id: recipient_ids)
+    return if device_tokens.empty?
+
+    notification = Notification.new(
+      title: "#{user.username} also responded to #{parent_post.user.username}'s post",
+      body: content,
+      category: "post_response",
+      thread_id: "post_#{parent_post.id}",
+      target_content_id: parent_post.id.to_s,
+      custom_data: {
+        responder_id: user.id,
+        responder_username: user.username,
+        responder_profile_photo_url: user.profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(user.profile_photo) : nil,
+        post_id: parent_post.id,
+        response_id: id,
+        response_content: content
+      }
+    )
+
+    ApnsService.notify(notification, device_tokens)
   end
 
   def notify_parent_post_author

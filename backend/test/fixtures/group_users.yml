@@ -1,15 +1,24 @@
 one:
   user: one
   group: one
+  approved: true
 
 two:
   user: two
   group: one
+  approved: true
 
 three:
   user: three
   group: two
+  approved: true
 
 four:
   user: four
   group: one
+  approved: true
+
+five:
+  user: five
+  group: one
+  approved: true
