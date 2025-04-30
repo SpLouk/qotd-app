@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_18_162000) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_24_121000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -37,6 +37,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_18_162000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "auth_codes", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "code", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "used_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_auth_codes_on_code", unique: true
+    t.index ["user_id"], name: "index_auth_codes_on_user_id"
   end
 
   create_table "device_tokens", force: :cascade do |t|
@@ -167,6 +178,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_18_162000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "auth_codes", "users"
   add_foreign_key "device_tokens", "users"
   add_foreign_key "follows", "users", column: "followed_id"
   add_foreign_key "follows", "users", column: "follower_id"

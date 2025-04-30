@@ -3,14 +3,11 @@ import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
 import { GroupTitlePager } from '@/components/GroupTitlePager';
-import { InlineJoinGroup } from '@/components/InlineJoinGroup';
 import { JoinGroupModal } from '@/components/JoinGroupModal';
 import PromptDrawer from '@/components/PromptDrawer';
 import Colors from '@/constants/Colors';
 import { GroupContext } from '@/context/GroupContext';
-import { useFetchApiAndParseJson } from '@/utils/api';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useMutation } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useState } from 'react';
 import {
@@ -21,7 +18,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -39,7 +35,7 @@ export default function AppIndex() {
     }
   }, [successMessage]);
 
-  const [joinGroupModalVisible, setJoinGroupModalVisible] = React.useState(false);
+  const [joinGroupModalVisible, setJoinGroupModalVisible] = useState(false);
 
   const { data: user } = useUserApi();
   const groupList = user?.groups;
@@ -102,27 +98,6 @@ export default function AppIndex() {
     }
   };
 
-  const [inviteCode, setInviteCode] = useState('');
-  const [joinError, setJoinError] = useState<string | null>(null);
-  const fetchApiAndParseJson = useFetchApiAndParseJson();
-  const joinGroupMutation = useMutation({
-    mutationFn: async (code: string) => {
-      return fetchApiAndParseJson('/groups/join_with_code', {
-        method: 'POST',
-        body: JSON.stringify({ invite_code: code }),
-        headers: { 'Content-Type': 'application/json' },
-      });
-    },
-    onSuccess: (data) => {
-      setInviteCode('');
-      setJoinError(null);
-      setSelectedGroupId(data.group_id);
-    },
-    onError: (err: any) => {
-      setJoinError(err?.message || 'Could not join group.');
-    },
-  });
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {successMessage && (
@@ -147,12 +122,20 @@ export default function AppIndex() {
       </View>
 
       <View style={styles.content}>
-        {!isLoadingPosts && (!groupList || groupList.length === 0) && (
-          <InlineJoinGroup onSuccess={setSelectedGroupId} />
-        )}
         {isLoadingPosts ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color={Colors.primary} size="large" />
+          </View>
+        ) : !groupList || groupList.length === 0 ? (
+          <View style={styles.joinGroupContainer}>
+            <Text style={styles.joinGroupOverlineText}>Nothing here?</Text>
+            <Pressable
+              style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+              onPress={() => setJoinGroupModalVisible(true)}
+              accessibilityRole="link"
+            >
+              <Text style={styles.joinGroupLinkText}>Join a group to get started!</Text>
+            </Pressable>
           </View>
         ) : postsError ? (
           <View style={styles.errorContainer}>
@@ -213,6 +196,23 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+  },
+  joinGroupContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    width: '100%',
+  },
+  joinGroupOverlineText: {
+    color: Colors.text,
+    fontSize: 18,
+  },
+  joinGroupLinkText: {
+    color: Colors.primary,
+    fontSize: 18,
   },
   loadingContainer: {
     flex: 1,

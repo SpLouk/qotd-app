@@ -26,7 +26,6 @@ export function useUserApi() {
   const logoutMutation = useMutation({
     mutationFn: () => fetchApi('/session', { method: 'DELETE' }),
     onSuccess: async () => {
-      invalidateUser();
       await clearSession();
       queryClient.clear();
       router.replace('/sign-in');

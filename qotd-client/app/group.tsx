@@ -5,13 +5,22 @@ import { useGroup } from '@/context/GroupContext';
 import { formatDistanceToNow, isFuture } from 'date-fns';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function GroupPage() {
   const { data: selectedGroup, isLoading: isLoadingGroup } = useGroup();
   const [copiedCode, setCopiedCode] = React.useState(false);
+
+  const onCopyCode = useCallback(
+    (inviteCode: string) => async () => {
+      await Clipboard.setStringAsync(inviteCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 1500);
+    },
+    [setCopiedCode],
+  );
 
   if (isLoadingGroup) {
     return (
@@ -55,11 +64,7 @@ export default function GroupPage() {
               <Pressable
                 key={code}
                 style={({ pressed }) => [styles.inviteCode, pressed && { opacity: 0.5 }]}
-                onPress={async () => {
-                  await Clipboard.setStringAsync(code);
-                  setCopiedCode(true);
-                  setTimeout(() => setCopiedCode(false), 1200);
-                }}
+                onPress={onCopyCode(code)}
               >
                 <Text style={styles.inviteCodeText}>{code}</Text>
               </Pressable>

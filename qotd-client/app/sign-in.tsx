@@ -1,23 +1,32 @@
+import { useHandleSignIn } from '@/app/hooks/useHandleSignIn';
 import Colors from '@/constants/Colors';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { StyleSheet, Text } from 'react-native';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useHandleSignIn } from '@/app/hooks/useHandleSignIn';
 
 export default function SignIn() {
-  const handleSignIn = useHandleSignIn();
+  const handleAppleSignIn = useHandleSignIn();
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container}>
-      <Image source={require('../assets/images/icon.png')} style={styles.logo} />
+      <Image source={require('../assets/images/icon.png')} style={styles.logo} contentFit="contain" />
       <Text style={styles.title}>Welcome to Hoot</Text>
       <AppleAuthentication.AppleAuthenticationButton
         buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
         buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
         cornerRadius={5}
         style={styles.button}
-        onPress={handleSignIn}
+        onPress={handleAppleSignIn}
       />
+      <Pressable
+        style={({ pressed }) => [styles.emailSignInButton, pressed && { opacity: 0.7 }]}
+        onPress={() => router.push('/email-auth')}
+      >
+        <Text style={styles.buttonText}>Sign in with Email</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -28,17 +37,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+    gap: 20,
   },
   logo: {
     width: 300,
     height: 300,
-    marginBottom: 20,
-    resizeMode: 'contain',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 40,
+    marginBottom: 20,
     textAlign: 'center',
     color: Colors.appTitle,
   },
@@ -46,5 +54,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 44,
     maxWidth: 300,
+  },
+  emailSignInButton: {
+    width: '100%',
+    height: 44,
+    maxWidth: 300,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

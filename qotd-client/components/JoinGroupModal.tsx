@@ -67,16 +67,12 @@ export function JoinGroupModal({ visible, onClose, onSuccess }: JoinGroupModalPr
             <Pressable
               onPress={onClose}
               disabled={joinGroupMutation.isPending}
-              style={({ pressed }) => [
-                styles.modalOption,
-                { opacity: joinGroupMutation.isPending ? 0.5 : pressed ? 0.5 : 1 },
-              ]}
+              style={({ pressed }) => [{ opacity: joinGroupMutation.isPending ? 0.5 : pressed ? 0.5 : 1 }]}
             >
               <Text style={styles.modalCancelText}>Cancel</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [
-                styles.modalOption,
                 { opacity: !inviteCode || joinGroupMutation.isPending ? 0.7 : pressed ? 0.5 : 1 },
               ]}
               onPress={handleJoinGroup}
@@ -104,11 +100,11 @@ const styles = StyleSheet.create({
     padding: 24,
     minWidth: 280,
     alignItems: 'stretch',
+    gap: 16,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    marginBottom: 16,
     textAlign: 'center',
     color: Colors.text,
   },
@@ -118,19 +114,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    marginBottom: 8,
     color: Colors.text,
-    backgroundColor: '#fafafa',
-  },
-  modalOption: {
-    paddingVertical: 14,
-    alignItems: 'center',
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 32,
-    marginTop: 16,
   },
   modalOptionText: {
     fontSize: 18,
@@ -141,8 +130,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   errorText: {
-    color: Colors.error || 'red',
-    marginTop: 4,
+    color: Colors.error,
     textAlign: 'center',
   },
 });

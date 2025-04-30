@@ -4,7 +4,7 @@ import { SessionProvider } from '@/context/SessionContext';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import { QueryProvider } from '@/providers/query';
 import { focusManager } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useContext, useEffect } from 'react';
 import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -22,6 +22,13 @@ function AppContent() {
   const { data: user } = useUserApi();
   const groupContext = useContext(GroupContext);
   const firstGroup = user?.groups?.[0];
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user?.needs_registration) {
+      router.replace('/sign-up');
+    }
+  }, [user?.needs_registration, router]);
 
   useEffect(() => {
     if (firstGroup && groupContext && !groupContext.selectedGroupId) {

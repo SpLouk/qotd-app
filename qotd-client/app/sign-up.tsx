@@ -1,6 +1,6 @@
 import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
 import Colors from '@/constants/Colors';
-import { api } from '@/utils/api';
+import { useFetchApiAndParseJson } from '@/utils/api';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -21,6 +21,7 @@ export default function SignUp() {
   const queryClient = useQueryClient();
   const [error, setError] = useState('');
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const fetchApi = useFetchApiAndParseJson();
 
   const handleImageSelected = (selectedImage: ImagePicker.ImagePickerAsset) => {
     setImage(selectedImage);
@@ -47,7 +48,7 @@ export default function SignUp() {
         name: image.fileName || 'profile-photo.jpg',
       } as any);
 
-      await api.patch('/user', formData);
+      await fetchApi('/user', { method: 'PATCH', body: formData });
       queryClient.invalidateQueries({ queryKey: ['user'] });
       router.replace('/');
     } catch (e: any) {

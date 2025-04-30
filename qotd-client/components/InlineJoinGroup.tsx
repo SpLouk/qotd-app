@@ -1,17 +1,27 @@
 import Colors from '@/constants/Colors';
+import { GroupContext } from '@/context/GroupContext';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 interface InlineJoinGroupProps {
+  title?: string;
   onSuccess: (groupId: string) => void;
+  onCancel?: () => void;
 }
 
-export function InlineJoinGroup({ onSuccess }: InlineJoinGroupProps) {
+export function InlineJoinGroup({ title, onSuccess, onCancel }: InlineJoinGroupProps) {
   const [inviteCode, setInviteCode] = useState('');
   const [joinError, setJoinError] = useState<string | null>(null);
   const fetchApiAndParseJson = useFetchApiAndParseJson();
+  const groupContext = useContext(GroupContext);
+
+  if (!groupContext) {
+    throw new Error('JoinGroupModal must be used within a GroupProvider');
+  }
+
+  const { setSelectedGroupId } = groupContext;
 
   const joinGroupMutation = useMutation({
     mutationFn: async (code: string) => {
@@ -24,6 +34,7 @@ export function InlineJoinGroup({ onSuccess }: InlineJoinGroupProps) {
     onSuccess: (data) => {
       setInviteCode('');
       setJoinError(null);
+      setSelectedGroupId(data.group_id);
       onSuccess(data.group_id);
     },
     onError: (err: any) => {
@@ -33,7 +44,7 @@ export function InlineJoinGroup({ onSuccess }: InlineJoinGroupProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Join a Group to Get Started</Text>
+      <Text style={styles.title}>{title ?? 'Join a Group'}</Text>
       <TextInput
         style={styles.textInput}
         placeholder="Enter invite code"
@@ -44,38 +55,44 @@ export function InlineJoinGroup({ onSuccess }: InlineJoinGroupProps) {
         editable={!joinGroupMutation.isPending}
       />
       {joinError && <Text style={styles.errorText}>{joinError}</Text>}
-      <Pressable
-        style={({ pressed }) => [
-          styles.joinButton,
-          {
-            opacity: !inviteCode || joinGroupMutation.isPending ? 0.7 : pressed ? 0.5 : 1,
-          },
-        ]}
-        onPress={() => {
-          setJoinError(null);
-          joinGroupMutation.mutate(inviteCode);
-        }}
-        disabled={!inviteCode || joinGroupMutation.isPending}
-      >
-        <Text style={styles.joinButtonText}>
-          {joinGroupMutation.isPending ? 'Joining...' : 'Join'}
-        </Text>
-      </Pressable>
+      <View style={styles.buttonRow}>
+        {onCancel && (
+          <Pressable
+            onPress={onCancel}
+            disabled={joinGroupMutation.isPending}
+            style={({ pressed }) => [{ opacity: joinGroupMutation.isPending ? 0.5 : pressed ? 0.5 : 1 }]}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </Pressable>
+        )}
+        <Pressable
+          style={({ pressed }) => [
+            {
+              opacity: !inviteCode || joinGroupMutation.isPending ? 0.7 : pressed ? 0.5 : 1,
+            },
+          ]}
+          onPress={() => {
+            setJoinError(null);
+            joinGroupMutation.mutate(inviteCode);
+          }}
+          disabled={!inviteCode || joinGroupMutation.isPending}
+        >
+          <Text style={styles.joinButtonText}>{joinGroupMutation.isPending ? 'Joining...' : 'Join'}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    gap: 24,
   },
   title: {
     fontSize: 22,
     fontWeight: '600',
-    marginBottom: 16,
     textAlign: 'center',
   },
   textInput: {
@@ -84,28 +101,27 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    marginBottom: 8,
     color: Colors.text,
     backgroundColor: '#fafafa',
-    width: 220,
+    width: '100%',
     textAlign: 'center',
   },
-  joinButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 8,
+  cancelButtonText: {
+    color: Colors.textSecondary,
+    fontSize: 18,
   },
   joinButtonText: {
-    color: 'white',
+    color: Colors.primary,
     fontSize: 18,
-    fontWeight: '600',
   },
   errorText: {
     color: Colors.error || 'red',
-    marginBottom: 8,
     textAlign: 'center',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    width: '100%',
+    gap: 32,
   },
 });

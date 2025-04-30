@@ -1,4 +1,4 @@
-import { api } from '@/utils/api';
+import { useFetchApiAndParseJson } from '@/utils/api';
 import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
@@ -23,6 +23,7 @@ export function ProfilePhotoChanger({
 }: ProfilePhotoChangerProps) {
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const queryClient = useQueryClient();
+  const fetchApi = useFetchApiAndParseJson()
 
   const updateProfilePhotoMutation = useMutation({
     mutationFn: async (imageAsset: ImagePicker.ImagePickerAsset) => {
@@ -33,7 +34,7 @@ export function ProfilePhotoChanger({
         name: imageAsset.fileName || 'profile-photo.jpg',
       } as any);
 
-      return api.patch('/user', formData);
+      return fetchApi('/user', { method: 'PATCH', body: formData });
     },
     onSuccess: () => {
       // Invalidate and refetch the user query to update profile photo in UI

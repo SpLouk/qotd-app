@@ -16,6 +16,7 @@ class User < ApplicationRecord
   has_many :device_tokens, dependent: :destroy
   has_many :group_users, dependent: :destroy
   has_many :groups, through: :group_users
+  has_many :auth_codes, dependent: :destroy
 
   # get all users this user is actively following
   has_many :following, -> { where(follows: { approved: true }) }, through: :follows_as_follower, source: :followed
