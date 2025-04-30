@@ -8,10 +8,9 @@ import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 interface JoinGroupModalProps {
   visible: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
 }
 
-export function JoinGroupModal({ visible, onClose, onSuccess }: JoinGroupModalProps) {
+export function JoinGroupModal({ visible, onClose }: JoinGroupModalProps) {
   const [inviteCode, setInviteCode] = useState('');
   const [joinError, setJoinError] = useState<string | null>(null);
   const fetchApiAndParseJson = useFetchApiAndParseJson();
@@ -23,6 +22,12 @@ export function JoinGroupModal({ visible, onClose, onSuccess }: JoinGroupModalPr
 
   const { setSelectedGroupId } = groupContext;
 
+  const handleClose = () => {
+    setInviteCode('');
+    setJoinError(null);
+    onClose();
+  };
+
   const joinGroupMutation = useMutation({
     mutationFn: async (code: string) => {
       return fetchApiAndParseJson('/groups/join_with_code', {
@@ -32,11 +37,8 @@ export function JoinGroupModal({ visible, onClose, onSuccess }: JoinGroupModalPr
       });
     },
     onSuccess: (data) => {
-      setInviteCode('');
-      setJoinError(null);
-      onClose();
+      handleClose();
       setSelectedGroupId(data.group_id);
-      if (onSuccess) onSuccess();
     },
     onError: (err: any) => {
       setJoinError(err?.message || 'Could not join group.');
@@ -49,7 +51,7 @@ export function JoinGroupModal({ visible, onClose, onSuccess }: JoinGroupModalPr
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose} onDismiss={handleClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Join a Group</Text>
@@ -65,7 +67,7 @@ export function JoinGroupModal({ visible, onClose, onSuccess }: JoinGroupModalPr
           {joinError && <Text style={styles.errorText}>{joinError}</Text>}
           <View style={styles.modalButtons}>
             <Pressable
-              onPress={onClose}
+              onPress={handleClose}
               disabled={joinGroupMutation.isPending}
               style={({ pressed }) => [{ opacity: joinGroupMutation.isPending ? 0.5 : pressed ? 0.5 : 1 }]}
             >
