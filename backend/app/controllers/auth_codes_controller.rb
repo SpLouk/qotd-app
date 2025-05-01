@@ -1,5 +1,6 @@
 class AuthCodesController < ApplicationController
   allow_unauthenticated_access only: %i[ create verify show ]
+  rate_limit to: 10, within: 3.minutes
 
   def create
     user = User.find_or_create_by!(email_address: params.require(:email_address).downcase)

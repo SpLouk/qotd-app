@@ -15,7 +15,7 @@ export const useHandleSignIn = () => {
 
   return useCallback(async () => {
     try {
-      const { identityToken } = await AppleAuthentication.signInAsync({
+      const { identityToken, email } = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
@@ -23,7 +23,7 @@ export const useHandleSignIn = () => {
       });
 
       const res: CreateSessionResponse = await api('/session', {
-        body: JSON.stringify({ identityToken }),
+        body: JSON.stringify({ identityToken, email }),
         method: 'POST',
       });
 

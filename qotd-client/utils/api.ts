@@ -51,7 +51,14 @@ export function useFetchApi() {
         headers,
       });
       if (!response.ok) {
-        const error = await response.json().then(({ error }: { error: string }) => error);
+        let error;
+        try {
+          error = await response.json().then(({ error }: { error: string }) => error);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_e) {
+          // parse JSON failed
+          throw new Error('Something went wrong. Please try again.');
+        }
         throw new Error(error);
       }
       return response;

@@ -1,9 +1,12 @@
 class SessionsController < ApplicationController
   allow_unauthenticated_access only: %i[ create refresh ]
-  rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_url, alert: "Try again later." }
+  rate_limit to: 10, within: 3.minutes
 
   def create
     if user = User.find_or_create_by_token(params[:identityToken])
+      if params[:email].present? && !user.email_address
+        user.update!(email_address: params[:email])
+      end
       session = user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip)
       render json: {
         user: user,
