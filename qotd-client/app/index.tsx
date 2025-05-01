@@ -198,8 +198,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
   },
   joinGroupContainer: {
     flex: 1,
