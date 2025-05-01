@@ -59,17 +59,17 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
-  config.action_mailer.default_url_options = { host: ENV.fetch("MAILER_HOST"), protocol: "https" }
   config.action_mailer.delivery_method = :smtp
+  config.action_mailer.default_url_options = { host: Rails.application.credentials.dig(:smtp, :host), protocol: "https" }
   config.action_mailer.smtp_settings = {
-    address: ENV.fetch("SMTP_ADDRESS"),
-    port: ENV.fetch("SMTP_PORT").to_i,
-    domain: ENV.fetch("SMTP_DOMAIN"),
-    user_name: ENV["SMTP_USERNAME"],
-    password: ENV["SMTP_PASSWORD"],
+    user_name: Rails.application.credentials.dig(:smtp, :user_name),
+    password: Rails.application.credentials.dig(:smtp, :password),
+    address: "email-smtp.us-east-1.amazonaws.com",
+    port: 587,
     authentication: :plain,
     enable_starttls_auto: true
   }
+
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
 
