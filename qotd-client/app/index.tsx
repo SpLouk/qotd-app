@@ -81,18 +81,20 @@ export default function AppIndex() {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ['Cancel', 'Join a Group', 'Create a Group'],
+          options: ['Cancel', 'Join a Group', 'Create a Group', 'Profile'],
           cancelButtonIndex: 0,
         },
         (buttonIndex) => {
           if (buttonIndex === 1) setJoinGroupModalVisible(true);
           else if (buttonIndex === 2) router.push('/create-group');
+          else if (buttonIndex === 3) router.push('/profile');
         },
       );
     } else {
       Alert.alert('Group Options', undefined, [
         { text: 'Join a Group', onPress: () => setJoinGroupModalVisible(true) },
         { text: 'Create a Group', onPress: () => router.push('/create-group') },
+        { text: 'Profile', onPress: () => router.push('/profile') },
         { text: 'Cancel', style: 'cancel' },
       ]);
     }
@@ -117,7 +119,7 @@ export default function AppIndex() {
           <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
         </View>
         <Pressable onPress={handlePlusPress} style={styles.plusButton} accessibilityLabel="Add or join group">
-          <FontAwesome6 name="plus" size={24} color={Colors.primary} weight="thin" />
+          <FontAwesome6 name="bars" size={24} color={Colors.primary} weight="thin" />
         </Pressable>
       </View>
 
