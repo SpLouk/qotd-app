@@ -59,13 +59,7 @@ export default function AppIndex() {
   // Handle redirecting to write page with useEffect instead of during render
   useEffect(() => {
     if (user && activePrompt && !isFetchingPosts && !ownPost) {
-      router.replace({
-        pathname: '/write',
-        params: {
-          promptId: activePrompt.id,
-          promptContent: activePrompt.content,
-        },
-      });
+      router.replace('/write');
     }
   }, [user, activePrompt, isFetchingPosts, ownPost]);
 

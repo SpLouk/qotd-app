@@ -13,17 +13,28 @@ export function useSessionManager() {
     if (!session) {
       return;
     }
-    try {
-      const newSession = await api('/session/refresh', {
-        method: 'POST',
-        body: JSON.stringify({
-          refresh_token: session.refresh_token,
-        }),
-      });
+    let newSession;
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        newSession = await api('/session/refresh', {
+          method: 'POST',
+          body: JSON.stringify({
+            refresh_token: session.refresh_token,
+          }),
+        });
 
-      await setSession({ ...session, ...newSession });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+        await setSession({ ...session, ...newSession });
+        break;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        // wait 500ms before retrying
+        await new Promise((resolve) => setTimeout(() => resolve(true), 200));
+      } finally {
+        retries--;
+      }
+    }
+    if (!newSession) {
       // If refresh fails, redirect to sign-in
       router.replace('/sign-in');
     }

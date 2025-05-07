@@ -5,9 +5,10 @@ import { useGroupId } from '@/context/GroupContext';
 import { CreatePostRequest, Post } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation } from '@tanstack/react-query';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -20,15 +21,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function WriteResponse() {
-  const { promptId, promptContent, initialResponse } = useLocalSearchParams<{
-    promptId: string;
-    promptContent: string;
-    initialResponse: string;
-  }>();
-  const [response, setResponse] = useState(initialResponse || '');
+  const { activePromptQuestionQuery, invalidatePosts } = usePostsApi();
+  const { data: activePrompt, isLoading } = activePromptQuestionQuery;
+  const [response, setResponse] = useState('');
   const router = useRouter();
 
-  const { invalidatePosts } = usePostsApi();
   const { invalidateUser } = useUserApi();
   const fetchAndParseJson = useFetchApiAndParseJson();
   const groupId = useGroupId();
@@ -44,49 +41,53 @@ export default function WriteResponse() {
   });
 
   function handleSubmit() {
-    if (!response.trim()) {
+    if (!response.trim() || !activePrompt) {
       return;
     }
 
     const payload: CreatePostRequest = {
-      post: { prompt_question_id: parseInt(promptId), content: response.trim() },
+      post: { prompt_question_id: parseInt(activePrompt.id), content: response.trim() },
     };
     submitPost(payload);
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
-        <TouchableOpacity activeOpacity={1} onPress={Keyboard.dismiss} style={styles.dismissKeyboard}>
-          <View style={styles.header}>
-            <View style={styles.promptContainer}>
-              <Text style={styles.promptText}>{promptContent}</Text>
-            </View>
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={isPending || !response.trim()}
-              style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
-            >
-              <Text
-                style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}
+      {isLoading ? (
+        <ActivityIndicator color={Colors.primary} size="large" />
+      ) : (
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
+          <TouchableOpacity activeOpacity={1} onPress={Keyboard.dismiss} style={styles.dismissKeyboard}>
+            <View style={styles.header}>
+              <View style={styles.promptContainer}>
+                <Text style={styles.promptText}>{activePrompt?.content}</Text>
+              </View>
+              <TouchableOpacity
+                onPress={handleSubmit}
+                disabled={isPending || !response.trim()}
+                style={[styles.headerButton, (!response.trim() || isPending) && styles.headerButtonDisabled]}
               >
-                {isPending ? 'Submitting...' : 'Submit'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <TextInput
-            style={styles.input}
-            multiline
-            placeholder="Start writing..."
-            placeholderTextColor="#999"
-            value={response}
-            onChangeText={setResponse}
-            autoFocus
-            textAlignVertical="top"
-            editable={!isPending}
-          />
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
+                <Text
+                  style={[styles.headerButtonText, (!response.trim() || isPending) && styles.headerButtonTextDisabled]}
+                >
+                  {isPending ? 'Submitting...' : 'Submit'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={styles.input}
+              multiline
+              placeholder="Start writing..."
+              placeholderTextColor="#999"
+              value={response}
+              onChangeText={setResponse}
+              autoFocus
+              textAlignVertical="top"
+              editable={!isPending}
+            />
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      )}
     </SafeAreaView>
   );
 }
