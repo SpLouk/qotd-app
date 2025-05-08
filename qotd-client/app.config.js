@@ -42,6 +42,7 @@ export default {
       ],
       'expo-apple-authentication',
       'expo-secure-store',
+      'expo-audio',
     ],
     experiments: {
       typedRoutes: true,

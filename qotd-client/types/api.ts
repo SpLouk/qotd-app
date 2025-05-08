@@ -1,6 +1,7 @@
 export interface User {
   id: number;
   username: string;
+  email_address?: string;
   profile_photo_url: string;
   voted_today?: boolean;
   eligible_to_vote_today?: boolean;

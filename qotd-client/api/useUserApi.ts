@@ -32,9 +32,18 @@ export function useUserApi() {
     },
   });
 
+  const updateUser = useMutation({
+    mutationFn: (user: { user: Partial<User> }) =>
+      fetchApiAndParseJson('/user', { method: 'PATCH', body: JSON.stringify(user) }),
+    onSuccess: async () => {
+      invalidateUser();
+    },
+  });
+
   return {
     ...currentUserQuery,
     logoutMutation,
     invalidateUser,
+    updateUser,
   };
 }

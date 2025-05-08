@@ -28,6 +28,7 @@ class User < ApplicationRecord
   normalizes :username, with: ->(u) { u&.strip&.downcase }
 
   validates :username, uniqueness: { case_sensitive: false }, allow_nil: true
+  validates :email_address, uniqueness: { case_sensitive: false }, allow_nil: true
   validates :profile_photo, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 5.megabytes }
 
   def needs_registration
@@ -35,7 +36,7 @@ class User < ApplicationRecord
   end
 
   def as_json
-    attrs = slice(:id, :username, :needs_registration)
+    attrs = slice(:id, :username, :needs_registration, :email_address)
     attrs[:profile_photo_url] = profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(profile_photo) : nil
     unless Current.user
       return attrs

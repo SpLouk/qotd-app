@@ -53,7 +53,8 @@ export function useFetchApi() {
       if (!response.ok) {
         let error;
         try {
-          error = await response.json().then(({ error }: { error: string }) => error);
+          const responseJson = await response.json();
+          error = responseJson.errors[0];
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_e) {
           // parse JSON failed

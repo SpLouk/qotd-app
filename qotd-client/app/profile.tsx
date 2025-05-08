@@ -1,15 +1,37 @@
-import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
-import BackButton from '@/components/BackButton';
-import Colors from '@/constants/Colors';
-import { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUserApi } from '@/api/useUserApi';
+import BackButton from '@/components/BackButton';
+import { ProfilePhotoChanger } from '@/components/ProfilePhotoChanger';
+import Colors from '@/constants/Colors';
+import { User } from '@/types/api';
+import { useFetchApiAndParseJson } from '@/utils/api';
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const [error, setError] = useState('');
 
-  const { data: user, logoutMutation } = useUserApi();
+  const { data: user, invalidateUser, logoutMutation } = useUserApi();
+  const fetchApiAndParseJson = useFetchApiAndParseJson();
+
+  const [email, setEmailAddress] = useState(user?.email_address ?? '');
+
+  const handleUpdateEmail = () => {
+    setError('');
+    updateUser({ user: { email_address: email.trim().toLowerCase() } });
+  };
+
+  const { mutate: updateUser, isPending: isUpdatingEmail } = useMutation({
+    mutationFn: (user: { user: Partial<User> }) =>
+      fetchApiAndParseJson('/user', { method: 'PATCH', body: JSON.stringify(user) }),
+    onSuccess: async () => {
+      invalidateUser();
+    },
+    onError: (error) => {
+      setError(error.message);
+    },
+  });
 
   if (!user) {
     return null;
@@ -43,12 +65,30 @@ export default function ProfileScreen() {
 
       <View style={styles.profileSection}>
         <ProfilePhotoChanger initialPhotoUrl={user.profile_photo_url} onError={setError} autoUpload size={80} />
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmailAddress}
+          placeholder="email"
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          autoComplete="email"
+          textContentType="emailAddress"
+        />
+        <Pressable
+          style={({ pressed }) => [styles.button, pressed && { opacity: 0.7 }]}
+          onPress={handleUpdateEmail}
+          disabled={isUpdatingEmail}
+        >
+          {isUpdatingEmail ? (
+            <ActivityIndicator color={Colors.background} />
+          ) : (
+            <Text style={styles.buttonText}>Update email</Text>
+          )}
+        </Pressable>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.error}>{error}</Text>
-        </View>
-      ) : null}
     </SafeAreaView>
   );
 }
@@ -57,6 +97,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  button: {
+    width: 260,
+    height: 44,
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '600',
   },
   header: {
     flexDirection: 'row',
@@ -74,19 +127,13 @@ const styles = StyleSheet.create({
   profileSection: {
     padding: 16,
     alignItems: 'center',
+    gap: 16,
   },
   name: {
     fontSize: 20,
     fontWeight: '600',
     color: Colors.text,
     marginTop: 16,
-  },
-  errorContainer: {
-    backgroundColor: Colors.error + '10',
-    padding: 12,
-    marginHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 16,
   },
   error: {
     color: Colors.error,
@@ -102,5 +149,16 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontSize: 16,
     fontWeight: '500',
+  },
+  input: {
+    width: '100%',
+    maxWidth: 300,
+    height: 44,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    color: Colors.text,
   },
 });
