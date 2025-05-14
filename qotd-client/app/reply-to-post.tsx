@@ -2,6 +2,7 @@ import { usePostsApi } from '@/api/usePostsApi';
 import { useUserApi } from '@/api/useUserApi';
 import BackButton from '@/components/BackButton';
 import Colors from '@/constants/Colors';
+import { useGroupId } from '@/context/GroupContext';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
@@ -26,9 +27,7 @@ export default function ReplyToPostPage() {
   const queryClient = useQueryClient();
   const api = useFetchApiAndParseJson();
 
-  const { data: user } = useUserApi();
-
-  const groupId = user?.groups?.[0]?.id;
+  const groupId = useGroupId();
 
   const { data: posts = [], isLoading: isLoadingPosts } = usePostsApi();
 
