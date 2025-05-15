@@ -29,20 +29,11 @@ class SessionTest < ActiveSupport::TestCase
     original_refresh_token = session.refresh_token
     original_token_expires = session.token_expires_at
 
-    assert session.refresh!("Test Browser")
+    assert session.refresh!
 
     assert_not_equal original_token, session.token
     assert_equal original_refresh_token, session.refresh_token
     assert_not_equal original_token_expires, session.token_expires_at
-  end
-
-  test "refresh fails with wrong user agent" do
-    session = @user.sessions.create!(
-      user_agent: "Test Browser",
-      ip_address: "127.0.0.1"
-    )
-
-    assert_not session.refresh!("Different Browser")
   end
 
   test "refresh fails when refresh token is expired" do
@@ -52,6 +43,6 @@ class SessionTest < ActiveSupport::TestCase
     )
 
     session.update!(refresh_token_expires_at: 1.day.ago)
-    assert_not session.refresh!("Test Browser")
+    assert_not session.refresh!
   end
 end

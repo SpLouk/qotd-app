@@ -18,9 +18,8 @@ class Session < ApplicationRecord
     refresh_token_expires_at < Time.current
   end
 
-  def refresh!(new_user_agent)
+  def refresh!
     return false if refresh_token_expired?
-    return false if user_agent != new_user_agent
 
     generate_token
     set_token_expiry
