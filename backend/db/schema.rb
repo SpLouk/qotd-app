@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_24_121000) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_26_151051) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -109,6 +109,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_24_121000) do
     t.index ["group_id"], name: "index_invite_codes_on_group_id"
   end
 
+  create_table "mentions", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "post_id", null: false
+    t.json "locations", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["post_id"], name: "index_mentions_on_post_id"
+    t.index ["user_id", "post_id"], name: "index_mentions_on_user_id_and_post_id", unique: true
+    t.index ["user_id"], name: "index_mentions_on_user_id"
+  end
+
   create_table "posts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "prompt_question_id"
@@ -187,6 +198,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_24_121000) do
   add_foreign_key "groups", "users", column: "created_by_id"
   add_foreign_key "invite_codes", "groups"
   add_foreign_key "invite_codes", "users", column: "created_by_id"
+  add_foreign_key "mentions", "posts"
+  add_foreign_key "mentions", "users"
   add_foreign_key "posts", "groups"
   add_foreign_key "posts", "posts", column: "parent_post_id"
   add_foreign_key "posts", "prompt_questions"

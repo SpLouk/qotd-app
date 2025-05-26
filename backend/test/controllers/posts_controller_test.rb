@@ -13,7 +13,6 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index returns posts from other users and current user in group for active prompt" do
-
     get group_posts_path(@group), headers: auth_headers
     assert_response :success
     response_data = JSON.parse(@response.body)
@@ -55,5 +54,28 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
 
     # Should return unauthorized
     assert_response :unauthorized
+  end
+
+  test "mentions are included in response when creating a post with a valid mention" do
+    mentioned_user = users(:two)
+    post_content = "Hello @#{mentioned_user.username}, check this out!"
+
+    assert_difference [ "Post.count", "Mention.count" ] do
+      post group_posts_path(@group),
+           params: { post: { content: post_content, prompt_question_id: @active_prompt.id } },
+           headers: auth_headers
+    end
+
+    assert_response :created
+    response_data = JSON.parse(@response.body)
+
+    # Mentions should be included in the response
+    assert response_data["mentions"].is_a?(Array), "Mentions should be an array in the response"
+    assert_equal 1, response_data["mentions"].size
+    mention = response_data["mentions"].first
+    assert_equal mentioned_user.id, mention["user_id"]
+    assert mention["locations"].is_a?(Array)
+    assert mention["locations"].first["start"].is_a?(Integer)
+    assert mention["locations"].first["end"].is_a?(Integer)
   end
 end

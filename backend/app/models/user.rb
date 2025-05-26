@@ -4,6 +4,8 @@ require "base64"
 require "jwt"
 
 class User < ApplicationRecord
+  has_many :mentions, dependent: :destroy
+  has_many :mentioned_posts, through: :mentions, source: :post
   has_one_attached :profile_photo
 
   has_many :sessions, dependent: :destroy
@@ -27,7 +29,8 @@ class User < ApplicationRecord
   normalizes :email_address, with: ->(e) { e.strip.downcase }
   normalizes :username, with: ->(u) { u&.strip&.downcase }
 
-  validates :username, uniqueness: { case_sensitive: false }, allow_nil: true
+  validates :username, uniqueness: { case_sensitive: false }, allow_nil: true,
+            format: { with: /\A[a-zA-Z0-9_]+\z/, message: "must be alphanumeric (letters and numbers only)" }
   validates :email_address, uniqueness: { case_sensitive: false }, allow_nil: true
   validates :profile_photo, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 5.megabytes }
 

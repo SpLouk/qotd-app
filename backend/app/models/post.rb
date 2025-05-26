@@ -1,4 +1,7 @@
 class Post < ApplicationRecord
+  has_many :mentions, dependent: :destroy
+  has_many :mentioned_users, through: :mentions, source: :user
+
   belongs_to :user
   belongs_to :prompt_question, optional: true
   belongs_to :group, optional: true
@@ -12,11 +15,18 @@ class Post < ApplicationRecord
 
   after_create :notify_parent_post_author, if: :is_reply?
   after_create :notify_other_repliers, if: :is_reply?
+  after_create :extract_mentions
 
   def as_json
     attrs = super
     attrs[:username] = user.username
     attrs[:user_photo_url] = user.profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(user.profile_photo) : nil
+    attrs[:mentions] = mentions.map do |mention|
+      {
+        user_id: mention.user_id,
+        locations: mention.locations
+      }
+    end
     attrs
   end
 
@@ -93,6 +103,31 @@ class Post < ApplicationRecord
       errors.add(:group, "must match parent post's group") if group_id != parent_post.group_id
     elsif prompt_question.present?
       errors.add(:group, "must match prompt question's group") if group_id != prompt_question.group_id
+    end
+  end
+
+  def extract_mentions
+    return unless group
+
+    # Find all mentions and their locations
+    mention_matches = content.to_enum(:scan, /@([a-zA-Z0-9_]+)/).map do
+      match = Regexp.last_match
+      { username: match[1], start: match.begin(0), end: match.end(0) }
+    end
+    return if mention_matches.empty?
+
+    # Group by username
+    mentions_by_username = mention_matches.group_by { |m| m[:username] }
+
+    # Only consider group users
+    group_users = group.approved_users.where(username: mentions_by_username.keys)
+    group_users.each do |mentioned_user|
+      locations = mentions_by_username[mentioned_user.username].map { |m| { start: m[:start], end: m[:end] } }
+      next if locations.empty?
+      Mention.create!(user: mentioned_user, post_id: id, locations: locations)
+      if user_id != mentioned_user.id
+        MentionNotifierJob.perform_later(mentioned_user.id, id)
+      end
     end
   end
 end
