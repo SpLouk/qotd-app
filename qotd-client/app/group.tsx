@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 16,
     gap: 12,
+    paddingBottom: 12,
   },
   sectionCentered: {
     gap: 12,
