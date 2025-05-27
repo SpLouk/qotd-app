@@ -1,6 +1,7 @@
 import { usePostsApi } from '@/api/usePostsApi';
 import { useUserApi } from '@/api/useUserApi';
 import { UserProfileHeader } from '@/components/UserProfileHeader';
+import Colors from '@/constants/Colors';
 import { Post as PostType } from '@/types/api';
 import { FontAwesome } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
@@ -10,9 +11,10 @@ import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } fr
 
 interface PostProps {
   post: PostType;
+  readonly?: boolean;
 }
 
-export const Post: React.FC<PostProps> = ({ post }) => {
+export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
   const router = useRouter();
 
   const { data: currentUser } = useUserApi();
@@ -42,12 +44,11 @@ export const Post: React.FC<PostProps> = ({ post }) => {
 
   const isOwner = (item: PostType) => currentUser?.username === item.username;
 
-  const navigateToPost = (shouldOpenComment = false) => {
+  const navigateToPost = () => {
     router.push({
-      pathname: '/reply-to-post' as const,
+      pathname: '/reply-to-post',
       params: {
         id: post.id.toString(),
-        ...(shouldOpenComment ? { shouldOpenComment: 'true' } : {}),
       },
     });
   };
@@ -66,7 +67,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
           <Text style={styles.commentDate}>
             {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
           </Text>
-          {isOwner(comment) && (
+          {isOwner(comment) && !readonly && (
             <TouchableOpacity
               style={styles.deleteButton}
               onPress={() => handleDelete(comment)}
@@ -77,7 +78,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
           )}
         </View>
       </View>
-      <Text style={styles.commentText}>{comment.content}</Text>
+      {renderContentWithMentions(comment.content, comment.mentions)}
     </View>
   );
 
@@ -89,7 +90,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
         </View>
         <View style={styles.headerActions}>
           <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
-          {isOwner(post) && (
+          {isOwner(post) && !readonly && (
             <TouchableOpacity
               style={styles.deleteButton}
               onPress={() => handleDelete(post)}
@@ -100,7 +101,7 @@ export const Post: React.FC<PostProps> = ({ post }) => {
           )}
         </View>
       </View>
-      <Text style={styles.responseText}>{post.content}</Text>
+      {renderContentWithMentions(post.content, post.mentions)}
       <View style={styles.commentsContainer}>
         {isLoadingComments ? (
           <ActivityIndicator style={styles.loadingIndicator} />
@@ -110,29 +111,22 @@ export const Post: React.FC<PostProps> = ({ post }) => {
           <Text style={styles.noCommentsText}>No comments yet</Text>
         )}
       </View>
-      <TouchableOpacity
-        style={styles.replyButton}
-        onPress={() => {
-          navigateToPost(true);
-        }}
-      >
-        <Text style={styles.replyButtonText}>Reply</Text>
-      </TouchableOpacity>
+      {!readonly ? (
+        <TouchableOpacity style={styles.replyButton} onPress={navigateToPost}>
+          <Text style={styles.replyButtonText}>Reply</Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  mentionText: {
+    color: Colors.primary,
+  },
   container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    overflow: 'scroll',
   },
   header: {
     flexDirection: 'row',
@@ -227,3 +221,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+function renderContentWithMentions(
+  content: string,
+  mentions?: { user_id: number; locations: { start: number; end: number }[] }[],
+) {
+  if (!mentions || mentions.length === 0) {
+    return <Text style={styles.responseText}>{content}</Text>;
+  }
+  // Flatten all mention locations with user_id
+  const mentionSpans: { start: number; end: number; user_id: number }[] = [];
+  mentions.forEach((m) => {
+    m.locations.forEach((loc) => {
+      mentionSpans.push({ ...loc, user_id: m.user_id });
+    });
+  });
+  // Sort by start index
+  mentionSpans.sort((a, b) => a.start - b.start);
+  const elements = [];
+  let lastIdx = 0;
+  for (let i = 0; i < mentionSpans.length; i++) {
+    const { start, end } = mentionSpans[i];
+    if (lastIdx < start) {
+      elements.push(
+        <Text style={styles.responseText} key={`text-${lastIdx}`}>
+          {content.slice(lastIdx, start)}
+        </Text>,
+      );
+    }
+    elements.push(
+      <Text style={[styles.responseText, styles.mentionText]} key={`mention-${start}`}>
+        {content.slice(start, end)}
+      </Text>,
+    );
+    lastIdx = end;
+  }
+  if (lastIdx < content.length) {
+    elements.push(
+      <Text style={styles.responseText} key={`text-${lastIdx}`}>
+        {content.slice(lastIdx)}
+      </Text>,
+    );
+  }
+  // Wrap in a parent Text for proper inline rendering
+  return <Text style={styles.responseText}>{elements}</Text>;
+}

@@ -1,23 +1,24 @@
 import { usePostsApi } from '@/api/usePostsApi';
-import { useUserApi } from '@/api/useUserApi';
 import BackButton from '@/components/BackButton';
+import { Post } from '@/components/Post';
 import Colors from '@/constants/Colors';
 import { useGroupId } from '@/context/GroupContext';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { formatDistanceToNow } from 'date-fns';
-import { useLocalSearchParams, router } from 'expo-router';
-import { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import type { ScrollView as ScrollViewType } from 'react-native';
 import {
   ActivityIndicator,
-  Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -49,6 +50,14 @@ export default function ReplyToPostPage() {
     },
   });
 
+  const scrollViewRef = useRef<ScrollViewType | null>(null);
+  useEffect(() => {
+    const keyboardListener = Keyboard.addListener('keyboardDidShow', () => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => keyboardListener.remove();
+  }, [scrollViewRef]);
+
   if (isLoadingPosts || !post) {
     return (
       <View style={styles.container}>
@@ -69,8 +78,12 @@ export default function ReplyToPostPage() {
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <BackButton />
-            <TouchableOpacity
-              style={[styles.replyButton, !reply.trim() && styles.disabledButton]}
+            <Pressable
+              style={({ pressed }) => [
+                styles.replyButton,
+                !reply.trim() && styles.disabledButton,
+                pressed && { opacity: 0.7 },
+              ]}
               onPress={handleSubmitReply}
               disabled={!reply.trim() || addReplyMutation.isPending}
             >
@@ -79,19 +92,13 @@ export default function ReplyToPostPage() {
               ) : (
                 <Text style={styles.replyButtonText}>Reply</Text>
               )}
-            </TouchableOpacity>
-          </View>
-          <View style={styles.postPreview}>
-            <View style={styles.userInfo}>
-              {post.user_photo_url ? <Image source={{ uri: post.user_photo_url }} style={styles.profilePhoto} /> : null}
-              <View>
-                <Text style={styles.userName}>{post.username ?? 'Anonymous'}</Text>
-                <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
-              </View>
-            </View>
-            <Text style={styles.postContent}>{post.content}</Text>
+            </Pressable>
           </View>
         </View>
+
+        <ScrollView ref={scrollViewRef}>
+          <Post post={post} readonly />
+        </ScrollView>
 
         <TextInput
           style={styles.replyInput}
@@ -174,10 +181,12 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   replyInput: {
-    paddingHorizontal: 16,
-    flex: 1,
+    padding: 16,
     fontSize: 16,
     lineHeight: 22,
     color: Colors.text,
+    borderTopWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
   },
 });

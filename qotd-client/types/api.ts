@@ -43,6 +43,12 @@ export interface Post {
   created_at: string;
   username?: string;
   user_photo_url?: string;
+  mentions?: Mention[];
+}
+
+export interface Mention {
+  user_id: number;
+  locations: { start: number; end: number }[];
 }
 
 export interface CreatePostRequest {

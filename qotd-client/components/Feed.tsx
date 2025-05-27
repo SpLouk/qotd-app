@@ -18,7 +18,11 @@ export function Feed() {
   }
 
   const renderItem = ({ item: post }: { item: Post }) => {
-    return <PostComponent post={post} />;
+    return (
+      <View style={styles.postContainer}>
+        <PostComponent post={post} />
+      </View>
+    );
   };
 
   return (
@@ -58,5 +62,15 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#666',
+  },
+  postContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });
