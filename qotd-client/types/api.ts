@@ -44,6 +44,8 @@ export interface Post {
   username?: string;
   user_photo_url?: string;
   mentions?: Mention[];
+  photo_urls: string[];
+  sound_file_url?: string;
 }
 
 export interface Mention {
@@ -56,5 +58,6 @@ export interface CreatePostRequest {
     prompt_question_id: number;
     parent_post_id?: number;
     content: string;
+    photos?: any[];
   };
 }

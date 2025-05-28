@@ -1,6 +1,8 @@
 class Post < ApplicationRecord
   has_many :mentions, dependent: :destroy
   has_many :mentioned_users, through: :mentions, source: :user
+  has_many_attached :photos, service: :amazon
+  has_one_attached :sound_file, service: :amazon
 
   belongs_to :user
   belongs_to :prompt_question, optional: true
@@ -8,10 +10,12 @@ class Post < ApplicationRecord
   belongs_to :parent_post, class_name: "Post", optional: true
   has_many :replies, class_name: "Post", foreign_key: :parent_post_id, dependent: :destroy
 
-  validates :content, presence: true
+  validates :content, presence: true, if: -> { photos.empty? && sound_file.nil? }
   validate :user_in_group, if: :group_id?
   validate :validate_parent_or_prompt_presence
   validate :validate_group_consistency
+  validates :photos, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 5.megabytes }
+  validates :sound_file, size: { less_than: 7.megabytes }
 
   after_create :notify_parent_post_author, if: :is_reply?
   after_create :notify_other_repliers, if: :is_reply?
@@ -26,6 +30,21 @@ class Post < ApplicationRecord
         user_id: mention.user_id,
         locations: mention.locations
       }
+    end
+
+    # Add photo URLs to the JSON response if photos are attached
+    if photos.attached?
+      attrs[:photo_urls] = photos.map do |photo|
+        Rails.application.routes.url_helpers.rails_blob_url(photo)
+      end
+    else
+      attrs[:photo_urls] = []
+    end
+
+    if sound_file.attached?
+      attrs[:sound_file_url] = Rails.application.routes.url_helpers.rails_blob_url(photo)
+    else
+      attrs[:sound_file_url] = nil
     end
     attrs
   end

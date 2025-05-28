@@ -5,9 +5,20 @@ import Colors from '@/constants/Colors';
 import { Post as PostType } from '@/types/api';
 import { FontAwesome } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 interface PostProps {
   post: PostType;
@@ -19,6 +30,8 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
 
   const { data: currentUser } = useUserApi();
   const { data: posts = [], isLoading: isLoadingComments, deletePostMutation } = usePostsApi();
+
+  const [fullscreenPhotoUrl, setFullscreenPhotoUrl] = React.useState<string | null>(null);
 
   const comments = useMemo(
     () =>
@@ -78,12 +91,39 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
           )}
         </View>
       </View>
+      {comment.photo_urls && comment.photo_urls.length > 0 && (
+        <View style={styles.photoGalleryContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {comment.photo_urls.map((url, idx) => (
+              <Pressable
+                key={url + idx}
+                style={({ pressed }) => [styles.photoWrapper, pressed && { opacity: 0.7 }]}
+                onPress={() => setFullscreenPhotoUrl(url)}
+              >
+                <Image source={{ uri: url }} style={styles.attachedPhoto} contentFit="cover" />
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      )}
       {renderContentWithMentions(comment.content, comment.mentions)}
     </View>
   );
 
   return (
     <View style={styles.container}>
+      <Modal
+        visible={!!fullscreenPhotoUrl}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFullscreenPhotoUrl(null)}
+      >
+        <Pressable style={styles.fullscreenOverlay} onPress={() => setFullscreenPhotoUrl(null)}>
+          {fullscreenPhotoUrl && (
+            <Image source={{ uri: fullscreenPhotoUrl }} style={styles.fullscreenImage} contentFit="contain" />
+          )}
+        </Pressable>
+      </Modal>
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <UserProfileHeader user_id={post.user_id} username={post.username} user_photo_url={post.user_photo_url} />
@@ -102,14 +142,27 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
         </View>
       </View>
       {renderContentWithMentions(post.content, post.mentions)}
+      {post.photo_urls && post.photo_urls.length > 0 && (
+        <View style={styles.photoGalleryContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {post.photo_urls.map((url, idx) => (
+              <Pressable
+                key={url + idx}
+                style={({ pressed }) => [styles.photoWrapper, pressed && { opacity: 0.7 }]}
+                onPress={() => setFullscreenPhotoUrl(url)}
+              >
+                <Image source={{ uri: url }} style={styles.attachedPhoto} contentFit="cover" />
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      )}
       <View style={styles.commentsContainer}>
         {isLoadingComments ? (
           <ActivityIndicator style={styles.loadingIndicator} />
         ) : comments.length > 0 ? (
           comments.map(renderComment)
-        ) : (
-          <Text style={styles.noCommentsText}>No comments yet</Text>
-        )}
+        ) : null}
       </View>
       {!readonly ? (
         <TouchableOpacity style={styles.replyButton} onPress={navigateToPost}>
@@ -121,6 +174,30 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
 };
 
 const styles = StyleSheet.create({
+  fullscreenOverlay: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenImage: {
+    width: '95%',
+    height: '80%',
+    borderRadius: 16,
+  },
+  photoGalleryContainer: {
+    marginVertical: 4,
+  },
+  photoWrapper: {
+    marginRight: 8,
+    width: 120,
+    height: 120,
+  },
+  attachedPhoto: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+  },
   mentionText: {
     color: Colors.primary,
   },
@@ -163,7 +240,6 @@ const styles = StyleSheet.create({
   responseText: {
     fontSize: 16,
     lineHeight: 24,
-    marginBottom: 16,
   },
   commentsContainer: {
     marginBottom: 12,
@@ -214,7 +290,6 @@ const styles = StyleSheet.create({
   },
   replyButton: {
     alignSelf: 'flex-start',
-    marginTop: 8,
   },
   replyButtonText: {
     color: '#007AFF',
@@ -226,6 +301,9 @@ function renderContentWithMentions(
   content: string,
   mentions?: { user_id: number; locations: { start: number; end: number }[] }[],
 ) {
+  if (!content) {
+    return null;
+  }
   if (!mentions || mentions.length === 0) {
     return <Text style={styles.responseText}>{content}</Text>;
   }

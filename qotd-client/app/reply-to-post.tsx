@@ -1,15 +1,19 @@
 import { usePostsApi } from '@/api/usePostsApi';
 import BackButton from '@/components/BackButton';
 import { Post } from '@/components/Post';
+import { UploadPhotoPreview } from '@/components/UploadPhotoPreview';
 import Colors from '@/constants/Colors';
 import { useGroup, useGroupId } from '@/context/GroupContext';
 import { useFetchApiAndParseJson } from '@/utils/api';
+import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import type { ScrollView as ScrollViewType } from 'react-native';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
@@ -24,6 +28,55 @@ import {
 } from 'react-native';
 
 export default function ReplyToPostPage() {
+  const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [error, setError] = useState('');
+
+  function removePhoto(idx: number) {
+    setPhotos((prev: ImagePicker.ImagePickerAsset[]) => prev.filter((_, i) => i !== idx));
+  }
+
+  async function pickImage() {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      setError('Permission to access gallery was denied');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets) {
+      setPhotos((prev: ImagePicker.ImagePickerAsset[]) => [...prev, ...result.assets]);
+    }
+  }
+
+  async function takePhoto() {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      setError('Permission to access camera was denied');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets) {
+      setPhotos((prev: ImagePicker.ImagePickerAsset[]) => [...prev, ...result.assets]);
+    }
+  }
+
+  function showImagePickerOptions() {
+    Alert.alert(
+      'Add Photo',
+      'Choose a photo source',
+      [
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'Choose from Library', onPress: pickImage },
+        { text: 'Cancel', style: 'cancel' },
+      ],
+      { cancelable: true },
+    );
+  }
   const { id } = useLocalSearchParams<{ id: string }>();
   const [reply, setReply] = useState('');
   const [showMentions, setShowMentions] = useState(false);
@@ -39,18 +92,37 @@ export default function ReplyToPostPage() {
 
   const post = posts.find((post) => post.id === Number.parseInt(id));
 
-  const body = {
-    post: {
-      content: reply.trim(),
-      parent_post_id: Number.parseInt(id),
-      prompt_question_id: post?.prompt_question_id ?? 0,
-    },
-  };
+  // Submission logic: multipart if photos, JSON if not
   const addReplyMutation = useMutation({
-    mutationFn: () => api(`/groups/${groupId}/posts`, { body: JSON.stringify(body), method: 'POST' }),
+    mutationFn: async () => {
+      if (photos.length > 0) {
+        const formData = new FormData();
+        formData.append('post[parent_post_id]', id);
+        formData.append('post[content]', reply.trim());
+        formData.append('post[prompt_question_id]', String(post?.prompt_question_id ?? 0));
+        photos.forEach((photo: ImagePicker.ImagePickerAsset, idx: number) => {
+          formData.append('post[photos][]', {
+            uri: photo.uri,
+            type: photo.mimeType || 'image/jpeg',
+            name: photo.fileName || `photo-${idx + 1}.jpg`,
+          } as any);
+        });
+        return api(`/groups/${groupId}/posts`, { method: 'POST', body: formData });
+      } else {
+        const body = {
+          post: {
+            content: reply.trim(),
+            parent_post_id: Number.parseInt(id),
+            prompt_question_id: post?.prompt_question_id ?? 0,
+          },
+        };
+        return api(`/groups/${groupId}/posts`, { body: JSON.stringify(body), method: 'POST' });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
       setReply('');
+      setPhotos([]);
       router.back();
     },
   });
@@ -89,10 +161,10 @@ export default function ReplyToPostPage() {
     );
   }
 
+  const noReplyContent = !reply.trim() && photos.length === 0;
   const handleSubmitReply = () => {
-    if (reply.trim()) {
-      addReplyMutation.mutate();
-    }
+    if (noReplyContent) return;
+    addReplyMutation.mutate();
   };
   // Handle selection of a username from the popup
   const handleSelectUsername = (username: string) => {
@@ -125,11 +197,11 @@ export default function ReplyToPostPage() {
             <Pressable
               style={({ pressed }) => [
                 styles.replyButton,
-                !reply.trim() && styles.disabledButton,
+                noReplyContent && styles.disabledButton,
                 pressed && { opacity: 0.7 },
               ]}
               onPress={handleSubmitReply}
-              disabled={!reply.trim() || addReplyMutation.isPending}
+              disabled={noReplyContent || addReplyMutation.isPending}
             >
               {addReplyMutation.isPending ? (
                 <ActivityIndicator color="#fff" size="small" />
@@ -145,17 +217,29 @@ export default function ReplyToPostPage() {
         </ScrollView>
 
         <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.replyInput}
-            value={reply}
-            onChangeText={setReply}
-            onSelectionChange={(event) => setCursorPosition(event.nativeEvent.selection.start)}
-            placeholder="Write your reply..."
-            placeholderTextColor="#666"
-            multiline
-            autoFocus
-            editable={!addReplyMutation.isPending}
-          />
+          <View style={styles.photoPreviewContainer}>
+            <UploadPhotoPreview photos={photos} onRemovePhoto={removePhoto} />
+          </View>
+          <View>
+            <TextInput
+              style={styles.replyInput}
+              value={reply}
+              onChangeText={setReply}
+              onSelectionChange={(event) => setCursorPosition(event.nativeEvent.selection.start)}
+              placeholder="Write your reply..."
+              placeholderTextColor="#666"
+              multiline
+              autoFocus
+              editable={!addReplyMutation.isPending}
+            />
+            <Pressable
+              style={({ pressed }) => [styles.addPhotoButton, pressed && { opacity: 0.7 }]}
+              onPress={showImagePickerOptions}
+            >
+              <FontAwesome name="image" size={20} color={Colors.primary} />
+            </Pressable>
+          </View>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
           {showMentions && filteredMembers.length > 0 && (
             <View style={styles.mentionsContainer}>
               <FlatList
@@ -247,14 +331,26 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     position: 'relative',
+    paddingBottom: 8,
+    borderTopColor: Colors.border,
+    borderTopWidth: 1,
+  },
+  photoPreviewContainer: {
+    paddingTop: 8,
+    paddingHorizontal: 8,
+  },
+  error: {
+    color: Colors.error,
+    marginTop: 8,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   replyInput: {
     padding: 16,
+    paddingRight: 48, // Space for floating button
     fontSize: 16,
     lineHeight: 22,
     color: Colors.text,
-    borderTopWidth: 1,
-    borderColor: Colors.border,
     backgroundColor: Colors.background,
   },
   mentionsContainer: {
@@ -278,5 +374,14 @@ const styles = StyleSheet.create({
   mentionUsername: {
     fontSize: 16,
     color: Colors.primary,
+  },
+  addPhotoButton: {
+    position: 'absolute',
+    right: 8,
+    top: 14,
+    backgroundColor: Colors.background,
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
