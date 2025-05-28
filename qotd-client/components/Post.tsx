@@ -141,7 +141,6 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
           )}
         </View>
       </View>
-      {renderContentWithMentions(post.content, post.mentions)}
       {post.photo_urls && post.photo_urls.length > 0 && (
         <View style={styles.photoGalleryContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -157,6 +156,7 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
           </ScrollView>
         </View>
       )}
+      {renderContentWithMentions(post.content, post.mentions)}
       <View style={styles.commentsContainer}>
         {isLoadingComments ? (
           <ActivityIndicator style={styles.loadingIndicator} />
