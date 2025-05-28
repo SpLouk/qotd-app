@@ -220,7 +220,7 @@ export default function ReplyToPostPage() {
           <View style={styles.photoPreviewContainer}>
             <UploadPhotoPreview photos={photos} onRemovePhoto={removePhoto} />
           </View>
-          <View>
+          <View style={styles.inputContainerInner}>
             <TextInput
               style={styles.replyInput}
               value={reply}
@@ -335,6 +335,9 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
     borderTopWidth: 1,
   },
+  inputContainerInner: {
+    justifyContent: 'center',
+  },
   photoPreviewContainer: {
     paddingTop: 8,
     paddingHorizontal: 8,
@@ -346,7 +349,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   replyInput: {
-    padding: 16,
+    padding: 8,
     paddingRight: 48, // Space for floating button
     fontSize: 16,
     lineHeight: 22,
@@ -378,7 +381,7 @@ const styles = StyleSheet.create({
   addPhotoButton: {
     position: 'absolute',
     right: 8,
-    top: 14,
+    top: 0,
     backgroundColor: Colors.background,
     padding: 8,
     justifyContent: 'center',
