@@ -1,7 +1,7 @@
 import { usePostsApi } from '@/api/usePostsApi';
 import { useUserApi } from '@/api/useUserApi';
 import Colors from '@/constants/Colors';
-import { useGroupId } from '@/context/GroupContext';
+import { useGroup, useGroupId } from '@/context/GroupContext';
 import { CreatePostRequest, Post } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation } from '@tanstack/react-query';
@@ -35,6 +35,7 @@ export default function WriteResponse() {
   const { invalidateUser } = useUserApi();
   const fetchAndParseJson = useFetchApiAndParseJson();
   const groupId = useGroupId();
+  const { data: group } = useGroup();
 
   const { mutate: submitPost, isPending } = useMutation<Post, Error, any>({
     mutationKey: ['posts', groupId],
@@ -137,6 +138,7 @@ export default function WriteResponse() {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
           <View style={styles.header}>
             <View style={styles.promptContainer}>
+              <Text style={styles.groupName}>{group?.name}</Text>
               <Text style={styles.promptText}>{activePrompt?.content}</Text>
             </View>
             <TouchableOpacity
@@ -209,9 +211,13 @@ const styles = StyleSheet.create({
     paddingLeft: 0,
     flex: 1,
   },
+  groupName: {
+    fontSize: 16,
+    color: Colors.appTitle,
+    fontWeight: '600',
+  },
   promptText: {
     fontSize: 24,
-    fontWeight: '600',
     color: Colors.text,
     flexWrap: 'wrap',
   },
