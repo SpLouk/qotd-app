@@ -1,9 +1,11 @@
 import { usePostsApi } from '@/api/usePostsApi';
 import BackButton from '@/components/BackButton';
+import { createPostRequestBody } from '@/components/helpers/useCreatePost';
 import { Post } from '@/components/Post';
 import { UploadPhotoPreview } from '@/components/UploadPhotoPreview';
 import Colors from '@/constants/Colors';
 import { useGroup, useGroupId } from '@/context/GroupContext';
+import { CreatePostRequest } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -94,31 +96,11 @@ export default function ReplyToPostPage() {
 
   // Submission logic: multipart if photos, JSON if not
   const addReplyMutation = useMutation({
-    mutationFn: async () => {
-      if (photos.length > 0) {
-        const formData = new FormData();
-        formData.append('post[parent_post_id]', id);
-        formData.append('post[content]', reply.trim());
-        formData.append('post[prompt_question_id]', String(post?.prompt_question_id ?? 0));
-        photos.forEach((photo: ImagePicker.ImagePickerAsset, idx: number) => {
-          formData.append('post[photos][]', {
-            uri: photo.uri,
-            type: photo.mimeType || 'image/jpeg',
-            name: photo.fileName || `photo-${idx + 1}.jpg`,
-          } as any);
-        });
-        return api(`/groups/${groupId}/posts`, { method: 'POST', body: formData });
-      } else {
-        const body = {
-          post: {
-            content: reply.trim(),
-            parent_post_id: Number.parseInt(id),
-            prompt_question_id: post?.prompt_question_id ?? 0,
-          },
-        };
-        return api(`/groups/${groupId}/posts`, { body: JSON.stringify(body), method: 'POST' });
-      }
-    },
+    mutationFn: (data: CreatePostRequest['post']) =>
+      api(`/groups/${groupId}/posts`, {
+        body: createPostRequestBody(data),
+        method: 'POST',
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
       setReply('');
@@ -164,7 +146,12 @@ export default function ReplyToPostPage() {
   const noReplyContent = !reply.trim() && photos.length === 0;
   const handleSubmitReply = () => {
     if (noReplyContent) return;
-    addReplyMutation.mutate();
+    addReplyMutation.mutate({
+      content: reply,
+      photos,
+      parent_post_id: Number.parseInt(id),
+      prompt_question_id: post.prompt_question_id,
+    });
   };
   // Handle selection of a username from the popup
   const handleSelectUsername = (username: string) => {

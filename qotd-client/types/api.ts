@@ -1,3 +1,5 @@
+import * as ImagePicker from 'expo-image-picker';
+
 export interface User {
   id: number;
   username: string;
@@ -58,6 +60,6 @@ export interface CreatePostRequest {
     prompt_question_id: number;
     parent_post_id?: number;
     content: string;
-    photos?: any[];
+    photos: ImagePicker.ImagePickerAsset[];
   };
 }

@@ -2,7 +2,7 @@ import { usePostsApi } from '@/api/usePostsApi';
 import { useUserApi } from '@/api/useUserApi';
 import Colors from '@/constants/Colors';
 import { useGroup, useGroupId } from '@/context/GroupContext';
-import { CreatePostRequest, Post } from '@/types/api';
+import { Post } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
 import { UploadPhotoPreview } from '@/components/UploadPhotoPreview';
+import { createPostRequestBody } from '@/components/helpers/useCreatePost';
 
 export default function WriteResponse() {
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -39,15 +40,11 @@ export default function WriteResponse() {
 
   const { mutate: submitPost, isPending } = useMutation<Post, Error, any>({
     mutationKey: ['posts', groupId],
-    mutationFn: (data) => {
-      // If FormData, send as multipart, else JSON
-      const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
-      return fetchAndParseJson(`/groups/${groupId}/posts`, {
-        body: isFormData ? data : JSON.stringify(data),
+    mutationFn: (data) =>
+      fetchAndParseJson(`/groups/${groupId}/posts`, {
+        body: createPostRequestBody(data),
         method: 'POST',
-        headers: isFormData ? undefined : { 'Content-Type': 'application/json' },
-      });
-    },
+      }),
     onSuccess: () => {
       invalidatePosts();
       invalidateUser();
@@ -61,26 +58,7 @@ export default function WriteResponse() {
     if (noResponseContent || !activePrompt || isPending) {
       return;
     }
-    if (photos.length > 0) {
-      // Send as multipart/form-data
-      const formData = new FormData();
-      formData.append('post[prompt_question_id]', String(activePrompt.id));
-      formData.append('post[content]', response.trim());
-      photos.forEach((photo: ImagePicker.ImagePickerAsset, idx: number) => {
-        formData.append('post[photos][]', {
-          uri: photo.uri,
-          type: photo.mimeType || 'image/jpeg',
-          name: photo.fileName || `photo-${idx + 1}.jpg`,
-        } as any);
-      });
-      submitPost(formData as any); // mutationFn will handle FormData
-    } else {
-      // Send as JSON
-      const payload: CreatePostRequest = {
-        post: { prompt_question_id: parseInt(activePrompt.id), content: response.trim() },
-      };
-      submitPost(payload);
-    }
+    submitPost({ photos, prompt_question_id: parseInt(activePrompt.id), content: response });
   }
 
   function removePhoto(idx: number) {
