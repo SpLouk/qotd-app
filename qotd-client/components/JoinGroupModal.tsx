@@ -1,3 +1,4 @@
+import { useUserApi } from '@/api/useUserApi';
 import Colors from '@/constants/Colors';
 import { GroupContext } from '@/context/GroupContext';
 import { useFetchApiAndParseJson } from '@/utils/api';
@@ -15,6 +16,7 @@ export function JoinGroupModal({ visible, onClose }: JoinGroupModalProps) {
   const [joinError, setJoinError] = useState<string | null>(null);
   const fetchApiAndParseJson = useFetchApiAndParseJson();
   const groupContext = useContext(GroupContext);
+  const { invalidateUser } = useUserApi();
 
   if (!groupContext) {
     throw new Error('JoinGroupModal must be used within a GroupProvider');
@@ -38,6 +40,7 @@ export function JoinGroupModal({ visible, onClose }: JoinGroupModalProps) {
     },
     onSuccess: (data) => {
       handleClose();
+      invalidateUser();
       setSelectedGroupId(data.group_id);
     },
     onError: (err: any) => {

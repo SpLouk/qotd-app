@@ -76,7 +76,7 @@ class GroupsController < ApplicationController
 
     existing_membership = @group.group_users.find_by(user: Current.user)
     if existing_membership
-      render json: { error: "Already a member or request pending" }, status: :unprocessable_entity
+      render json: existing_membership
       return
     end
 

@@ -67,7 +67,8 @@ Rails.application.configure do
     address: "smtp.sendgrid.net",
     port: 587,
     authentication: :plain,
-    enable_starttls_auto: true
+    enable_starttls_auto: true,
+    domain: "loukidelis.com"
   }
 
   config.action_mailer.perform_deliveries = true
