@@ -38,7 +38,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <BackButton />
         <Text style={styles.headerTitle}>@{user.username}</Text>

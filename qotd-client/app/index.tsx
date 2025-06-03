@@ -5,6 +5,7 @@ import { Feed } from '@/components/Feed';
 import { GroupTitlePager } from '@/components/GroupTitlePager';
 import { JoinGroupModal } from '@/components/JoinGroupModal';
 import PromptDrawer from '@/components/PromptDrawer';
+import { PromptResponseWriter } from '@/components/PromptResponseWriter';
 import Colors from '@/constants/Colors';
 import { GroupContext } from '@/context/GroupContext';
 import { FontAwesome6 } from '@expo/vector-icons';
@@ -41,35 +42,8 @@ export default function AppIndex() {
   const groupList = user?.groups;
   const { setSelectedGroupId, selectedGroupId } = useContext(GroupContext)!;
 
-  const {
-    data: posts = [],
-    isFetching: isFetchingPosts,
-    isLoading: isLoadingPosts,
-    error: postsError,
-    activePromptQuestionQuery,
-    invalidatePosts,
-    invalidatePrompts,
-  } = usePostsApi();
-
-  const { data: activePrompt } = activePromptQuestionQuery;
-
-  // Find if the user has a post for the current active prompt
-  const ownPost = posts?.find((p) => p.username === user?.username);
-
-  // Handle redirecting to write page with useEffect instead of during render
-  useEffect(() => {
-    if (user && activePrompt && !isFetchingPosts && !ownPost) {
-      router.replace('/write');
-    }
-  }, [user, activePrompt, isFetchingPosts, ownPost]);
-
   // Add user device token
   useAddDeviceToken();
-
-  const handleRefresh = () => {
-    invalidatePosts();
-    invalidatePrompts();
-  };
 
   const handlePlusPress = () => {
     if (Platform.OS === 'ios') {
@@ -95,7 +69,7 @@ export default function AppIndex() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container}>
       {successMessage && (
         <View style={styles.successMessage}>
           <Text style={styles.successMessageText}>{successMessage}</Text>
@@ -110,7 +84,6 @@ export default function AppIndex() {
             setSelectedGroupId={setSelectedGroupId}
             router={router}
           />
-          <Text style={styles.promptLabel}>{activePrompt ? activePrompt.content : 'No Active Prompt'}</Text>
         </View>
         <Pressable onPress={handlePlusPress} style={styles.plusButton} accessibilityLabel="Add or join group">
           <FontAwesome6 name="bars" size={24} color={Colors.primary} weight="thin" />
@@ -118,49 +91,100 @@ export default function AppIndex() {
       </View>
 
       <View style={styles.content}>
-        {isLoadingPosts ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator color={Colors.primary} size="large" />
-          </View>
-        ) : !groupList || groupList.length === 0 ? (
-          <View style={styles.joinGroupContainer}>
-            <Text style={styles.joinGroupOverlineText}>Nothing here?</Text>
-            <Pressable
-              style={({ pressed }) => [pressed && { opacity: 0.7 }]}
-              onPress={() => setJoinGroupModalVisible(true)}
-              accessibilityRole="link"
-            >
-              <Text style={styles.joinGroupLinkText}>Join a group to get started!</Text>
-            </Pressable>
-          </View>
-        ) : postsError ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>No active prompt available.</Text>
-            <Text style={styles.errorSubtext}>Check back later for new prompts!</Text>
-            <TouchableOpacity
-              style={[styles.refreshButton, isFetchingPosts && styles.refreshButtonDisabled]}
-              disabled={isFetchingPosts}
-              onPress={handleRefresh}
-            >
-              {isFetchingPosts ? (
-                <ActivityIndicator color={Colors.primary} size="small" />
-              ) : (
-                <Text style={styles.refreshButtonText}>Refresh</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            <Feed />
-            {!postsError && <PromptDrawer setSuccessMessage={setSuccessMessage} />}
-          </>
-        )}
+        <MainContent setSuccessMessage={setSuccessMessage} setJoinGroupModalVisible={setJoinGroupModalVisible} />
       </View>
 
       <JoinGroupModal visible={joinGroupModalVisible} onClose={() => setJoinGroupModalVisible(false)} />
     </SafeAreaView>
   );
 }
+
+const MainContent = ({
+  setJoinGroupModalVisible,
+  setSuccessMessage,
+}: {
+  setJoinGroupModalVisible: (value: boolean) => void;
+  setSuccessMessage: (value: string | null) => void;
+}) => {
+  const {
+    data: posts = [],
+    isFetching: isFetchingPosts,
+    isLoading: isLoadingPosts,
+    error: postsError,
+    invalidatePosts,
+    invalidatePrompts,
+    activePromptQuestionQuery,
+  } = usePostsApi();
+
+  const { data: user, isLoading: isLoadingUser } = useUserApi();
+  const groupList = user?.groups;
+
+  const { data: activePrompt, isLoading: isLoadingPrompt } = activePromptQuestionQuery;
+
+  // Find if the user has a post for the current active prompt
+  const ownPost = posts.find((p) => p.username === user?.username);
+
+  const needsWritePrompt = user && activePrompt && !ownPost && !isFetchingPosts;
+
+  const handleRefresh = () => {
+    invalidatePosts();
+    invalidatePrompts();
+  };
+
+  if (isLoadingPosts || isLoadingPrompt || isLoadingUser) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator color={Colors.primary} size="large" />
+      </View>
+    );
+  }
+
+  if (!groupList?.length) {
+    return (
+      <View style={styles.joinGroupContainer}>
+        <Text style={styles.joinGroupOverlineText}>Nothing here?</Text>
+        <Pressable
+          style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+          onPress={() => setJoinGroupModalVisible(true)}
+          accessibilityRole="link"
+        >
+          <Text style={styles.joinGroupLinkText}>Join a group to get started!</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (postsError) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>No active prompt available.</Text>
+        <Text style={styles.errorSubtext}>Check back later for new prompts!</Text>
+        <TouchableOpacity
+          style={[styles.refreshButton, isFetchingPosts && styles.refreshButtonDisabled]}
+          disabled={isFetchingPosts}
+          onPress={handleRefresh}
+        >
+          {isFetchingPosts ? (
+            <ActivityIndicator color={Colors.primary} size="small" />
+          ) : (
+            <Text style={styles.refreshButtonText}>Refresh</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (needsWritePrompt) {
+    return <PromptResponseWriter />;
+  }
+
+  return (
+    <>
+      <Feed />
+      <PromptDrawer setSuccessMessage={setSuccessMessage} />
+    </>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -176,10 +200,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     padding: 16,
+    paddingVertical: 8,
   },
   headerLeft: {
     flex: 1,
-    width: '100%',
   },
   appName: {
     fontSize: 24,

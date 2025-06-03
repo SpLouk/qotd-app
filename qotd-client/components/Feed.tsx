@@ -2,11 +2,14 @@ import { Post } from '@/types/api';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Post as PostComponent } from './Post';
 import { usePostsApi } from '@/api/usePostsApi';
+import Colors from '@/constants/Colors';
 
 export function Feed() {
-  const { data: allPosts = [], isLoading, refetch, isRefetching } = usePostsApi();
+  const { data: allPosts = [], isLoading, refetch, isRefetching, activePromptQuestionQuery } = usePostsApi();
 
   const posts = allPosts.filter((post: Post) => !post.parent_post_id);
+
+  const { data: activePrompt } = activePromptQuestionQuery;
 
   // Only show loading state on initial load, not during refetch
   if (isLoading && !allPosts.length) {
@@ -28,6 +31,16 @@ export function Feed() {
   return (
     <View style={styles.container}>
       <FlatList
+        ListHeaderComponent={
+          activePrompt ? (
+            <View style={styles.header}>
+              <View style={{ flexDirection: 'column', flex: 1 }}>
+                <Text style={styles.promptOverline}>Today's prompt:</Text>
+                <Text style={styles.promptText}>{activePrompt?.content}</Text>
+              </View>
+            </View>
+          ) : null
+        }
         data={posts}
         renderItem={renderItem}
         keyExtractor={(post) => post.id.toString()}
@@ -51,7 +64,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
     flexGrow: 1,
-    paddingBottom: 100, // Add padding to account for the floating button
+    paddingBottom: 72, // Add padding to account for the floating button
   },
   centered: {
     flex: 1,
@@ -72,5 +85,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  header: {
+    marginBottom: 16,
+  },
+  promptOverline: {
+    color: Colors.textSecondary,
+  },
+  promptText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    flexWrap: 'wrap',
   },
 });

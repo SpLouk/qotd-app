@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   },
   promptButton: {
     position: 'absolute',
-    bottom: 36,
+    bottom: 8,
     alignSelf: 'center',
     width: '80%',
     shadowColor: '#000',

@@ -41,7 +41,7 @@ export default function GroupPage() {
       : undefined;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container}>
       {copiedCode && (
         <View style={styles.successMessage}>
           <Text style={styles.successMessageText}>Copied invite code!</Text>
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 16,
     gap: 12,
-    paddingBottom: 12,
+    flex: 1,
   },
   sectionCentered: {
     gap: 12,
