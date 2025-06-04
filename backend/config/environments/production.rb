@@ -68,7 +68,7 @@ Rails.application.configure do
     port: 2525,
     authentication: :plain,
     enable_starttls_auto: true,
-    domain: "loukidelis.com"
+    domain: "loukidelis.ca"
   }
 
   config.action_mailer.perform_deliveries = true
