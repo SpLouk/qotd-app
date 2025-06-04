@@ -65,7 +65,7 @@ Rails.application.configure do
     user_name: Rails.application.credentials.dig(:smtp, :user_name),
     password: Rails.application.credentials.dig(:smtp, :password),
     address: "smtp.sendgrid.net",
-    port: 587,
+    port: 2525,
     authentication: :plain,
     enable_starttls_auto: true,
     domain: "loukidelis.com"
