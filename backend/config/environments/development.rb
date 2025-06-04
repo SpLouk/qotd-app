@@ -49,7 +49,7 @@ Rails.application.configure do
 
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.default_options = { from: "david@loukidelis.com" }
+  config.action_mailer.default_options = { from: "no-reply@em1463.loukidelis.ca" }
   # Don't care if the mailer can't send.
   # config.action_mailer.raise_delivery_errors = false
 
