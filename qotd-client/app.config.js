@@ -43,6 +43,13 @@ export default {
       'expo-apple-authentication',
       'expo-secure-store',
       'expo-audio',
+      [
+        'expo-image-picker',
+        {
+          photosPermission: 'The app accesses your photos to let you attach pictures to your posts.',
+          cameraPermission: 'The app accesses your camera to let you take pictures to attach to your posts.',
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
