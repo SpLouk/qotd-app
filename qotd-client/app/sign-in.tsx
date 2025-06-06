@@ -23,7 +23,7 @@ export default function SignIn() {
       />
       <Pressable
         style={({ pressed }) => [styles.emailSignInButton, pressed && { opacity: 0.7 }]}
-        onPress={() => router.push('/email-auth')}
+        onPress={() => router.replace('/email-auth')}
       >
         <Text style={styles.buttonText}>Sign in with Email</Text>
       </Pressable>

@@ -41,4 +41,33 @@ class PromptVoteTest < ActiveSupport::TestCase
     vote.destroy
     assert_equal initial_count, prompt.reload.prompt_votes_count
   end
+
+  test "user cannot vote twice in one day for the same group" do
+    # Setup - user already has a vote
+    user = users(:one)
+
+    # create vote within group 1
+    existing_vote = prompt_votes(:user_one_vote)
+    existing_vote.update!(created_at: Time.now)
+
+    # try to create another vote for a different prompt
+    prompt = prompt_questions(:inactive_with_votes)
+    vote = PromptVote.new(user: user, prompt_question: prompt)
+    assert_not vote.save
+    assert_includes vote.errors[:base], "can only vote once per group per day"
+  end
+
+  test "user can vote twice in one day for different groups" do
+    # Setup - user already has a vote
+    user = users(:one)
+
+    # create vote within group 1
+    existing_vote = prompt_votes(:user_one_vote)
+    existing_vote.update!(created_at: Time.now)
+
+    # try to create another vote for a different prompt
+    prompt = prompt_questions(:active_group_two)
+    vote = PromptVote.new(user: user, prompt_question: prompt)
+    assert vote.save
+  end
 end
