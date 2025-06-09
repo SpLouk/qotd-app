@@ -14,8 +14,8 @@ class Post < ApplicationRecord
   validate :user_in_group, if: :group_id?
   validate :validate_parent_or_prompt_presence
   validate :validate_group_consistency
-  validates :photos, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 5.megabytes }
-  validates :sound_file, size: { less_than: 7.megabytes }
+  validates :photos, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 10.megabytes }
+  validates :sound_file, size: { less_than: 10.megabytes }
 
   after_create :notify_parent_post_author, if: :is_reply?
   after_create :notify_other_repliers, if: :is_reply?
