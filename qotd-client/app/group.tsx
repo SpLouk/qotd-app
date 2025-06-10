@@ -1,17 +1,26 @@
+import { useUserApi } from '@/api/useUserApi';
 import BackButton from '@/components/BackButton';
 import { UserProfileHeader } from '@/components/UserProfileHeader';
 import Colors from '@/constants/Colors';
-import { useGroup } from '@/context/GroupContext';
+import { GroupContext, useGroup } from '@/context/GroupContext';
+import { User } from '@/types/api';
+import { useFetchApi } from '@/utils/api';
+import { FontAwesome6 } from '@expo/vector-icons';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow, isFuture } from 'date-fns';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
-import React, { useCallback } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useContext } from 'react';
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function GroupPage() {
   const { data: selectedGroup, isLoading: isLoadingGroup } = useGroup();
   const [copiedCode, setCopiedCode] = React.useState(false);
+  const [error, setError] = React.useState('');
+
+  const { data: currentUser } = useUserApi();
+  const current_user_role = currentUser?.groups?.find((group) => group.id === selectedGroup?.id)?.current_user_role;
 
   const onCopyCode = useCallback(
     (inviteCode: string) => async () => {
@@ -21,6 +30,70 @@ export default function GroupPage() {
     },
     [setCopiedCode],
   );
+
+  const { invalidateUser } = useUserApi();
+  const fetchApi = useFetchApi();
+  const groupContext = useContext(GroupContext);
+  const queryClient = useQueryClient();
+  if (!groupContext) {
+    throw new Error('JoinGroupModal must be used within a GroupProvider');
+  }
+  const { setSelectedGroupId } = groupContext;
+  const leaveGroupMutation = useMutation({
+    mutationFn: async () => {
+      return fetchApi(`/groups/${selectedGroup?.id}/leave_group`, {
+        method: 'DELETE',
+      });
+    },
+    mutationKey: ['leave_group', selectedGroup?.id],
+    onSuccess: () => {
+      invalidateUser();
+      setSelectedGroupId(null);
+      router.replace('/');
+    },
+    onError: (err: any) => {
+      setError(err?.message || 'Could not leave group');
+    },
+  });
+  const removeUserFromGroup = useMutation({
+    mutationFn: async (userId: number) => {
+      return fetchApi(`/groups/${selectedGroup?.id}/remove_user/${userId}`, {
+        method: 'DELETE',
+      });
+    },
+    mutationKey: ['remove_user_from_group', selectedGroup?.id],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['group', selectedGroup?.id] });
+    },
+    onError: (err: any) => {
+      setError(err?.message || 'Could not remove user from group');
+    },
+  });
+
+  const handleRemoveUserFromGroup = (targetUser: User) => {
+    const isSelf = targetUser.id === currentUser?.id;
+    Alert.alert(
+      isSelf ? 'Leave Group?' : 'Remove User?',
+      isSelf
+        ? 'Are you sure you want to leave this group?'
+        : `Are you sure you want to remove ${targetUser.username} from the group?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: isSelf ? 'Leave' : 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            if (isSelf) {
+              leaveGroupMutation.mutate();
+            } else {
+              removeUserFromGroup.mutate(targetUser.id);
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  };
 
   if (isLoadingGroup) {
     return (
@@ -76,6 +149,8 @@ export default function GroupPage() {
         </View>
       )}
 
+      {error ? <Text>{error}</Text> : null}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Members ({selectedGroup.members.length})</Text>
         <FlatList
@@ -85,6 +160,17 @@ export default function GroupPage() {
           renderItem={({ item }) => (
             <View style={styles.memberItem}>
               <UserProfileHeader user_id={item.id} username={item.username} user_photo_url={item.profile_photo_url} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, paddingRight: 16 }}>
+                {item.id === currentUser?.id && <Text style={{ color: Colors.textSecondary }}>(You)</Text>}
+                {item.id === currentUser?.id || current_user_role === 'admin' ? (
+                  <Pressable
+                    style={({ pressed }) => pressed && { opacity: 0.7 }}
+                    onPress={() => handleRemoveUserFromGroup(item)}
+                  >
+                    <FontAwesome6 name="user-minus" size={20} color={Colors.error} />
+                  </Pressable>
+                ) : null}
+              </View>
             </View>
           )}
         />
@@ -138,6 +224,7 @@ const styles = StyleSheet.create({
   memberItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,

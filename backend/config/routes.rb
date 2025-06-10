@@ -7,6 +7,8 @@ Rails.application.routes.draw do
     member do
       post :join
       post :approve_request
+      delete :leave_group
+      delete 'remove_user/:user_id', action: :remove_user
     end
     resources :prompt_questions, only: [ :index, :create ] do
       member do
@@ -43,7 +45,7 @@ Rails.application.routes.draw do
     post :refresh, on: :collection
   end
 
-  resource :auth_codes, only: [:create] do
+  resource :auth_codes, only: [ :create ] do
     collection do
       post :verify
     end

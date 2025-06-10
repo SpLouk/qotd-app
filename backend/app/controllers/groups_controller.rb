@@ -1,7 +1,7 @@
 class GroupsController < ApplicationController
-  before_action :set_group, only: [ :show, :update, :destroy, :join, :approve_request ]
-  before_action :authorize_admin!, only: [ :approve_request, :update, :destroy ]
-  before_action :authorize_member!, only: [ :show ]
+  before_action :set_group, only: [ :show, :update, :destroy, :join, :approve_request, :leave_group, :remove_user ]
+  before_action :authorize_admin!, only: [ :approve_request, :update, :destroy, :remove_user ]
+  before_action :authorize_member!, only: [ :show, :leave_group ]
 
   def index
     @groups = Group.where(privacy_level: [ :closed, :open ])
@@ -99,6 +99,26 @@ class GroupsController < ApplicationController
     render json: @group_user, status: :created
   rescue ActiveRecord::RecordInvalid => e
     render json: { errors: @group_user.errors.full_messages }, status: :unprocessable_entity
+  end
+
+  def leave_group
+    group_user = @group.group_users.find_by(user: Current.user)
+    unless group_user
+      render json: { error: "Not a member of this group" }, status: :unprocessable_entity
+      return
+    end
+    group_user.destroy
+    head :no_content
+  end
+
+  def remove_user
+    group_user = @group.group_users.find_by(user_id: params[:user_id])
+    unless group_user
+      render json: { error: "User is not a member of this group" }, status: :unprocessable_entity
+      return
+    end
+    group_user.destroy
+    head :no_content
   end
 
   # POST /groups/:id/approve_request

@@ -19,6 +19,7 @@ export interface Group {
   active_invite_codes?: string[];
   privacy_level?: 'secret' | 'closed' | 'open';
   members: Pick<User, 'id' | 'username' | 'profile_photo_url'>[];
+  current_user_role?: 'member' | 'admin';
 }
 
 export interface PromptQuestion {

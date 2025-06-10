@@ -48,7 +48,7 @@ class User < ApplicationRecord
       attrs[:voted_today] = has_voted_today?
       attrs[:eligible_to_vote_today] = responded_to_current_prompt_within_30_minutes?
       attrs[:created_prompt_today] = has_created_prompt_today?
-      attrs[:groups] = groups.map { |g| { id: g.id, name: g.name, description: g.description } }
+      attrs[:groups] = group_users.select { |gu| gu.approved? }.map { |gu| gu.group.slice(:id, :name, :description).merge(current_user_role: gu.role) }
     end
     attrs
   end
