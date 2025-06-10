@@ -70,7 +70,7 @@ class PostTest < ActiveSupport::TestCase
     ApnsService.expects(:notify).never
 
     # Call the method directly instead of relying on callbacks
-    reply.send(:notify_other_repliers)
+    reply.send(:notify_other_repliers, [])
 
     # Add an assertion to verify the method behaves as expected
     assert_nil reply.id, "Reply should not be saved to the database"

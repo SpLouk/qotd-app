@@ -17,9 +17,7 @@ class Post < ApplicationRecord
   validates :photos, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 10.megabytes }
   validates :sound_file, size: { less_than: 10.megabytes }
 
-  after_create :notify_parent_post_author, if: :is_reply?
-  after_create :notify_other_repliers, if: :is_reply?
-  after_create :extract_mentions
+  after_create :extract_mentions_and_notify
 
   def as_json
     attrs = super
@@ -60,10 +58,10 @@ class Post < ApplicationRecord
     errors.add(:group, "user must be an approved member of the group")
   end
 
-  def notify_other_repliers
+  def notify_other_repliers(mentioned_users)
     # Get parent post author and all previous repliers (excluding current reply author)
     recipient_ids = parent_post.replies.pluck(:user_id)
-    recipient_ids = recipient_ids.uniq - [ user_id, parent_post.user_id ]
+    recipient_ids = recipient_ids.uniq - [ user_id, parent_post.user_id ] - mentioned_users.map(&:id)
     return if recipient_ids.empty?
 
     device_tokens = DeviceToken.where(user_id: recipient_ids)
@@ -88,8 +86,11 @@ class Post < ApplicationRecord
     ApnsService.notify(notification, device_tokens)
   end
 
-  def notify_parent_post_author
-    return unless parent_post.user.device_tokens.any?
+  def notify_parent_post_author(mentioned_users)
+    # return if post author has no device tokens, or they were already notified through a mention
+    if !parent_post.user.device_tokens.any? || mentioned_users.map(&:id).include?(parent_post.user_id)
+      return
+    end
 
     notification = Notification.new(
       title: "#{user.username} responded to your post",
@@ -125,7 +126,7 @@ class Post < ApplicationRecord
     end
   end
 
-  def extract_mentions
+  def extract_mentions_and_notify
     return unless group
 
     # Find all mentions and their locations
@@ -133,7 +134,6 @@ class Post < ApplicationRecord
       match = Regexp.last_match
       { username: match[1], start: match.begin(0), end: match.end(0) }
     end
-    return if mention_matches.empty?
 
     # Group by username
     mentions_by_username = mention_matches.group_by { |m| m[:username] }
@@ -147,6 +147,12 @@ class Post < ApplicationRecord
       if user_id != mentioned_user.id
         MentionNotifierJob.perform_later(mentioned_user.id, id)
       end
+    end
+
+    # if replying to a parent post, notify other repliers and the parent post author
+    if is_reply?
+      notify_other_repliers(group_users)
+      notify_parent_post_author(group_users)
     end
   end
 end
