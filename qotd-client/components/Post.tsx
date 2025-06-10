@@ -18,6 +18,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Linking
 } from 'react-native';
 
 interface PostProps {
@@ -297,6 +298,7 @@ const styles = StyleSheet.create({
   },
 });
 
+
 function renderContentWithMentions(
   content: string,
   mentions?: { user_id: number; locations: { start: number; end: number }[] }[],
@@ -305,7 +307,7 @@ function renderContentWithMentions(
     return null;
   }
   if (!mentions || mentions.length === 0) {
-    return <Text style={styles.responseText}>{content}</Text>;
+    return renderTextWithLinks(content, styles.responseText);
   }
   // Flatten all mention locations with user_id
   const mentionSpans: { start: number; end: number; user_id: number }[] = [];
@@ -321,14 +323,14 @@ function renderContentWithMentions(
   for (let i = 0; i < mentionSpans.length; i++) {
     const { start, end } = mentionSpans[i];
     if (lastIdx < start) {
+      // Render normal text with links
       elements.push(
-        <Text style={styles.responseText} key={`text-${lastIdx}`}>
-          {content.slice(lastIdx, start)}
-        </Text>,
+        ...renderTextWithLinks(content.slice(lastIdx, start), styles.responseText, `text-${lastIdx}`)
       );
     }
+    // Mentions should not be links, but should be selectable
     elements.push(
-      <Text style={[styles.responseText, styles.mentionText]} key={`mention-${start}`}>
+      <Text style={[styles.responseText, styles.mentionText]} key={`mention-${start}`} selectable>
         {content.slice(start, end)}
       </Text>,
     );
@@ -336,11 +338,47 @@ function renderContentWithMentions(
   }
   if (lastIdx < content.length) {
     elements.push(
-      <Text style={styles.responseText} key={`text-${lastIdx}`}>
-        {content.slice(lastIdx)}
-      </Text>,
+      ...renderTextWithLinks(content.slice(lastIdx), styles.responseText, `text-${lastIdx}`)
     );
   }
   // Wrap in a parent Text for proper inline rendering
-  return <Text style={styles.responseText}>{elements}</Text>;
+  return <Text style={styles.responseText} selectable>{elements}</Text>;
+}
+
+// Helper to render text with links as tappable Text
+function renderTextWithLinks(text: string, style: any, keyPrefix = '') {
+  if (!text) return [];
+  const urlRegex = /https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+/gi;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  let idx = 0;
+  while ((match = urlRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(
+        <Text style={style} selectable key={`${keyPrefix}-nourl-${idx}`}>{text.slice(lastIndex, match.index)}</Text>
+      );
+      idx++;
+    }
+    const url = match[0];
+    parts.push(
+      <Text
+        style={[style, { color:Colors.primary, textDecorationLine: 'underline' }]}
+        selectable
+        key={`${keyPrefix}-url-${idx}`}
+        onPress={() => Linking.openURL(url)}
+        accessibilityRole="link"
+      >
+        {url}
+      </Text>
+    );
+    lastIndex = match.index + url.length;
+    idx++;
+  }
+  if (lastIndex < text.length) {
+    parts.push(
+      <Text style={style} selectable key={`${keyPrefix}-nourl-end`}>{text.slice(lastIndex)}</Text>
+    );
+  }
+  return parts;
 }
