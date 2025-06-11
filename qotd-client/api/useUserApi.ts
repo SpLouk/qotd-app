@@ -40,10 +40,20 @@ export function useUserApi() {
     },
   });
 
+  const deleteUser = useMutation({
+    mutationFn: () => fetchApi('/user', { method: 'DELETE' }),
+    onSuccess: async () => {
+      await clearSession();
+      queryClient.clear();
+      router.replace('/sign-up');
+    },
+  });
+
   return {
     ...currentUserQuery,
     logoutMutation,
     invalidateUser,
     updateUser,
+    deleteUser,
   };
 }
