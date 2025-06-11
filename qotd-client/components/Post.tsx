@@ -3,7 +3,6 @@ import { useUserApi } from '@/api/useUserApi';
 import { UserProfileHeader } from '@/components/UserProfileHeader';
 import Colors from '@/constants/Colors';
 import { Post as PostType } from '@/types/api';
-import { addFlaggedPostId } from '@/utils/flaggedPosts';
 import { FontAwesome } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
 import { Image } from 'expo-image';

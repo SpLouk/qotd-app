@@ -13,6 +13,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -92,6 +94,18 @@ export default function SignUp() {
           >
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
+
+          <Text style={styles.eulaNotice}>
+            By joining Hoot, you agree to be bound by our{' '}
+            <Pressable
+              onPress={() => Linking.openURL('https://hoot.loukidelis.ca/eula.html')}
+              style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+              accessibilityRole="link"
+              accessibilityLabel="License Agreement"
+            >
+              <Text style={styles.eulaLinkText}>License Agreement</Text>
+            </Pressable>
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -152,5 +166,18 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontSize: 16,
     fontWeight: '600',
+  },
+  eulaNotice: {
+    marginTop: 18,
+    color: Colors.text,
+    textAlign: 'center',
+    maxWidth: 300,
+    alignSelf: 'center',
+    lineHeight: 28,
+  },
+  eulaLinkText: {
+    color: Colors.primary,
+    textDecorationLine: 'underline',
+    fontWeight: '500',
   },
 });
