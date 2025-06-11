@@ -19,6 +19,15 @@ class UsersController < ApplicationController
     render json: users
   end
 
+  # DELETE /user
+  def destroy
+    if Current.user.destroy!
+      head :no_content
+    else
+      render json: { errors: Current.user.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def user_params

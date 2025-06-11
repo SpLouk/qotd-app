@@ -11,12 +11,14 @@ class User < ApplicationRecord
   has_one_attached :profile_photo
 
   has_many :sessions, dependent: :destroy
-  has_many :follows_as_follower, class_name: "Follow", foreign_key: :follower_id
-  has_many :follows_as_followed, class_name: "Follow", foreign_key: :followed_id
+  has_many :follows_as_follower, class_name: "Follow", foreign_key: :follower_id, dependent: :destroy
+  has_many :follows_as_followed, class_name: "Follow", foreign_key: :followed_id, dependent: :destroy
 
-  has_many :posts
-  has_many :prompt_votes
-  has_many :prompt_questions, foreign_key: :created_by_id
+  has_many :posts, dependent: :destroy
+  has_many :prompt_votes, dependent: :destroy
+  has_many :prompt_questions, foreign_key: :created_by_id, dependent: :nullify
+  has_many :invite_codes, foreign_key: :created_by_id, dependent: :destroy
+  has_many :created_groups, class_name: "Group", foreign_key: :created_by_id, dependent: :nullify
   has_many :device_tokens, dependent: :destroy
   has_many :group_users, dependent: :destroy
   has_many :groups, through: :group_users

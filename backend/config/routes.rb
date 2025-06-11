@@ -8,7 +8,7 @@ Rails.application.routes.draw do
       post :join
       post :approve_request
       delete :leave_group
-      delete 'remove_user/:user_id', action: :remove_user
+      delete "remove_user/:user_id", action: :remove_user
     end
     resources :prompt_questions, only: [ :index, :create ] do
       member do
@@ -26,6 +26,9 @@ Rails.application.routes.draw do
   # Join group via invite code (no group id required)
   post "groups/join_with_code", to: "groups#join_with_invite_code"
 
+  # Routes for the current user
+  resource :user, only: [ :show, :update, :destroy ]
+
   # Routes for other users
   resources :users do
     resource :follow, only: [ :create, :destroy ] do
@@ -33,9 +36,6 @@ Rails.application.routes.draw do
     end
     get :search, on: :collection
   end
-
-  # Routes for the current user
-  resource :user, only: [ :show, :update ]
 
   # Get lists of followers/following for the current user
   get "followers", to: "follows#followers"
