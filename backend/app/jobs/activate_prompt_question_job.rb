@@ -24,7 +24,11 @@ class ActivatePromptQuestionJob < ApplicationJob
       )
       ApnsService.notify(notification, device_tokens) if device_tokens.any?
 
-      NotifyAboutRecentPostsJob.set(wait_until: 1.hour.from_now).perform_later(group)
+      # Schedule NotifyAboutRecentPostsJob to run at a random time between 0.5 and 1 hour from now
+      min_minutes = 30
+      max_minutes = 60
+      random_minutes = rand(min_minutes..max_minutes)
+      NotifyAboutRecentPostsJob.set(wait_until: random_minutes.minutes.from_now).perform_later(prompt)
     end
   end
 end
