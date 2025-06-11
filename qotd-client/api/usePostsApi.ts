@@ -38,6 +38,12 @@ export function usePostsApi() {
     onSuccess: invalidatePosts,
   });
 
+  const flagPostMutation = useMutation<Response, Error, number>({
+    mutationKey: ['flagPost', groupId],
+    mutationFn: (postId) => fetchApi(`/groups/${groupId}/posts/${postId}/flag`, { method: 'POST' }),
+    onSuccess: invalidatePosts,
+  });
+
   return {
     // Queries
     ...postsQuery,
@@ -45,6 +51,7 @@ export function usePostsApi() {
 
     // Mutations
     deletePostMutation,
+    flagPostMutation,
 
     // Cache invalidation helpers
     invalidatePosts,

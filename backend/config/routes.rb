@@ -18,7 +18,9 @@ Rails.application.routes.draw do
       get :active, on: :collection
     end
 
-    resources :posts, only: [ :create, :destroy, :index ]
+    resources :posts, only: [ :create, :destroy, :index ] do
+      post :flag, on: :member
+    end
   end
 
   # Join group via invite code (no group id required)

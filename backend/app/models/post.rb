@@ -1,6 +1,8 @@
 class Post < ApplicationRecord
   has_many :mentions, dependent: :destroy
   has_many :mentioned_users, through: :mentions, source: :user
+  has_many :post_flags, dependent: :destroy
+  has_many :flagged_users, through: :post_flags, source: :user
   has_many_attached :photos, service: :amazon
   has_one_attached :sound_file, service: :amazon
 

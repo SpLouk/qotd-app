@@ -42,10 +42,10 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
     get group_posts_path(@group), headers: auth_headers
 
     # Assert not found status
-    assert_response :not_found
+    assert_response :ok
 
     # Verify empty response
-    assert_empty JSON.parse(@response.body)
+    assert_equal [], JSON.parse(@response.body)
   end
 
   test "index requires authentication" do
@@ -77,5 +77,29 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
     assert mention["locations"].is_a?(Array)
     assert mention["locations"].first["start"].is_a?(Integer)
     assert mention["locations"].first["end"].is_a?(Integer)
+  end
+
+  test "flag endpoint creates a post flag and increments flags_count" do
+    post = posts(:group_one_active_post)
+    assert_difference [ "PostFlag.count", "post.reload.flags_count" ], 1 do
+      post flag_group_post_path(@group, post), headers: auth_headers
+    end
+    assert_response :created
+  end
+
+  test "flag endpoint does not allow duplicate flags" do
+    post = posts(:group_one_active_post)
+    PostFlag.create!(user: @user, post: post)
+    assert_no_difference [ "PostFlag.count", "post.reload.flags_count" ] do
+      post flag_group_post_path(@group, post), headers: auth_headers
+    end
+    assert_response :unprocessable_entity
+    assert_includes JSON.parse(@response.body)["errors"].join, "has already been taken"
+  end
+
+  test "flag endpoint returns not found for invalid post" do
+    invalid_id = -1
+    post flag_group_post_path(@group, invalid_id), headers: auth_headers
+    assert_response :not_found
   end
 end

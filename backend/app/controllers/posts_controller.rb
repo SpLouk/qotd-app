@@ -8,6 +8,7 @@ class PostsController < ApplicationController
     posts = Post.where(prompt_question_id: active_prompt.id)
                 .includes(:user)
                 .order(created_at: :desc)
+                .where.not(id: Current.user.flagged_posts.select(:id))
 
     render json: posts
   end
@@ -32,6 +33,19 @@ class PostsController < ApplicationController
       head :no_content
     else
       render status: :not_found
+    end
+  end
+
+  # POST /groups/:group_id/posts/:id/flag
+  def flag
+    post = @group.posts.find_by(id: params[:id])
+    return render status: :not_found unless post
+
+    post_flag = PostFlag.new(user: Current.user, post: post)
+    if post_flag.save
+      head :created
+    else
+      render json: { errors: post_flag.errors.full_messages }, status: :unprocessable_entity
     end
   end
 

@@ -6,6 +6,8 @@ require "jwt"
 class User < ApplicationRecord
   has_many :mentions, dependent: :destroy
   has_many :mentioned_posts, through: :mentions, source: :post
+  has_many :post_flags, dependent: :destroy
+  has_many :flagged_posts, through: :post_flags, source: :post
   has_one_attached :profile_photo
 
   has_many :sessions, dependent: :destroy

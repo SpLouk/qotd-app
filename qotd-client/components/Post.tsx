@@ -3,6 +3,7 @@ import { useUserApi } from '@/api/useUserApi';
 import { UserProfileHeader } from '@/components/UserProfileHeader';
 import Colors from '@/constants/Colors';
 import { Post as PostType } from '@/types/api';
+import { addFlaggedPostId } from '@/utils/flaggedPosts';
 import { FontAwesome } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
 import { Image } from 'expo-image';
@@ -18,7 +19,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Linking
+  Linking,
 } from 'react-native';
 
 interface PostProps {
@@ -30,7 +31,7 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
   const router = useRouter();
 
   const { data: currentUser } = useUserApi();
-  const { data: posts = [], isLoading: isLoadingComments, deletePostMutation } = usePostsApi();
+  const { data: posts = [], isLoading: isLoadingComments, deletePostMutation, flagPostMutation } = usePostsApi();
 
   const [fullscreenPhotoUrl, setFullscreenPhotoUrl] = React.useState<string | null>(null);
 
@@ -52,6 +53,20 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
         text: 'Delete',
         style: 'destructive',
         onPress: () => deletePostMutation.mutate(postToDelete.id),
+      },
+    ]);
+  };
+
+  const handleFlagPost = (postToFlag: PostType) => {
+    Alert.alert('Flag Content?', 'This post will be hidden for you and reported to Hoot', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Flag',
+        style: 'destructive',
+        onPress: () => flagPostMutation.mutate(postToFlag.id),
       },
     ]);
   };
@@ -81,15 +96,21 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
           <Text style={styles.commentDate}>
             {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
           </Text>
-          {isOwner(comment) && !readonly && (
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDelete(comment)}
-              disabled={deletePostMutation.isPending}
-            >
-              <FontAwesome name="trash-o" size={16} color="#FF3B30" />
-            </TouchableOpacity>
-          )}
+          {!readonly &&
+            (isOwner(comment) ? (
+              <TouchableOpacity onPress={() => handleDelete(comment)} disabled={deletePostMutation.isPending}>
+                <FontAwesome name="trash-o" size={16} color="#FF3B30" />
+              </TouchableOpacity>
+            ) : (
+              <Pressable
+                style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+                onPress={() => handleFlagPost(comment)}
+                accessibilityRole="button"
+                accessibilityLabel="Flag post"
+              >
+                <FontAwesome name="flag-o" size={16} color="#FF3B30" />
+              </Pressable>
+            ))}
         </View>
       </View>
       {comment.photo_urls && comment.photo_urls.length > 0 && (
@@ -131,15 +152,21 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
         </View>
         <View style={styles.headerActions}>
           <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
-          {isOwner(post) && !readonly && (
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDelete(post)}
-              disabled={deletePostMutation.isPending}
-            >
-              <FontAwesome name="trash-o" size={16} color="#FF3B30" />
-            </TouchableOpacity>
-          )}
+          {!readonly &&
+            (isOwner(post) ? (
+              <TouchableOpacity onPress={() => handleDelete(post)} disabled={deletePostMutation.isPending}>
+                <FontAwesome name="trash-o" size={16} color="#FF3B30" />
+              </TouchableOpacity>
+            ) : (
+              <Pressable
+                style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+                onPress={() => handleFlagPost(post)}
+                accessibilityRole="button"
+                accessibilityLabel="Flag post"
+              >
+                <FontAwesome name="flag-o" size={16} color="#FF3B30" />
+              </Pressable>
+            ))}
         </View>
       </View>
       {post.photo_urls && post.photo_urls.length > 0 && (
@@ -166,9 +193,9 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
         ) : null}
       </View>
       {!readonly ? (
-        <TouchableOpacity style={styles.replyButton} onPress={navigateToPost}>
+        <Pressable style={({ pressed }) => [styles.replyButton, pressed && { opacity: 0.7 }]} onPress={navigateToPost}>
           <Text style={styles.replyButtonText}>Reply</Text>
-        </TouchableOpacity>
+        </Pressable>
       ) : null}
     </View>
   );
@@ -235,9 +262,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  deleteButton: {
-    padding: 4,
-  },
   responseText: {
     fontSize: 16,
     lineHeight: 24,
@@ -298,7 +322,6 @@ const styles = StyleSheet.create({
   },
 });
 
-
 function renderContentWithMentions(
   content: string,
   mentions?: { user_id: number; locations: { start: number; end: number }[] }[],
@@ -324,9 +347,7 @@ function renderContentWithMentions(
     const { start, end } = mentionSpans[i];
     if (lastIdx < start) {
       // Render normal text with links
-      elements.push(
-        ...renderTextWithLinks(content.slice(lastIdx, start), styles.responseText, `text-${lastIdx}`)
-      );
+      elements.push(...renderTextWithLinks(content.slice(lastIdx, start), styles.responseText, `text-${lastIdx}`));
     }
     // Mentions should not be links, but should be selectable
     elements.push(
@@ -337,12 +358,14 @@ function renderContentWithMentions(
     lastIdx = end;
   }
   if (lastIdx < content.length) {
-    elements.push(
-      ...renderTextWithLinks(content.slice(lastIdx), styles.responseText, `text-${lastIdx}`)
-    );
+    elements.push(...renderTextWithLinks(content.slice(lastIdx), styles.responseText, `text-${lastIdx}`));
   }
   // Wrap in a parent Text for proper inline rendering
-  return <Text style={styles.responseText} selectable>{elements}</Text>;
+  return (
+    <Text style={styles.responseText} selectable>
+      {elements}
+    </Text>
+  );
 }
 
 // Helper to render text with links as tappable Text
@@ -356,28 +379,32 @@ function renderTextWithLinks(text: string, style: any, keyPrefix = '') {
   while ((match = urlRegex.exec(text)) !== null) {
     if (match.index > lastIndex) {
       parts.push(
-        <Text style={style} selectable key={`${keyPrefix}-nourl-${idx}`}>{text.slice(lastIndex, match.index)}</Text>
+        <Text style={style} selectable key={`${keyPrefix}-nourl-${idx}`}>
+          {text.slice(lastIndex, match.index)}
+        </Text>,
       );
       idx++;
     }
     const url = match[0];
     parts.push(
       <Text
-        style={[style, { color:Colors.primary, textDecorationLine: 'underline' }]}
+        style={[style, { color: Colors.primary, textDecorationLine: 'underline' }]}
         selectable
         key={`${keyPrefix}-url-${idx}`}
         onPress={() => Linking.openURL(url)}
         accessibilityRole="link"
       >
         {url}
-      </Text>
+      </Text>,
     );
     lastIndex = match.index + url.length;
     idx++;
   }
   if (lastIndex < text.length) {
     parts.push(
-      <Text style={style} selectable key={`${keyPrefix}-nourl-end`}>{text.slice(lastIndex)}</Text>
+      <Text style={style} selectable key={`${keyPrefix}-nourl-end`}>
+        {text.slice(lastIndex)}
+      </Text>,
     );
   }
   return parts;
