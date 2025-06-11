@@ -6,7 +6,17 @@ import { User } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
@@ -89,6 +99,18 @@ export default function ProfileScreen() {
         </Pressable>
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
+
+      <Text style={styles.eulaNotice}>
+        By using Hoot, you agree to be bound by our{' '}
+        <Pressable
+          onPress={() => Linking.openURL('https://hoot.loukidelis.ca/eula.html')}
+          style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+          accessibilityRole="link"
+          accessibilityLabel="License Agreement"
+        >
+          <Text style={styles.eulaLinkText}>License Agreement</Text>
+        </Pressable>
+      </Text>
     </SafeAreaView>
   );
 }
@@ -160,5 +182,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     fontSize: 16,
     color: Colors.text,
+  },
+  eulaNotice: {
+    marginTop: 18,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 300,
+    alignSelf: 'center',
+    lineHeight: 28,
+  },
+  eulaLinkText: {
+    color: Colors.primary,
+    textDecorationLine: 'underline',
+    fontWeight: '500',
   },
 });
