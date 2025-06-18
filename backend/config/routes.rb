@@ -16,6 +16,7 @@ Rails.application.routes.draw do
         delete :unvote
       end
       get :active, on: :collection
+      get :archived, on: :collection
     end
 
     resources :posts, only: [ :create, :destroy, :index ] do

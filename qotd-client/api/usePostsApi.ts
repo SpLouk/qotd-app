@@ -32,6 +32,7 @@ export function usePostsApi() {
     enabled: !!groupId,
   });
 
+
   const deletePostMutation = useMutation<Response, Error, number>({
     mutationKey: ['posts', groupId],
     mutationFn: (postId) => fetchApi(`/groups/${groupId}/posts/${postId}`, { method: 'DELETE' }),

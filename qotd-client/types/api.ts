@@ -29,6 +29,8 @@ export interface PromptQuestion {
   votes_count?: number;
   user_voted?: boolean;
   created_by_username?: string;
+  posts?: Post[];
+  activated_at?: string;
 }
 
 export interface CreatePromptQuestionRequest {

@@ -2,6 +2,21 @@ class PromptQuestionsController < ApplicationController
   before_action :set_group
   before_action :set_prompt_question, only: [ :vote, :unvote ]
 
+  # GET /groups/:group_id/prompt_questions/archived_prompt
+  # Params: page (optional, integer, 0-indexed)
+  def archived
+    page = params[:page].to_i if params[:page].present?
+    prompts = @group.prompt_questions.where.not(activated_at: nil).order(activated_at: :desc)
+    prompt = page.present? ? prompts.offset(page).limit(1).first : prompts.first
+
+    if prompt
+      has_next_page = prompts.offset((page || 0) + 1).limit(1).exists?
+      render json: prompt.as_json(include_posts: true).merge(has_next_page: has_next_page)
+    else
+      render json: { error: "No archived prompt found" }, status: :not_found
+    end
+  end
+
   def index
     # Get prompts a user can vote for (those not already active)
     @prompt_questions = @group.prompt_questions.available_for_voting()

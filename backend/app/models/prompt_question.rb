@@ -21,13 +21,17 @@ class PromptQuestion < ApplicationRecord
   end
 
   def as_json(options = {})
-    json = slice(:active, :content, :created_at, :id, :group_id)
+    json = slice(:active, :content, :created_at, :id, :group_id, :activated_at)
 
     json[:created_by_username] = created_by&.username
 
     if options[:include_votes]
       json[:votes_count] = prompt_votes_count
       json[:user_voted] = user_voted?(options[:current_user])
+    end
+
+    if options[:include_posts]
+      json[:posts] = posts.order(created_at: :asc).map { |p| p.as_json }
     end
 
     json
