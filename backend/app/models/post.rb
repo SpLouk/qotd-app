@@ -42,7 +42,7 @@ class Post < ApplicationRecord
     end
 
     if sound_file.attached?
-      attrs[:sound_file_url] = Rails.application.routes.url_helpers.rails_blob_url(photo)
+      attrs[:sound_file_url] = Rails.application.routes.url_helpers.rails_blob_url(sound_file)
     else
       attrs[:sound_file_url] = nil
     end
