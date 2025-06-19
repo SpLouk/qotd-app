@@ -1,4 +1,4 @@
-import { usePostsApi } from '@/api/usePostsApi';
+import { useActivePrompt } from '@/api/useActivePrompt';
 import { useUserApi } from '@/api/useUserApi';
 import { UploadPhotoPreview } from '@/components/UploadPhotoPreview';
 import { createPostRequestBody } from '@/components/helpers/useCreatePost';
@@ -7,7 +7,7 @@ import { useGroupId } from '@/context/GroupContext';
 import { Post } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { FontAwesome } from '@expo/vector-icons';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import {
@@ -25,13 +25,14 @@ import {
 export function PromptResponseWriter() {
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [error, setError] = useState('');
-  const { activePromptQuestionQuery, invalidatePosts } = usePostsApi();
-  const { data: activePrompt, isLoading } = activePromptQuestionQuery;
   const [response, setResponse] = useState('');
+  const queryClient = useQueryClient();
 
   const { invalidateUser } = useUserApi();
   const fetchAndParseJson = useFetchApiAndParseJson();
   const groupId = useGroupId();
+
+  const { data: activePrompt, isLoading } = useActivePrompt();
 
   const { mutate: submitPost, isPending } = useMutation<Post, Error, any>({
     mutationKey: ['posts', groupId],
@@ -41,7 +42,8 @@ export function PromptResponseWriter() {
         method: 'POST',
       }),
     onSuccess: () => {
-      invalidatePosts();
+      queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivated', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
       invalidateUser();
     },
   });

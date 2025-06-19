@@ -1,4 +1,4 @@
-import { usePostsApi } from '@/api/usePostsApi';
+import { useActivePrompt } from '@/api/useActivePrompt';
 import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
 import { Feed } from '@/components/Feed';
@@ -7,8 +7,9 @@ import { JoinGroupModal } from '@/components/JoinGroupModal';
 import PromptDrawer from '@/components/PromptDrawer';
 import { PromptResponseWriter } from '@/components/PromptResponseWriter';
 import Colors from '@/constants/Colors';
-import { GroupContext } from '@/context/GroupContext';
+import { GroupContext, useGroupId } from '@/context/GroupContext';
 import { FontAwesome6 } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useState } from 'react';
 import {
@@ -106,32 +107,29 @@ const MainContent = ({
   setJoinGroupModalVisible: (value: boolean) => void;
   setSuccessMessage: (value: string | null) => void;
 }) => {
+  const queryClient = useQueryClient();
   const {
-    data: posts = [],
-    isFetching: isFetchingPosts,
-    isLoading: isLoadingPosts,
-    error: postsError,
-    invalidatePosts,
-    invalidatePrompts,
-    activePromptQuestionQuery,
-  } = usePostsApi();
+    data: activePrompt,
+    isLoading: isLoadingPrompt,
+    isFetching: isFetchingPrompt,
+    error: promptError,
+  } = useActivePrompt();
 
   const { data: user, isLoading: isLoadingUser } = useUserApi();
   const groupList = user?.groups;
 
-  const { data: activePrompt, isLoading: isLoadingPrompt } = activePromptQuestionQuery;
-
   // Find if the user has a post for the current active prompt
-  const ownPost = posts.find((p) => p.username === user?.username);
+  const ownPost = activePrompt?.posts?.find((p) => p.username === user?.username);
 
-  const needsWritePrompt = user && activePrompt && !ownPost && !isFetchingPosts;
+  const needsWritePrompt = user && activePrompt && !ownPost;
+  const groupId = useGroupId();
 
   const handleRefresh = () => {
-    invalidatePosts();
-    invalidatePrompts();
+    queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
+    queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivated', groupId] });
   };
 
-  if (isLoadingPosts || isLoadingPrompt || isLoadingUser) {
+  if (isLoadingPrompt || isLoadingUser) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator color={Colors.primary} size="large" />
@@ -154,17 +152,17 @@ const MainContent = ({
     );
   }
 
-  if (postsError) {
+  if (promptError) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>No active prompt available.</Text>
         <Text style={styles.errorSubtext}>Check back later for new prompts!</Text>
         <TouchableOpacity
-          style={[styles.refreshButton, isFetchingPosts && styles.refreshButtonDisabled]}
-          disabled={isFetchingPosts}
+          style={[styles.refreshButton, isFetchingPrompt && styles.refreshButtonDisabled]}
+          disabled={isFetchingPrompt}
           onPress={handleRefresh}
         >
-          {isFetchingPosts ? (
+          {isFetchingPrompt ? (
             <ActivityIndicator color={Colors.primary} size="small" />
           ) : (
             <Text style={styles.refreshButtonText}>Refresh</Text>

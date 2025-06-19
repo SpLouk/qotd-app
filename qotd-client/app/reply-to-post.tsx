@@ -1,4 +1,4 @@
-import { usePostsApi } from '@/api/usePostsApi';
+import { useActivePrompt } from '@/api/useActivePrompt';
 import BackButton from '@/components/BackButton';
 import { createPostRequestBody } from '@/components/helpers/useCreatePost';
 import { Post } from '@/components/Post';
@@ -90,9 +90,9 @@ export default function ReplyToPostPage() {
   const groupId = useGroupId();
   const { data: selectedGroup } = useGroup();
 
-  const { data: posts = [], isLoading: isLoadingPosts } = usePostsApi();
+  const { data: activePrompt, isLoading } = useActivePrompt();
 
-  const post = posts.find((post) => post.id === Number.parseInt(id));
+  const post = activePrompt?.posts?.find((post) => post.id === Number.parseInt(id));
 
   // Submission logic: multipart if photos, JSON if not
   const addReplyMutation = useMutation({
@@ -102,7 +102,8 @@ export default function ReplyToPostPage() {
         method: 'POST',
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivated', groupId] });
       setReply('');
       setPhotos([]);
       router.back();
@@ -135,10 +136,10 @@ export default function ReplyToPostPage() {
     }
   }, [reply, cursorPosition]);
 
-  if (isLoadingPosts || !post) {
+  if (isLoading || !post || !activePrompt?.posts) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
@@ -200,7 +201,7 @@ export default function ReplyToPostPage() {
         </View>
 
         <ScrollView ref={scrollViewRef}>
-          <Post post={post} readonly />
+          <Post post={post} otherPosts={activePrompt.posts} readonly />
         </ScrollView>
 
         <View style={styles.inputContainer}>

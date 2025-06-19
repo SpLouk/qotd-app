@@ -1,5 +1,5 @@
 import Colors from '@/constants/Colors';
-import { GroupContext } from '@/context/GroupContext';
+import { GroupContext, useGroupId } from '@/context/GroupContext';
 import { CreatePromptQuestionRequest, PromptQuestion, User } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,14 +40,13 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
 
   // Get the current user data from the cache
   const userData = queryClient.getQueryData<User>(['user']);
-  const { selectedGroupId } = useContext(GroupContext)!;
+  const groupId = useGroupId();
 
   //error Fetch prompts to vote on
   const { data: promptQuestions, isLoading: isLoadingPrompts } = useQuery<PromptQuestion[]>({
-    queryKey: ['promptQuestions', selectedGroupId],
-    queryFn: () =>
-      selectedGroupId ? api(`/groups/${selectedGroupId}/prompt_questions`) : Promise.reject('No group ID available'),
-    enabled: !!selectedGroupId,
+    queryKey: ['promptQuestions', groupId],
+    queryFn: () => api(`/groups/${groupId}/prompt_questions`),
+    enabled: !!groupId,
   });
 
   const api = useFetchApiAndParseJson();

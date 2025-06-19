@@ -1,4 +1,3 @@
-import { usePostsApi } from '@/api/usePostsApi';
 import { useUserApi } from '@/api/useUserApi';
 import { UserProfileHeader } from '@/components/UserProfileHeader';
 import Colors from '@/constants/Colors';
@@ -8,38 +7,32 @@ import { formatDistanceToNow } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Linking,
-} from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native';
+import { useGroupId } from '@/context/GroupContext';
+import { useFetchApi } from '@/utils/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 interface PostProps {
   post: PostType;
+  otherPosts: PostType[];
   readonly?: boolean;
 }
 
-export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
+export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }) => {
   const router = useRouter();
 
   const { data: currentUser } = useUserApi();
-  const { data: posts = [], isLoading: isLoadingComments, deletePostMutation, flagPostMutation } = usePostsApi();
+  const { deletePostMutation, flagPostMutation } = usePostsApi();
 
   const [fullscreenPhotoUrl, setFullscreenPhotoUrl] = React.useState<string | null>(null);
 
   const comments = useMemo(
     () =>
-      posts
+      otherPosts
         .filter((p) => p.parent_post_id === post.id)
         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
-    [posts, post.id],
+    [otherPosts, post.id],
   );
 
   const handleDelete = (postToDelete: PostType) => {
@@ -184,13 +177,7 @@ export const Post: React.FC<PostProps> = ({ post, readonly = false }) => {
         </View>
       )}
       {renderContentWithMentions(post.content, post.mentions)}
-      <View style={styles.commentsContainer}>
-        {isLoadingComments ? (
-          <ActivityIndicator style={styles.loadingIndicator} />
-        ) : comments.length > 0 ? (
-          comments.map(renderComment)
-        ) : null}
-      </View>
+      <View style={styles.commentsContainer}>{comments.map(renderComment)}</View>
       {!readonly ? (
         <Pressable style={({ pressed }) => [styles.replyButton, pressed && { opacity: 0.7 }]} onPress={navigateToPost}>
           <Text style={styles.replyButtonText}>Reply</Text>
@@ -407,4 +394,33 @@ function renderTextWithLinks(text: string, style: any, keyPrefix = '') {
     );
   }
   return parts;
+}
+
+function usePostsApi() {
+  const fetchApi = useFetchApi();
+  const groupId = useGroupId();
+  const queryClient = useQueryClient();
+
+  const invalidatePrompts = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
+    queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivated', groupId] });
+  }, [queryClient, groupId]);
+
+  const deletePostMutation = useMutation<Response, Error, number>({
+    mutationKey: ['posts', groupId],
+    mutationFn: (postId) => fetchApi(`/groups/${groupId}/posts/${postId}`, { method: 'DELETE' }),
+    onSuccess: invalidatePrompts,
+  });
+
+  const flagPostMutation = useMutation<Response, Error, number>({
+    mutationKey: ['flagPost', groupId],
+    mutationFn: (postId) => fetchApi(`/groups/${groupId}/posts/${postId}/flag`, { method: 'POST' }),
+    onSuccess: invalidatePrompts,
+  });
+
+  return {
+    // Mutations
+    deletePostMutation,
+    flagPostMutation,
+  };
 }

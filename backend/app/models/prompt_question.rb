@@ -31,7 +31,7 @@ class PromptQuestion < ApplicationRecord
     end
 
     if options[:include_posts]
-      json[:posts] = posts.order(created_at: :asc).map { |p| p.as_json }
+      json[:posts] = posts.order(created_at: :desc).map { |p| p.as_json }
     end
 
     json

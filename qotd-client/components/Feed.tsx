@@ -1,7 +1,6 @@
 import { Post, PromptQuestion } from '@/types/api';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, SectionList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Post as PostComponent } from './Post';
-import { usePostsApi } from '@/api/usePostsApi';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import Colors from '@/constants/Colors';
 import { useFetchApiAndParseJson } from '@/utils/api';
@@ -13,9 +12,6 @@ interface EnhancedPromptQuestion extends PromptQuestion {
 }
 
 export function Feed() {
-  const { data: allPosts = [], isLoading, refetch, isRefetching, activePromptQuestionQuery } = usePostsApi();
-  const posts = allPosts.filter((post: Post) => !post.parent_post_id);
-  const { data: activePrompt } = activePromptQuestionQuery;
   const fetchAndParseJson = useFetchApiAndParseJson();
   const groupId = useGroupId();
 
@@ -27,11 +23,13 @@ export function Feed() {
     isFetchingNextPage,
     isLoading: isLoadingArchived,
     error: archivedError,
+    isRefetching,
+    refetch,
   } = useInfiniteQuery<EnhancedPromptQuestion, Error>({
-    queryKey: ['archivedPromptQuestions', groupId],
+    queryKey: ['promptQuestionsActivatedInfinite', groupId],
     queryFn: ({ pageParam }) => fetchAndParseJson(`/groups/${groupId}/prompt_questions/archived?page=${pageParam}`),
-    getNextPageParam: (lastPage, allPages) => (lastPage.has_next_page ? allPages.length + 1 : null),
-    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => (lastPage.has_next_page ? allPages.length : null),
+    initialPageParam: 0,
     enabled: !!groupId,
   });
 
@@ -39,7 +37,7 @@ export function Feed() {
   const archivedPrompts = archivedData?.pages.flat() ?? [];
 
   // Only show loading state on initial load, not during refetch
-  if (isLoading && !allPosts.length) {
+  if (isLoadingArchived && !archivedData) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color="#007AFF" size="large" />
@@ -47,38 +45,43 @@ export function Feed() {
     );
   }
 
-  const renderItem = ({ item: post }: { item: Post }) => (
-    <View style={styles.postContainer}>
-      <PostComponent post={post} />
+  // Prepare sections for SectionList
+  const sections = archivedPrompts.map((prompt: PromptQuestion) => ({
+    prompt,
+    title: prompt.content,
+    data: prompt.posts?.filter((post: Post) => !post.parent_post_id) ?? [],
+  }));
+
+  // Render section header (prompt)
+  const renderSectionHeader = ({ section }: { section: { prompt: PromptQuestion } }) => (
+    <View
+      style={
+        section.prompt.active
+          ? { marginBottom: 16 }
+          : { borderTopWidth: 1, borderTopColor: Colors.border, paddingVertical: 16 }
+      }
+    >
+      <View style={{ flexDirection: 'column', flex: 1 }}>
+        {section.prompt.activated_at && (
+          <Text style={styles.promptOverline}>
+            {formatDistanceToNow(new Date(section.prompt.activated_at), { addSuffix: true })}
+          </Text>
+        )}
+        <Text style={styles.promptText}>{section.prompt?.content}</Text>
+        {archivedError?.message && <Text style={{ color: Colors.textSecondary }}>{archivedError.message}</Text>}
+      </View>
     </View>
   );
 
-  // Render archived prompt + posts
-  const renderArchivedPrompt = ({ item }: { item: PromptQuestion }) => (
-    <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
-      <View style={{ flexDirection: 'column', flex: 1, marginVertical: 16 }}>
-        {item.activated_at && (
-          <Text style={styles.promptOverline}>
-            {formatDistanceToNow(new Date(item.activated_at), { addSuffix: true })}
-          </Text>
-        )}
-        <Text style={styles.promptText}>{item?.content}</Text>
-      </View>
-      {item.posts && item.posts.length > 0 ? (
-        item.posts.map((post) => (
-          <View style={styles.postContainer} key={post.id}>
-            <PostComponent post={post} readonly />
-          </View>
-        ))
-      ) : (
-        <Text style={styles.noArchivedPosts}>No posts for this prompt</Text>
-      )}
+  // Render each post
+  const renderItem = ({ item, section }: { item: Post; section: { prompt: PromptQuestion } }) => (
+    <View style={styles.postContainer}>
+      <PostComponent post={item} otherPosts={section.prompt.posts ?? []} readonly={!section.prompt.active} />
     </View>
   );
 
   // Handler for infinite scroll
   const onEndReached = () => {
-    console.log(hasNextPage, isFetchingNextPage);
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
@@ -86,20 +89,11 @@ export function Feed() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        ListHeaderComponent={
-          activePrompt ? (
-            <View style={styles.header}>
-              <View style={{ flexDirection: 'column', flex: 1 }}>
-                <Text style={styles.promptOverline}>Today's prompt:</Text>
-                <Text style={styles.promptText}>{activePrompt?.content}</Text>
-              </View>
-            </View>
-          ) : null
-        }
-        data={posts}
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id.toString()}
+        renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
-        keyExtractor={(post) => post.id.toString()}
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListEmptyComponent={
@@ -109,20 +103,22 @@ export function Feed() {
         }
         ListFooterComponent={
           <View>
-            {isLoadingArchived && <ActivityIndicator color="#007AFF" size="small" style={{ marginVertical: 16 }} />}
-            {archivedPrompts.map((prompt) => (
-              <View key={prompt.id}>{renderArchivedPrompt({ item: prompt })}</View>
-            ))}
-            {hasNextPage && !isLoadingArchived && (
-              <View style={styles.loadMoreContainer}>
-                <ActivityIndicator color="#007AFF" size="small" />
-              </View>
+            {isLoadingArchived && (
+              <ActivityIndicator color={Colors.primary} size="small" style={{ marginVertical: 16 }} />
             )}
             {!hasNextPage ? <Text style={{ color: Colors.text }}>You've reached the beginning of time.</Text> : null}
           </View>
         }
         onEndReached={onEndReached}
         onEndReachedThreshold={0.3}
+        stickySectionHeadersEnabled={false}
+        renderSectionFooter={({ section }) =>
+          section.data.length === 0 ? (
+            <View style={styles.centered}>
+              <Text style={styles.emptyText}>No posts yet</Text>
+            </View>
+          ) : null
+        }
       />
     </View>
   );
