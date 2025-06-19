@@ -7,8 +7,8 @@ class PostsController < ApplicationController
 
     posts = Post.where(prompt_question_id: active_prompt.id)
                 .includes(:user)
-                .order(created_at: :desc)
                 .where.not(id: Current.user.flagged_posts.select(:id))
+                .ordered_by_recent_activity
 
     render json: posts
   end
