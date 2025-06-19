@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? 'Hoot (dev)' : 'Hoot',
     slug: 'qotd',
-    version: '1.0.1',
+    version: '1.1.0',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'myapp',
