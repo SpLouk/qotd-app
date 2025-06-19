@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_11_190927) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_19_195101) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -173,6 +173,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_190927) do
     t.index ["user_id"], name: "index_prompt_votes_on_user_id"
   end
 
+  create_table "reactions", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "post_id", null: false
+    t.text "reaction", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["post_id"], name: "index_reactions_on_post_id"
+    t.index ["user_id", "post_id", "reaction"], name: "index_reactions_on_user_id_and_post_id_and_reaction", unique: true
+    t.index ["user_id"], name: "index_reactions_on_user_id"
+  end
+
   create_table "sessions", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "ip_address"
@@ -222,5 +233,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_190927) do
   add_foreign_key "prompt_questions", "users", column: "created_by_id"
   add_foreign_key "prompt_votes", "prompt_questions"
   add_foreign_key "prompt_votes", "users"
+  add_foreign_key "reactions", "posts"
+  add_foreign_key "reactions", "users"
   add_foreign_key "sessions", "users"
 end

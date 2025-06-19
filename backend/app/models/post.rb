@@ -1,5 +1,6 @@
 class Post < ApplicationRecord
   has_many :mentions, dependent: :destroy
+  has_many :reactions, dependent: :destroy
   has_many :mentioned_users, through: :mentions, source: :user
   has_many :post_flags, dependent: :destroy
   has_many :flagged_users, through: :post_flags, source: :user
@@ -38,6 +39,14 @@ scope :ordered_by_recent_activity, -> {
       {
         user_id: mention.user_id,
         locations: mention.locations
+      }
+    end
+
+    attrs[:reactions] = reactions.map do |reaction|
+      {
+        id: reaction.id,
+        user_id: reaction.user_id,
+        reaction: reaction.reaction
       }
     end
 

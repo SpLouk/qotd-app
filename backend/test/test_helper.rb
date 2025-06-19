@@ -18,6 +18,10 @@ module ActiveSupport
       @headers["Authorization"] = "Bearer #{session.token}"
     end
 
+    def sign_out(user)
+      Session.where(user: user).destroy_all
+    end
+
     def auth_headers
       @headers || {}
     end

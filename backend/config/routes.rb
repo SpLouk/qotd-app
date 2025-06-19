@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :reactions, only: [:create, :destroy]
   resources :device_tokens, only: [ :create ] do
     delete :destroy, on: :collection
   end
