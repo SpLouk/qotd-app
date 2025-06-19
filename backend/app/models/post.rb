@@ -19,14 +19,14 @@ class Post < ApplicationRecord
   validates :photos, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 10.megabytes }
   validates :sound_file, size: { less_than: 10.megabytes }
 
-  scope :ordered_by_recent_activity, -> {
-    left_joins(:replies)
-      .select(
-        'posts.*, GREATEST(COALESCE(MAX(replies.created_at), posts.created_at), posts.created_at) AS ordering_timestamp'
-      )
-      .group('posts.id')
-      .order('ordering_timestamp DESC')
-  }
+scope :ordered_by_recent_activity, -> {
+  left_joins(:replies)
+    .select(
+      "posts.*, MAX(COALESCE(replies_posts.created_at, posts.created_at)) AS ordering_timestamp"
+    )
+    .group("posts.id")
+    .order("ordering_timestamp DESC")
+}
 
   after_create :extract_mentions_and_notify
 
