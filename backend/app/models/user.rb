@@ -35,9 +35,9 @@ class User < ApplicationRecord
   normalizes :username, with: ->(u) { u&.strip&.downcase }
 
   validates :username, uniqueness: { case_sensitive: false }, allow_nil: true,
-            format: { with: /\A[a-zA-Z0-9_]+\z/, message: "must be alphanumeric (letters and numbers only)" }
+            format: { with: /\A[a-zA-Z0-9_]+\z/, message: "must contain only letters, numbers, and underscores" }
   validates :email_address, uniqueness: { case_sensitive: false }, allow_nil: true
-  validates :profile_photo, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 5.megabytes }
+  validates :profile_photo, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 10.megabytes }
 
   def needs_registration
     username.nil? || profile_photo.nil?
