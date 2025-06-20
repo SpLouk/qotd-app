@@ -36,7 +36,8 @@ class User < ApplicationRecord
 
   validates :username, uniqueness: { case_sensitive: false }, allow_nil: true,
             format: { with: /\A[a-zA-Z0-9_]+\z/, message: "must contain only letters, numbers, and underscores" }
-  validates :email_address, uniqueness: { case_sensitive: false }, allow_nil: true
+  validates :email_address, uniqueness: { case_sensitive: false }, allow_nil: true,
+          format: { with: /\A[^\s@]+@[^\s@]+\.[^\s@]+\z/, message: "must be a valid email address" }
   validates :profile_photo, content_type: [ :png, :jpg, :jpeg, :heic ], size: { less_than: 10.megabytes }
 
   def needs_registration

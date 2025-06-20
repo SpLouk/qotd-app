@@ -20,6 +20,37 @@ class UserTest < ActiveSupport::TestCase
     assert_not_includes json.keys, "groups"
   end
 
+  test "email_address must have valid format" do
+    valid_emails = [
+      "user@example.com",
+      "john.doe@domain.co",
+      "foo123@bar.net"
+    ]
+    invalid_emails = [
+      "plainaddress",
+      "missingatsign.com",
+      "missingdomain@",
+      "@missinguser.com",
+      "user@.com",
+      "user@com",
+      "user name@domain.com",
+      "user@domain .com",
+      "user@domain,com"
+    ]
+
+    valid_emails.each do |email|
+      user = User.new(username: "validuser", email_address: email)
+      user.validate
+      assert_empty user.errors[:email_address], "Should accept valid email: #{email}"
+    end
+
+    invalid_emails.each do |email|
+      user = User.new(username: "invaliduser", email_address: email)
+      user.validate
+      assert_includes user.errors[:email_address], "must be a valid email address", "Should reject invalid email: #{email}"
+    end
+  end
+
   test "as_json returns extra fields when Current.user is self" do
     sign_in_as(@user)
     Current.session = Session.create!(user: @user)
