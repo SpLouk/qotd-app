@@ -49,6 +49,7 @@ export interface Post {
   username?: string;
   user_photo_url?: string;
   mentions?: Mention[];
+  reactions?: Reaction[];
   photo_urls: string[];
   sound_file_url?: string;
 }
@@ -56,6 +57,12 @@ export interface Post {
 export interface Mention {
   user_id: number;
   locations: { start: number; end: number }[];
+}
+
+export interface Reaction {
+  id: number;
+  user_id: number;
+  reaction: string;
 }
 
 export interface CreatePostRequest {

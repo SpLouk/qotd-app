@@ -3,6 +3,7 @@ import { UserProfileHeader } from '@/components/UserProfileHeader';
 import Colors from '@/constants/Colors';
 import { Post as PostType } from '@/types/api';
 import { FontAwesome } from '@expo/vector-icons';
+import { ReactionButton } from '@/components/ReactionButton';
 import { formatDistanceToNow } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -90,17 +91,23 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
           </Text>
           {!readonly &&
             (isOwner(comment) ? (
-              <TouchableOpacity onPress={() => handleDelete(comment)} disabled={deletePostMutation.isPending}>
-                <FontAwesome name="trash-o" size={16} color="#FF3B30" />
-              </TouchableOpacity>
+              <Pressable
+                style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+                onPress={() => handleDelete(comment)}
+                accessibilityRole="button"
+                accessibilityLabel="Delete comment"
+                disabled={deletePostMutation.isPending}
+              >
+                <FontAwesome name="trash-o" size={16} color={Colors.error} />
+              </Pressable>
             ) : (
               <Pressable
                 style={({ pressed }) => [pressed && { opacity: 0.7 }]}
                 onPress={() => handleFlagPost(comment)}
                 accessibilityRole="button"
-                accessibilityLabel="Flag post"
+                accessibilityLabel="Flag comment"
               >
-                <FontAwesome name="flag-o" size={16} color="#FF3B30" />
+                <FontAwesome name="flag-o" size={16} color={Colors.error} />
               </Pressable>
             ))}
         </View>
@@ -121,6 +128,7 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
         </View>
       )}
       {renderContentWithMentions(comment.content, comment.mentions)}
+      <ReactionButton reactions={comment.reactions} postId={comment.id} readonly={readonly} style={{ marginLeft: 2 }} />
     </View>
   );
 
@@ -146,9 +154,15 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
           <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
           {!readonly &&
             (isOwner(post) ? (
-              <TouchableOpacity onPress={() => handleDelete(post)} disabled={deletePostMutation.isPending}>
-                <FontAwesome name="trash-o" size={16} color="#FF3B30" />
-              </TouchableOpacity>
+              <Pressable
+                style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+                onPress={() => handleDelete(post)}
+                accessibilityRole="button"
+                accessibilityLabel="Delete post"
+                disabled={deletePostMutation.isPending}
+              >
+                <FontAwesome name="trash-o" size={20} color={Colors.error} />
+              </Pressable>
             ) : (
               <Pressable
                 style={({ pressed }) => [pressed && { opacity: 0.7 }]}
@@ -156,7 +170,7 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
                 accessibilityRole="button"
                 accessibilityLabel="Flag post"
               >
-                <FontAwesome name="flag-o" size={16} color="#FF3B30" />
+                <FontAwesome name="flag-o" size={20} color={Colors.error} />
               </Pressable>
             ))}
         </View>
@@ -177,6 +191,9 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
         </View>
       )}
       {renderContentWithMentions(post.content, post.mentions)}
+      <View style={{ marginTop: 12 }}>
+        <ReactionButton reactions={post.reactions} postId={post.id} readonly={readonly} style={{ marginRight: 8 }} />
+      </View>
       <View style={styles.commentsContainer}>{comments.map(renderComment)}</View>
       {!readonly ? (
         <Pressable style={({ pressed }) => [styles.replyButton, pressed && { opacity: 0.7 }]} onPress={navigateToPost}>
