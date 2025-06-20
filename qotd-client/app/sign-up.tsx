@@ -54,12 +54,7 @@ export default function SignUp() {
       queryClient.invalidateQueries({ queryKey: ['user'] });
       router.replace('/');
     } catch (e: any) {
-      if (e.message.includes('422')) {
-        setError('This username is already taken');
-      } else {
-        setError('Something went wrong. Please try again.');
-        console.error(e);
-      }
+      setError(e.message);
     }
   };
 

@@ -8,7 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View, Linking } from 'react-native';
 import { useGroupId } from '@/context/GroupContext';
 import { useFetchApi } from '@/utils/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -128,6 +128,7 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
         </View>
       )}
       {renderContentWithMentions(comment.content, comment.mentions)}
+
       <ReactionButton reactions={comment.reactions} postId={comment.id} readonly={readonly} style={{ marginLeft: 2 }} />
     </View>
   );

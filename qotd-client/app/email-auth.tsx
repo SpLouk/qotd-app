@@ -26,6 +26,9 @@ export default function EmailAuth() {
   const { setSession } = useSession();
   const router = useRouter();
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email.trim());
+
   const handleSendCode = async () => {
     setLoading(true);
     setError('');
@@ -89,15 +92,19 @@ export default function EmailAuth() {
                 textContentType="emailAddress"
                 autoComplete="email"
               />
-              {error ? <Text style={styles.error}>{error}</Text> : null}
+              {!isEmailValid && email.trim() ? (
+                <Text style={styles.error}>Invalid email address.</Text>
+              ) : error ? (
+                <Text style={styles.error}>{error}</Text>
+              ) : null}
               <Pressable
                 style={({ pressed }) => [
                   styles.button,
-                  (!email.trim() || loading) && styles.buttonDisabled,
+                  (!isEmailValid || loading) && styles.buttonDisabled,
                   pressed && { opacity: 0.7 },
                 ]}
                 onPress={handleSendCode}
-                disabled={!email.trim() || loading}
+                disabled={!isEmailValid || loading}
               >
                 {loading ? (
                   <ActivityIndicator color={Colors.background} />
