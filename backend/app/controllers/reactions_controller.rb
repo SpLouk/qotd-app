@@ -1,6 +1,8 @@
 class ReactionsController < ApplicationController
   def create
-    reaction = Current.user.reactions.new(reaction_params)
+    attrs = reaction_params.to_h.symbolize_keys
+    attrs[:user_id] = Current.user.id
+    reaction = Reaction.find_or_reactivate_by(attrs)
     if reaction.save
       head :created
     else
@@ -11,7 +13,7 @@ class ReactionsController < ApplicationController
   def destroy
     reaction = Current.user.reactions.find(params[:id])
     if reaction
-      reaction.destroy
+      reaction.update(deleted: true)
       head :no_content
     else
       render json: { error: "Reaction not found" }, status: :not_found

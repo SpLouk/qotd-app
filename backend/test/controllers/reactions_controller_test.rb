@@ -14,13 +14,22 @@ class ReactionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :created
   end
 
-  test "should not allow duplicate reaction" do
+  test "should not allow duplicate reaction if not deleted" do
     Reaction.create!(user: @user, post: @post, reaction: "👍")
     assert_no_difference "Reaction.count" do
       post reactions_path, params: { reaction: { post_id: @post.id, reaction: "👍" } }, headers: auth_headers
     end
     assert_response :unprocessable_entity
     assert_includes JSON.parse(@response.body)["error"], "This reaction already exists"
+  end
+
+  test "should reactivate deleted reaction instead of creating new one" do
+    reaction = Reaction.create!(user: @user, post: @post, reaction: "👍", deleted: true)
+    assert_no_difference "Reaction.count" do
+      post reactions_path, params: { reaction: { post_id: @post.id, reaction: "👍" } }, headers: auth_headers
+    end
+    assert_response :created
+    assert_not reaction.reload.deleted
   end
 
   test "should not create reaction for invalid post" do
@@ -30,12 +39,13 @@ class ReactionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
-  test "should destroy reaction" do
+  test "should destroy reaction (soft delete)" do
     reaction = Reaction.create!(user: @user, post: @post, reaction: "👍")
-    assert_difference "Reaction.count", -1 do
+    assert_no_difference "Reaction.count" do
       delete reaction_path(reaction), headers: auth_headers
     end
     assert_response :no_content
+    assert reaction.reload.deleted
   end
 
   test "should return not found when destroying nonexistent reaction" do

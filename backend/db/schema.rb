@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_19_195101) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_25_171000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -179,7 +179,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_19_195101) do
     t.text "reaction", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "deleted", default: false, null: false
     t.index ["post_id"], name: "index_reactions_on_post_id"
+    t.index ["user_id", "post_id", "reaction", "deleted"], name: "index_reactions_on_user_post_reaction_deleted"
     t.index ["user_id", "post_id", "reaction"], name: "index_reactions_on_user_id_and_post_id_and_reaction", unique: true
     t.index ["user_id"], name: "index_reactions_on_user_id"
   end

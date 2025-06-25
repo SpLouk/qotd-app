@@ -42,7 +42,7 @@ scope :ordered_by_recent_activity, -> {
       }
     end
 
-    attrs[:reactions] = reactions.map do |reaction|
+    attrs[:reactions] = reactions.active.map do |reaction|
       {
         id: reaction.id,
         user_id: reaction.user_id,

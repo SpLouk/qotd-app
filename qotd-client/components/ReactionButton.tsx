@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
+import { Pressable, Text, StyleSheet } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Reaction } from '@/types/api';
 import { useUserApi } from '@/api/useUserApi';
@@ -100,14 +100,9 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
       accessibilityLabel={isReacted ? 'Remove thumbs up' : 'Add thumbs up'}
       disabled={readonly || addReaction.isPending || removeReaction.isPending}
     >
-      <View style={styles.iconRow}>
-        <Text style={[styles.count, isReacted && styles.countActive]}>
-          👍{reactionCount ? ` ${reactionCount}` : null}
-        </Text>
-        {(addReaction.isPending || removeReaction.isPending) && (
-          <ActivityIndicator size="small" color={Colors.primary} style={{ marginLeft: 6 }} />
-        )}
-      </View>
+      <Text style={[styles.count, isReacted && styles.countActive]}>
+        👍{reactionCount ? ` ${reactionCount}` : null}
+      </Text>
     </Pressable>
   );
 };
@@ -126,10 +121,6 @@ const styles = StyleSheet.create({
   buttonActive: {
     backgroundColor: Colors.primaryLight,
     borderColor: Colors.primary,
-  },
-  iconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   iconActive: {
     color: Colors.primary,
