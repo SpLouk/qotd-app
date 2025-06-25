@@ -42,7 +42,6 @@ export function PromptResponseWriter() {
         method: 'POST',
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivated', groupId] });
       queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
       invalidateUser();
     },

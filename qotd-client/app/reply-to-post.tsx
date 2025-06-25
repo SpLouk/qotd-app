@@ -103,7 +103,6 @@ export default function ReplyToPostPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
-      queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivated', groupId] });
       setReply('');
       setPhotos([]);
       router.back();

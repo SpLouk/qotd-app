@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Reaction } from '@/types/api';
 import { useUserApi } from '@/api/useUserApi';
 import { useFetchApi } from '@/utils/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useGroupId } from '@/context/GroupContext';
+import { useActivePrompt } from '@/api/useActivePrompt';
 
 interface ReactionButtonProps {
   reactions?: Reaction[];
@@ -17,14 +19,10 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
   const { data: currentUser } = useUserApi();
   const fetchApi = useFetchApi();
   const queryClient = useQueryClient();
+  const groupId = useGroupId();
 
   const userReaction = reactions.find((r) => r.user_id === currentUser?.id && r.reaction === '👍');
   const [optimisticReacted, setOptimisticReacted] = useState<boolean | null>(null);
-  const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
-
-  const isReacted = optimisticReacted !== null ? optimisticReacted : !!userReaction;
-  const reactionCount =
-    optimisticCount !== null ? optimisticCount : reactions.filter((r) => r.reaction === '👍').length;
 
   const addReaction = useMutation({
     mutationFn: async () => {
@@ -41,12 +39,9 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
     },
     onMutate: () => {
       setOptimisticReacted(true);
-      setOptimisticCount(reactionCount + 1);
     },
     onSettled: () => {
-      setOptimisticReacted(null);
-      setOptimisticCount(null);
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
     },
   });
 
@@ -59,14 +54,30 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
     },
     onMutate: () => {
       setOptimisticReacted(false);
-      setOptimisticCount(Math.max(0, reactionCount - 1));
     },
     onSettled: () => {
-      setOptimisticReacted(null);
-      setOptimisticCount(null);
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
     },
   });
+
+  const { isFetching: isActivePromptFetching, fetchStatus: activePromptFetchStatus } = useActivePrompt();
+
+  useEffect(() => {
+    if (activePromptFetchStatus === 'idle') {
+      setOptimisticReacted(null);
+    }
+  }, [activePromptFetchStatus]);
+
+  const shouldShowOptimisticReacted =
+    optimisticReacted !== null && (isActivePromptFetching || addReaction.isPending || removeReaction.isPending);
+
+  const isReacted = shouldShowOptimisticReacted ? optimisticReacted : !!userReaction;
+  const _reactionCount = reactions.filter((r) => r.reaction === '👍').length;
+  const reactionCount = shouldShowOptimisticReacted
+    ? optimisticReacted === true
+      ? _reactionCount + 1
+      : _reactionCount - 1
+    : _reactionCount;
 
   const handlePress = () => {
     if (readonly || addReaction.isPending || removeReaction.isPending) return;
@@ -77,6 +88,10 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
     }
   };
 
+  if (readonly && !reactionCount) {
+    return null;
+  }
+
   return (
     <Pressable
       style={({ pressed }) => [styles.button, isReacted && styles.buttonActive, pressed && { opacity: 0.5 }, style]}
@@ -86,7 +101,9 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
       disabled={readonly || addReaction.isPending || removeReaction.isPending}
     >
       <View style={styles.iconRow}>
-        <Text style={[styles.count, isReacted && styles.countActive]}>👍 {reactionCount}</Text>
+        <Text style={[styles.count, isReacted && styles.countActive]}>
+          👍{reactionCount ? ` ${reactionCount}` : null}
+        </Text>
         {(addReaction.isPending || removeReaction.isPending) && (
           <ActivityIndicator size="small" color={Colors.primary} style={{ marginLeft: 6 }} />
         )}
@@ -101,12 +118,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
     padding: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     borderRadius: 16,
-    backgroundColor: Colors.background,
+    borderColor: Colors.border,
+    borderWidth: 1,
   },
   buttonActive: {
-    backgroundColor: 'rgba(0, 122, 255, 0.10)', // fallback for Colors.primaryLight
+    backgroundColor: Colors.primaryLight,
+    borderColor: Colors.primary,
   },
   iconRow: {
     flexDirection: 'row',

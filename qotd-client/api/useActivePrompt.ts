@@ -1,17 +1,20 @@
+import { EnhancedPromptQuestion } from '@/components/Feed';
 import { useGroupId } from '@/context/GroupContext';
-import { PromptQuestion } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 export const useActivePrompt = () => {
   const fetchAndParseJson = useFetchApiAndParseJson();
   const groupId = useGroupId();
-  const { data: _prompt, ...rest } = useQuery<PromptQuestion, Error>({
-    queryKey: ['promptQuestionsActivated', groupId],
-    queryFn: () => fetchAndParseJson(`/groups/${groupId}/prompt_questions/archived`),
+  const { data: infinitePromptData, ...rest } = useInfiniteQuery<EnhancedPromptQuestion, Error>({
+    queryKey: ['promptQuestionsActivatedInfinite', groupId],
+    queryFn: ({ pageParam }) => fetchAndParseJson(`/groups/${groupId}/prompt_questions/archived?page=${pageParam}`),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => (lastPage.has_next_page ? allPages.length : null),
     enabled: !!groupId,
   });
-  const data = _prompt?.active ? _prompt : undefined;
+  const firstPrompt = infinitePromptData?.pages.flat()[0];
+  const data = firstPrompt?.active ? firstPrompt : undefined;
   return {
     data,
     ...rest,

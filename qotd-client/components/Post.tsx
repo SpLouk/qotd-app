@@ -129,7 +129,7 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
       )}
       {renderContentWithMentions(comment.content, comment.mentions)}
 
-      <ReactionButton reactions={comment.reactions} postId={comment.id} readonly={readonly} style={{ marginLeft: 2 }} />
+      <ReactionButton reactions={comment.reactions} postId={comment.id} readonly={readonly} style={{ marginTop: 8 }} />
     </View>
   );
 
@@ -192,9 +192,7 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
         </View>
       )}
       {renderContentWithMentions(post.content, post.mentions)}
-      <View style={{ marginTop: 12 }}>
-        <ReactionButton reactions={post.reactions} postId={post.id} readonly={readonly} style={{ marginRight: 8 }} />
-      </View>
+      <ReactionButton reactions={post.reactions} postId={post.id} readonly={readonly} style={{ marginTop: 8 }} />
       <View style={styles.commentsContainer}>{comments.map(renderComment)}</View>
       {!readonly ? (
         <Pressable style={({ pressed }) => [styles.replyButton, pressed && { opacity: 0.7 }]} onPress={navigateToPost}>
@@ -421,7 +419,6 @@ function usePostsApi() {
 
   const invalidatePrompts = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
-    queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivated', groupId] });
   }, [queryClient, groupId]);
 
   const deletePostMutation = useMutation<Response, Error, number>({

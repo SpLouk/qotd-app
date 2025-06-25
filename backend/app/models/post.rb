@@ -115,6 +115,7 @@ scope :ordered_by_recent_activity, -> {
     notification = Notification.new(
       title: "#{user.username} responded to your post",
       body: content,
+      badge: 1,
       category: "post_response",
       thread_id: "post_#{parent_post.id}",
       target_content_id: parent_post.id.to_s,

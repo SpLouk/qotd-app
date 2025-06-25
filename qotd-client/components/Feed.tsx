@@ -7,7 +7,7 @@ import { useFetchApiAndParseJson } from '@/utils/api';
 import { useGroupId } from '@/context/GroupContext';
 import { formatDistanceToNow } from 'date-fns';
 
-interface EnhancedPromptQuestion extends PromptQuestion {
+export interface EnhancedPromptQuestion extends PromptQuestion {
   has_next_page: boolean;
 }
 

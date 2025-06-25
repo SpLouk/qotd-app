@@ -6,7 +6,11 @@ import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
 async function getDeviceToken() {
-  const { status } = await Notifications.requestPermissionsAsync();
+  const { status } = await Notifications.requestPermissionsAsync({
+    ios: {
+      allowBadge: true,
+    },
+  });
   if (status !== 'granted') {
     throw new Error('Notification permission not granted');
   }

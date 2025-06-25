@@ -1,6 +1,7 @@
 import { useActivePrompt } from '@/api/useActivePrompt';
 import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
+import { useClearBadge } from '@/app/hooks/useClearBadge';
 import { Feed } from '@/components/Feed';
 import { GroupTitlePager } from '@/components/GroupTitlePager';
 import { JoinGroupModal } from '@/components/JoinGroupModal';
@@ -45,6 +46,7 @@ export default function AppIndex() {
 
   // Add user device token
   useAddDeviceToken();
+  useClearBadge();
 
   const handlePlusPress = () => {
     if (Platform.OS === 'ios') {
@@ -126,7 +128,6 @@ const MainContent = ({
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
-    queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivated', groupId] });
   };
 
   if (isLoadingPrompt || isLoadingUser) {

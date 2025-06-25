@@ -19,7 +19,7 @@ class NotifyAboutRecentPostsJobTest < ActiveJob::TestCase
     Post.delete_all
     ApnsService.expects(:notify).never
     assert_no_enqueued_jobs only: NotifyAboutRecentPostsJob
-    NotifyAboutRecentPostsJob.perform_now(@prompt)
+    NotifyAboutRecentPostsJob.perform_now
   end
 
   test "notifies only users with device tokens and at least one other poster, with correct personalized bodies" do
@@ -44,7 +44,7 @@ class NotifyAboutRecentPostsJobTest < ActiveJob::TestCase
     notifications_sent = []
     ApnsService.stubs(:notify).with { |notification, tokens| notifications_sent << [ notification, tokens ]; true }
 
-    NotifyAboutRecentPostsJob.perform_now(@prompt)
+    NotifyAboutRecentPostsJob.perform_now
 
     # Build expected notifications
     expected_notifications = users.map do |user|
@@ -62,27 +62,7 @@ class NotifyAboutRecentPostsJobTest < ActiveJob::TestCase
     post = posts(:current_user_active_post)
     post.update!(notified_group_at: nil)
     ApnsService.stubs(:notify)
-    NotifyAboutRecentPostsJob.perform_now(@prompt)
+    NotifyAboutRecentPostsJob.perform_now
     assert post.reload.notified_group_at.present?
-  end
-
-  test "schedules itself again if before next_scheduled_activation or nil" do
-    @group.update!(next_scheduled_activation: 4.hours.from_now)
-    Post.create!(user: @user1, prompt_question: @prompt, group: @group, content: "Poster 1")
-    Post.create!(user: @user2, prompt_question: @prompt, group: @group, content: "Poster 2")
-    ApnsService.stubs(:notify)
-    assert_enqueued_with(job: NotifyAboutRecentPostsJob) do
-      NotifyAboutRecentPostsJob.perform_now(@prompt)
-    end
-  end
-
-  test "does not schedule itself if next_scheduled_activation is soon" do
-    @group.update!(next_scheduled_activation: 2.hours.from_now)
-    Post.create!(user: @user1, prompt_question: @prompt, group: @group, content: "Poster 1")
-    Post.create!(user: @user2, prompt_question: @prompt, group: @group, content: "Poster 2")
-    ApnsService.stubs(:notify)
-    assert_no_enqueued_jobs only: NotifyAboutRecentPostsJob do
-      NotifyAboutRecentPostsJob.perform_now(@prompt)
-    end
   end
 end

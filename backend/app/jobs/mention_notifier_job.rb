@@ -10,6 +10,7 @@ class MentionNotifierJob < ApplicationJob
     notification = Notification.new(
       title: "You were mentioned in a post",
       body: post.content.truncate(100),
+      badge: 1,
       category: "mention",
       thread_id: "post_#{post.id}",
       target_content_id: post.id.to_s,

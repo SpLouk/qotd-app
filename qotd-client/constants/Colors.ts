@@ -2,6 +2,7 @@ const tintColor = '#007AFF';
 
 const Colors = {
   primary: tintColor,
+  primaryLight: 'rgba(0, 122, 255, 0.10)',
   background: '#fff',
   border: '#f0f0f0',
   text: '#333',

@@ -7,6 +7,10 @@ default: &default
     class: SchedulePromptActivationJob
     queue: default
     schedule: every Monday, Wednesday, and Friday at 12AM
+  notify_about_recent_posts:
+    class: NotifyAboutRecentPostsJob
+    queue: default
+    schedule: "30 6-23/2 * * *"
 
 # Development environment configuration
 development:
