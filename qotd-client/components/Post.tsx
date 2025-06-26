@@ -151,14 +151,12 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
           <UserProfileHeader user_id={post.user_id} username={post.username} user_photo_url={post.user_photo_url} />
         </View>
         <View style={styles.headerActions}>
-          <View style={{ gap: 8 }}>
-            <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
-            {post.off_topic && (
-              <View style={styles.offTopicFlair}>
-                <Text style={styles.offTopicFlairText}>Off Topic</Text>
-              </View>
-            )}
-          </View>
+          {post.off_topic && (
+            <View style={styles.offTopicFlair}>
+              <Text style={styles.offTopicFlairText}>Off Topic</Text>
+            </View>
+          )}
+          <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
           {!readonly &&
             (isOwner(post) ? (
               <Pressable
@@ -215,7 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    alignSelf: 'flex-end'
+    alignSelf: 'flex-end',
   },
   offTopicFlairText: {
     color: Colors.textSecondary,
