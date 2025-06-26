@@ -1,4 +1,4 @@
-import { useHandleSignIn } from '@/app/hooks/useHandleSignIn';
+import { useHandleSignIn } from '@/hooks/useHandleSignIn';
 import Colors from '@/constants/Colors';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Image } from 'expo-image';

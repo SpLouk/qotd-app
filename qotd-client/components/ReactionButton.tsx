@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Pressable, Text, StyleSheet } from 'react-native';
-import Colors from '@/constants/Colors';
-import { Reaction } from '@/types/api';
+import { useActivePrompt } from '@/api/useActivePrompt';
 import { useUserApi } from '@/api/useUserApi';
+import Colors from '@/constants/Colors';
+import { useGroupId } from '@/context/GroupContext';
+import { Reaction } from '@/types/api';
 import { useFetchApi } from '@/utils/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useGroupId } from '@/context/GroupContext';
-import { useActivePrompt } from '@/api/useActivePrompt';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 
 interface ReactionButtonProps {
   reactions?: Reaction[];
@@ -23,6 +24,7 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
 
   const userReaction = reactions.find((r) => r.user_id === currentUser?.id && r.reaction === '👍');
   const [optimisticReacted, setOptimisticReacted] = useState<boolean | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const addReaction = useMutation({
     mutationFn: async () => {
@@ -88,22 +90,71 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
     }
   };
 
+  const thumbReactions = reactions.filter((r) => r.reaction === '👍');
+  const avatarsToShow = useMemo(() => {
+    if (isReacted) {
+      return [
+        { id: -1, user_photo_url: currentUser?.profile_photo_url, username: currentUser?.username },
+        thumbReactions.find((reaction) => reaction.user_id !== currentUser?.id),
+      ].filter((item) => !!item);
+    } else {
+      return thumbReactions.slice(0, 2);
+    }
+  }, [currentUser, thumbReactions, isReacted]);
+
   if (readonly && !reactionCount) {
     return null;
   }
 
   return (
-    <Pressable
-      style={({ pressed }) => [styles.button, isReacted && styles.buttonActive, pressed && { opacity: 0.5 }, style]}
-      onPress={handlePress}
-      accessibilityRole="button"
-      accessibilityLabel={isReacted ? 'Remove thumbs up' : 'Add thumbs up'}
-      disabled={readonly || addReaction.isPending || removeReaction.isPending}
-    >
-      <Text style={[styles.count, isReacted && styles.countActive]}>
-        👍{reactionCount ? ` ${reactionCount}` : null}
-      </Text>
-    </Pressable>
+    <>
+      <Pressable
+        style={({ pressed }) => [styles.button, isReacted && styles.buttonActive, pressed && { opacity: 0.5 }, style]}
+        onPress={handlePress}
+        onLongPress={() => setModalVisible(true)}
+        accessibilityRole="button"
+        accessibilityLabel={isReacted ? 'Remove thumbs up' : 'Add thumbs up'}
+        disabled={readonly || addReaction.isPending || removeReaction.isPending}
+      >
+        <Text style={styles.count}>👍</Text>
+        <View style={{ flexDirection: 'row' }}>
+          {avatarsToShow.map((r, idx) => (
+            <Image
+              key={r.id}
+              source={{ uri: r.user_photo_url }}
+              style={[styles.avatar, { marginLeft: idx * -10 }]}
+              accessibilityLabel={`${r.username}'s avatar`}
+            />
+          ))}
+        </View>
+        {reactionCount ? <Text style={[styles.count, isReacted && styles.countActive]}> {reactionCount}</Text> : null}
+      </Pressable>
+      <Modal
+        visible={modalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+            <FlatList
+              data={thumbReactions}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.modalItem}>
+                  <Image source={{ uri: item.user_photo_url }} style={styles.modalAvatar} />
+                  <Text style={styles.modalUsername}>{item.username}</Text>
+                </View>
+              )}
+              style={styles.modalList}
+            />
+            <Pressable style={styles.closeButton} onPress={() => setModalVisible(false)} accessibilityRole="button">
+              <Text style={styles.closeButtonText}>Close</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 };
 
@@ -117,21 +168,78 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderColor: Colors.border,
     borderWidth: 1,
+    gap: 4,
   },
   buttonActive: {
     backgroundColor: Colors.primaryLight,
     borderColor: Colors.primary,
   },
-  iconActive: {
-    color: Colors.primary,
+  avatar: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.border,
+    position: 'relative',
   },
   count: {
-    marginLeft: 4,
     fontSize: 15,
     color: Colors.text,
   },
   countActive: {
     color: Colors.primary,
     fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    width: '85%',
+    maxHeight: '70%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: Colors.text,
+  },
+  modalList: {
+    width: '100%',
+  },
+  modalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  modalAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
+    backgroundColor: '#eee',
+  },
+  modalUsername: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  closeButton: {
+    marginTop: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });

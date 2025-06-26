@@ -1,7 +1,7 @@
 import { useActivePrompt } from '@/api/useActivePrompt';
 import { useUserApi } from '@/api/useUserApi';
-import useAddDeviceToken from '@/app/hooks/useAddDeviceToken';
-import { useClearBadge } from '@/app/hooks/useClearBadge';
+import useAddDeviceToken from '@/hooks/useAddDeviceToken';
+import { useClearBadge } from '@/hooks/useClearBadge';
 import { Feed } from '@/components/Feed';
 import { GroupTitlePager } from '@/components/GroupTitlePager';
 import { JoinGroupModal } from '@/components/JoinGroupModal';

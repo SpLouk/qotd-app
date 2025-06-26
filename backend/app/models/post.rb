@@ -46,6 +46,8 @@ scope :ordered_by_recent_activity, -> {
       {
         id: reaction.id,
         user_id: reaction.user_id,
+        user_photo_url: reaction.user.profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(reaction.user.profile_photo) : nil,
+        username: reaction.user.username,
         reaction: reaction.reaction
       }
     end

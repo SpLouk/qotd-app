@@ -62,6 +62,8 @@ export interface Mention {
 export interface Reaction {
   id: number;
   user_id: number;
+  user_photo_url: string;
+  username: string;
   reaction: string;
 }
 
