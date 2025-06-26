@@ -56,6 +56,6 @@ class PostsController < ApplicationController
   end
 
   def post_params
-    params.require(:post).permit(:content, :prompt_question_id, :parent_post_id, photos: [])
+    params.require(:post).permit(:content, :off_topic, :prompt_question_id, :parent_post_id, photos: [])
   end
 end

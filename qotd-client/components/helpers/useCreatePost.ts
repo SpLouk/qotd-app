@@ -6,6 +6,7 @@ export const createPostRequestBody = ({
   parent_post_id,
   content,
   photos,
+  off_topic,
 }: CreatePostRequest['post']): BodyInit => {
   if (photos.length > 0) {
     const formData = new FormData();
@@ -13,6 +14,7 @@ export const createPostRequestBody = ({
       formData.append('post[parent_post_id]', parent_post_id?.toString());
     }
     formData.append('post[content]', content.trim());
+    formData.append('post[off_topic]', `${off_topic}`);
     formData.append('post[prompt_question_id]', String(prompt_question_id ?? 0));
     photos.forEach((photo: ImagePicker.ImagePickerAsset, idx: number) => {
       formData.append('post[photos][]', {
@@ -26,6 +28,7 @@ export const createPostRequestBody = ({
     const body = {
       post: {
         content: content.trim(),
+        off_topic,
         parent_post_id,
         prompt_question_id,
       },

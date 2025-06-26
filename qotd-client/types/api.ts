@@ -45,6 +45,7 @@ export interface Post {
   prompt_question_id: number;
   parent_post_id: number | null;
   content: string;
+  off_topic: boolean;
   created_at: string;
   username?: string;
   user_photo_url?: string;
@@ -73,5 +74,6 @@ export interface CreatePostRequest {
     parent_post_id?: number;
     content: string;
     photos: ImagePicker.ImagePickerAsset[];
+    off_topic?: boolean;
   };
 }

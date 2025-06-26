@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_25_171000) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_26_163840) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -140,6 +140,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_25_171000) do
     t.integer "group_id"
     t.integer "flags_count", default: 0, null: false
     t.datetime "notified_group_at"
+    t.boolean "off_topic", default: false, null: false
     t.index ["group_id"], name: "index_posts_on_group_id"
     t.index ["parent_post_id"], name: "index_posts_on_parent_post_id"
     t.index ["prompt_question_id"], name: "index_posts_on_prompt_question_id"

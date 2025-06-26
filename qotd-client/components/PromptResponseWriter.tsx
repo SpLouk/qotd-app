@@ -8,6 +8,7 @@ import { Post } from '@/types/api';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { formatDistanceToNow } from 'date-fns';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import {
@@ -23,6 +24,7 @@ import {
 } from 'react-native';
 
 export function PromptResponseWriter() {
+  const [offTopic, setOffTopic] = useState(false);
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [error, setError] = useState('');
   const [response, setResponse] = useState('');
@@ -33,6 +35,9 @@ export function PromptResponseWriter() {
   const groupId = useGroupId();
 
   const { data: activePrompt, isLoading } = useActivePrompt();
+
+  // Helper to show off-topic button only if not off-topic
+  const showOffTopicButton = !offTopic && !!activePrompt;
 
   const { mutate: submitPost, isPending } = useMutation<Post, Error, any>({
     mutationKey: ['posts', groupId],
@@ -53,7 +58,12 @@ export function PromptResponseWriter() {
     if (noResponseContent || !activePrompt || isPending) {
       return;
     }
-    submitPost({ photos, prompt_question_id: parseInt(activePrompt.id), content: response });
+    submitPost({
+      photos,
+      prompt_question_id: parseInt(activePrompt.id),
+      content: response,
+      off_topic: !!offTopic,
+    });
   }
 
   function removePhoto(idx: number) {
@@ -111,8 +121,27 @@ export function PromptResponseWriter() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
       <View style={styles.header}>
         <View style={{ flexDirection: 'column', flex: 1 }}>
-          <Text style={styles.promptOverline}>Today's prompt:</Text>
-          <Text style={styles.promptText}>{activePrompt?.content}</Text>
+          {activePrompt?.activated_at && (
+            <Text style={styles.promptOverline}>
+              {formatDistanceToNow(new Date(activePrompt.activated_at), { addSuffix: true })}
+            </Text>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setOffTopic((prev) => !prev)}
+            style={({ pressed }) => pressed && { opacity: 0.7 }}
+          >
+            <Text style={[styles.promptText, offTopic && styles.strikethrough]}>{activePrompt?.content}</Text>
+          </Pressable>
+          {showOffTopicButton && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setOffTopic(true)}
+              style={({ pressed }) => [styles.offTopicButton, pressed && { opacity: 0.7 }]}
+            >
+              <Text style={styles.offTopicButtonText}>Boring prompt?</Text>
+            </Pressable>
+          )}
         </View>
 
         <Pressable
@@ -158,6 +187,20 @@ export function PromptResponseWriter() {
 }
 
 const styles = StyleSheet.create({
+  strikethrough: {
+    textDecorationLine: 'line-through',
+    color: Colors.textSecondary,
+  },
+  offTopicButton: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 0,
+  },
+  offTopicButtonText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
   keyboardView: {
     height: '100%',
     flex: 1,
@@ -169,7 +212,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   headerButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.primary,
     fontWeight: '600',
   },
@@ -181,7 +224,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   promptText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
     flexWrap: 'wrap',
