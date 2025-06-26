@@ -70,9 +70,10 @@ export default function AppIndex() {
       ]);
     }
   };
+  const needsWritePrompt = useNeedsWritePrompt();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={needsWritePrompt ? ['top'] : ['top', 'bottom']}>
       {successMessage && (
         <View style={styles.successMessage}>
           <Text style={styles.successMessageText}>{successMessage}</Text>
@@ -110,20 +111,12 @@ const MainContent = ({
   setSuccessMessage: (value: string | null) => void;
 }) => {
   const queryClient = useQueryClient();
-  const {
-    data: activePrompt,
-    isLoading: isLoadingPrompt,
-    isFetching: isFetchingPrompt,
-    error: promptError,
-  } = useActivePrompt();
+  const { isLoading: isLoadingPrompt, isFetching: isFetchingPrompt, error: promptError } = useActivePrompt();
 
   const { data: user, isLoading: isLoadingUser } = useUserApi();
   const groupList = user?.groups;
 
-  // Find if the user has a post for the current active prompt
-  const ownPost = activePrompt?.posts?.find((p) => p.username === user?.username);
-
-  const needsWritePrompt = user && activePrompt && !ownPost;
+  const needsWritePrompt = useNeedsWritePrompt();
   const groupId = useGroupId();
 
   const handleRefresh = () => {
@@ -183,6 +176,17 @@ const MainContent = ({
       <PromptDrawer setSuccessMessage={setSuccessMessage} />
     </>
   );
+};
+
+const useNeedsWritePrompt = () => {
+  const { data: activePrompt } = useActivePrompt();
+
+  const { data: user } = useUserApi();
+
+  // Find if the user has a post for the current active prompt
+  const ownPost = activePrompt?.posts?.find((p) => p.username === user?.username);
+
+  return user && activePrompt && !ownPost;
 };
 
 const styles = StyleSheet.create({

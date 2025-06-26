@@ -5,7 +5,8 @@ import { useSessionManager } from '@/hooks/useSessionManager';
 import { QueryProvider } from '@/providers/query';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import { Stack, useRouter } from 'expo-router';
-import { useContext, useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Network from 'expo-network';
@@ -56,14 +57,16 @@ function AppContent() {
 
 export default function RootLayout() {
   return (
-    <SessionProvider>
-      <QueryProvider>
-        <GroupProvider>
-          <SafeAreaProvider>
-            <AppContent />
-          </SafeAreaProvider>
-        </GroupProvider>
-      </QueryProvider>
-    </SessionProvider>
+    <KeyboardProvider>
+      <SessionProvider>
+        <QueryProvider>
+          <GroupProvider>
+            <SafeAreaProvider>
+              <AppContent />
+            </SafeAreaProvider>
+          </GroupProvider>
+        </QueryProvider>
+      </SessionProvider>
+    </KeyboardProvider>
   );
 }

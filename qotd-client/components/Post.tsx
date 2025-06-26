@@ -1,18 +1,17 @@
 import { useUserApi } from '@/api/useUserApi';
+import { ReactionButton } from '@/components/ReactionButton';
 import { UserProfileHeader } from '@/components/UserProfileHeader';
 import Colors from '@/constants/Colors';
+import { useGroupId } from '@/context/GroupContext';
 import { Post as PostType } from '@/types/api';
+import { useFetchApi } from '@/utils/api';
 import { FontAwesome } from '@expo/vector-icons';
-import { ReactionButton } from '@/components/ReactionButton';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View, Linking } from 'react-native';
-import { useGroupId } from '@/context/GroupContext';
-import { useFetchApi } from '@/utils/api';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface PostProps {
   post: PostType;
@@ -152,7 +151,14 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
           <UserProfileHeader user_id={post.user_id} username={post.username} user_photo_url={post.user_photo_url} />
         </View>
         <View style={styles.headerActions}>
-          <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
+          <View style={{ gap: 8 }}>
+            <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
+            {post.off_topic && (
+              <View style={styles.offTopicFlair}>
+                <Text style={styles.offTopicFlairText}>Off Topic</Text>
+              </View>
+            )}
+          </View>
           {!readonly &&
             (isOwner(post) ? (
               <Pressable
@@ -204,6 +210,16 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
 };
 
 const styles = StyleSheet.create({
+  offTopicFlair: {
+    backgroundColor: Colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-end'
+  },
+  offTopicFlairText: {
+    color: Colors.textSecondary,
+  },
   fullscreenOverlay: {
     flex: 1,
     backgroundColor: '#000',

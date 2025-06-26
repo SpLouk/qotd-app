@@ -105,16 +105,21 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
   if (readonly && !reactionCount) {
     return null;
   }
+  const interactionDisabled = readonly || addReaction.isPending || removeReaction.isPending;
 
   return (
     <>
       <Pressable
-        style={({ pressed }) => [styles.button, isReacted && styles.buttonActive, pressed && { opacity: 0.5 }, style]}
-        onPress={handlePress}
+        style={({ pressed }) => [
+          styles.button,
+          isReacted && styles.buttonActive,
+          !readonly && pressed && { opacity: 0.5 },
+          style,
+        ]}
+        onPress={interactionDisabled ? undefined : handlePress}
         onLongPress={() => setModalVisible(true)}
         accessibilityRole="button"
         accessibilityLabel={isReacted ? 'Remove thumbs up' : 'Add thumbs up'}
-        disabled={readonly || addReaction.isPending || removeReaction.isPending}
       >
         <Text style={styles.count}>👍</Text>
         <View style={{ flexDirection: 'row' }}>

@@ -10,18 +10,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardToolbar } from 'react-native-keyboard-controller';
 
 export function PromptResponseWriter() {
   const [offTopic, setOffTopic] = useState(false);
@@ -100,25 +91,12 @@ export function PromptResponseWriter() {
     }
   }
 
-  function showImagePickerOptions() {
-    Alert.alert(
-      'Add Photo',
-      'Choose a photo source',
-      [
-        { text: 'Take Photo', onPress: takePhoto },
-        { text: 'Choose from Library', onPress: pickImage },
-        { text: 'Cancel', style: 'cancel' },
-      ],
-      { cancelable: true },
-    );
-  }
-
   if (isLoading) {
     return <ActivityIndicator color={Colors.primary} size="large" />;
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
+    <>
       <View style={styles.header}>
         <View style={{ flexDirection: 'column', flex: 1 }}>
           {activePrompt?.activated_at && (
@@ -145,7 +123,7 @@ export function PromptResponseWriter() {
         </View>
 
         <Pressable
-          style={({ pressed }) => pressed && { opacity: 0.7 }}
+          style={({ pressed }) => [{ marginTop: 18 }, pressed && { opacity: 0.7 }]}
           onPress={handleSubmit}
           disabled={isPending || noResponseContent}
         >
@@ -155,38 +133,63 @@ export function PromptResponseWriter() {
         </Pressable>
       </View>
 
-      <View style={styles.inputContainer}>
+      <KeyboardAwareScrollView style={styles.inputContainer}>
         {photos.length ? (
           <View>
             <UploadPhotoPreview photos={photos} onRemovePhoto={removePhoto} />
           </View>
         ) : null}
-        <View>
-          <TextInput
-            style={styles.input}
-            multiline
-            placeholder="Write your response..."
-            placeholderTextColor="#999"
-            value={response}
-            onChangeText={setResponse}
-            autoFocus
-            textAlignVertical="top"
-            editable={!isPending}
-          />
-          <Pressable
-            style={({ pressed }) => [styles.addPhotoButton, pressed && { opacity: 0.7 }]}
-            onPress={showImagePickerOptions}
-          >
-            <FontAwesome name="image" size={20} color={Colors.primary} />
-          </Pressable>
-        </View>
-      </View>
+        <TextInput
+          style={styles.input}
+          multiline
+          placeholder={offTopic ? 'Write anything, or post a selfie...' : 'Write your response...'}
+          placeholderTextColor="#999"
+          value={response}
+          onChangeText={setResponse}
+          autoFocus
+          textAlignVertical="top"
+          editable={!isPending}
+        />
+      </KeyboardAwareScrollView>
       {error ? <Text>{error}</Text> : null}
-    </KeyboardAvoidingView>
+      <KeyboardToolbar
+        showArrows={false}
+        content={
+          <View style={styles.photoButtonRow}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={takePhoto}
+              style={({ pressed }) => [styles.photoButton, pressed && { opacity: 0.7 }]}
+            >
+              <FontAwesome name="camera" size={24} color={Colors.textSecondary} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={pickImage}
+              style={({ pressed }) => [styles.photoButton, pressed && { opacity: 0.7 }]}
+            >
+              <FontAwesome name="image" size={24} color={Colors.textSecondary} />
+            </Pressable>
+          </View>
+        }
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  photoButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+  },
+  photoButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
   strikethrough: {
     textDecorationLine: 'line-through',
     color: Colors.textSecondary,
@@ -201,13 +204,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textDecorationLine: 'underline',
   },
-  keyboardView: {
-    height: '100%',
-    flex: 1,
-  },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     padding: 16,
     gap: 16,
   },
@@ -233,18 +231,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: Colors.text,
-    overflow: 'scroll',
-  },
-  addPhotoButton: {
-    backgroundColor: Colors.background,
-    position: 'absolute',
-    right: 8,
-    top: 8,
+    flex: 1,
   },
   inputContainer: {
-    flex: 1,
-    position: 'relative',
     paddingHorizontal: 16,
-    gap: 16,
+    marginBottom: 48,
+    flex: 1,
   },
 });
