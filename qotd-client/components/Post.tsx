@@ -77,13 +77,11 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
   const renderComment = (comment: PostType) => (
     <View key={comment.id} style={styles.comment}>
       <View style={styles.commentHeader}>
-        <View style={styles.userInfo}>
-          <UserProfileHeader
-            user_id={comment.user_id}
-            username={comment.username}
-            user_photo_url={comment.user_photo_url}
-          />
-        </View>
+        <UserProfileHeader
+          user_id={comment.user_id}
+          username={comment.username}
+          user_photo_url={comment.user_photo_url}
+        />
         <View style={styles.commentActions}>
           <Text style={styles.commentDate}>
             {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
@@ -147,37 +145,37 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
         </Pressable>
       </Modal>
       <View style={styles.header}>
-        <View style={styles.userInfo}>
-          <UserProfileHeader user_id={post.user_id} username={post.username} user_photo_url={post.user_photo_url} />
-        </View>
-        <View style={styles.headerActions}>
+        <UserProfileHeader user_id={post.user_id} username={post.username} user_photo_url={post.user_photo_url} />
+        <View style={{ gap: 6 }}>
+          <View style={styles.headerActions}>
+            <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
+            {!readonly &&
+              (isOwner(post) ? (
+                <Pressable
+                  style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+                  onPress={() => handleDelete(post)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Delete post"
+                  disabled={deletePostMutation.isPending}
+                >
+                  <FontAwesome name="trash-o" size={20} color={Colors.error} />
+                </Pressable>
+              ) : (
+                <Pressable
+                  style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+                  onPress={() => handleFlagPost(post)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Flag post"
+                >
+                  <FontAwesome name="flag-o" size={20} color={Colors.error} />
+                </Pressable>
+              ))}
+          </View>
           {post.off_topic && (
             <View style={styles.offTopicFlair}>
               <Text style={styles.offTopicFlairText}>Off Topic</Text>
             </View>
           )}
-          <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>
-          {!readonly &&
-            (isOwner(post) ? (
-              <Pressable
-                style={({ pressed }) => [pressed && { opacity: 0.7 }]}
-                onPress={() => handleDelete(post)}
-                accessibilityRole="button"
-                accessibilityLabel="Delete post"
-                disabled={deletePostMutation.isPending}
-              >
-                <FontAwesome name="trash-o" size={20} color={Colors.error} />
-              </Pressable>
-            ) : (
-              <Pressable
-                style={({ pressed }) => [pressed && { opacity: 0.7 }]}
-                onPress={() => handleFlagPost(post)}
-                accessibilityRole="button"
-                accessibilityLabel="Flag post"
-              >
-                <FontAwesome name="flag-o" size={20} color={Colors.error} />
-              </Pressable>
-            ))}
         </View>
       </View>
       {post.photo_urls && post.photo_urls.length > 0 && (
@@ -252,12 +250,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   profilePhoto: {
     width: 32,

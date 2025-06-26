@@ -117,7 +117,7 @@ export const ReactionButton: React.FC<ReactionButtonProps> = ({ reactions = [], 
           style,
         ]}
         onPress={interactionDisabled ? undefined : handlePress}
-        onLongPress={() => setModalVisible(true)}
+        onLongPress={reactionCount ? () => setModalVisible(true) : () => {}}
         accessibilityRole="button"
         accessibilityLabel={isReacted ? 'Remove thumbs up' : 'Add thumbs up'}
       >
