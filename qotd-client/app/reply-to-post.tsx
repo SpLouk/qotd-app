@@ -270,10 +270,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 8,
   },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
   replyButton: {
     backgroundColor: '#007AFF',
     paddingHorizontal: 16,
@@ -287,34 +283,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-  postPreview: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  profilePhoto: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
   userName: {
     fontSize: 15,
     fontWeight: '600',
-  },
-  date: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 2,
-  },
-  postContent: {
-    fontSize: 15,
-    lineHeight: 20,
   },
   inputContainer: {
     position: 'relative',
