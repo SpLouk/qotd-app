@@ -33,17 +33,8 @@ Rails.application.routes.draw do
 
   # Routes for other users
   resources :users do
-    resource :follow, only: [ :create, :destroy ] do
-      put :approve, on: :collection
-    end
     get :search, on: :collection
   end
-
-  # Get lists of followers/following for the current user
-  get "followers", to: "follows#followers"
-  get "following", to: "follows#following"
-  get "follow_requests", to: "follows#follow_requests"
-  get "following_requests", to: "follows#following_requests"
 
   resource :session do
     post :refresh, on: :collection

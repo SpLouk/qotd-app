@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_26_163840) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_27_185000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -59,16 +59,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_26_163840) do
     t.index ["token"], name: "index_device_tokens_on_token"
     t.index ["user_id", "token"], name: "index_device_tokens_on_user_id_and_token", unique: true
     t.index ["user_id"], name: "index_device_tokens_on_user_id"
-  end
-
-  create_table "follows", force: :cascade do |t|
-    t.integer "follower_id", null: false
-    t.integer "followed_id", null: false
-    t.boolean "approved", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["followed_id"], name: "index_follows_on_followed_id"
-    t.index ["follower_id"], name: "index_follows_on_follower_id"
   end
 
   create_table "group_users", force: :cascade do |t|
@@ -217,8 +207,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_26_163840) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "auth_codes", "users"
   add_foreign_key "device_tokens", "users"
-  add_foreign_key "follows", "users", column: "followed_id"
-  add_foreign_key "follows", "users", column: "follower_id"
   add_foreign_key "group_users", "groups"
   add_foreign_key "group_users", "users"
   add_foreign_key "groups", "users", column: "created_by_id"

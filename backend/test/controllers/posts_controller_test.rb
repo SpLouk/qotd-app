@@ -3,8 +3,7 @@ require "test_helper"
 class PostsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
-    @followed_user = users(:two)
-    @not_followed_user = users(:three)
+    @user2 = users(:two)
     @active_prompt = prompt_questions(:active_group_one)
     @group = groups(:one)
 
@@ -31,7 +30,7 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
 
     # Verify post contains user information
     post_with_user = response_data.find { |post| post["id"] == posts(:group_one_active_post).id }
-    assert_equal @followed_user.username, post_with_user["username"]
+    assert_equal @user2.username, post_with_user["username"]
   end
 
   test "index returns empty array when no active prompt" do
