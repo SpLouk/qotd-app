@@ -10,9 +10,19 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { KeyboardAwareScrollView, KeyboardToolbar } from 'react-native-keyboard-controller';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  Keyboard,
+} from 'react-native';
 
 export function PromptResponseWriter() {
   const [offTopic, setOffTopic] = useState(false);
@@ -90,13 +100,14 @@ export function PromptResponseWriter() {
       setPhotos((prev) => [...prev, ...result.assets]);
     }
   }
+  const isKeyboardVisible = useIsKeyboardVisible();
 
   if (isLoading) {
     return <ActivityIndicator color={Colors.primary} size="large" />;
   }
 
   return (
-    <>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <View style={styles.header}>
         <View style={{ flexDirection: 'column', flex: 1 }}>
           {activePrompt?.activated_at && (
@@ -133,62 +144,71 @@ export function PromptResponseWriter() {
         </Pressable>
       </View>
 
-      <KeyboardAwareScrollView style={styles.inputContainer}>
-        {photos.length ? (
-          <View>
-            <UploadPhotoPreview photos={photos} onRemovePhoto={removePhoto} />
-          </View>
-        ) : null}
+      <ScrollView style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           multiline
           placeholder={offTopic ? 'Write anything, or post a selfie...' : 'Write your response...'}
           placeholderTextColor="#999"
           value={response}
-          onChangeText={setResponse}
           autoFocus
-          textAlignVertical="top"
+          onChangeText={setResponse}
           editable={!isPending}
         />
-      </KeyboardAwareScrollView>
-      {error ? <Text>{error}</Text> : null}
-      <KeyboardToolbar
-        showArrows={false}
-        content={
-          <View style={styles.photoButtonRow}>
-            <Pressable
-              accessibilityRole="button"
-              onPress={takePhoto}
-              style={({ pressed }) => [styles.photoButton, pressed && { opacity: 0.7 }]}
-            >
-              <FontAwesome name="camera" size={24} color={Colors.textSecondary} />
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              onPress={pickImage}
-              style={({ pressed }) => [styles.photoButton, pressed && { opacity: 0.7 }]}
-            >
-              <FontAwesome name="image" size={24} color={Colors.textSecondary} />
-            </Pressable>
-          </View>
-        }
-      />
-    </>
+      </ScrollView>
+      {photos.length ? (
+        <View style={{ paddingVertical: 8, paddingHorizontal: 16 }}>
+          <UploadPhotoPreview photos={photos} onRemovePhoto={removePhoto} />
+        </View>
+      ) : null}
+      <View style={[styles.photoButtonRow, isKeyboardVisible && { marginBottom: '30%' }]}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={takePhoto}
+          style={({ pressed }) => [styles.photoButton, pressed && { opacity: 0.7 }]}
+        >
+          <FontAwesome name="camera" size={24} color={Colors.textSecondary} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={pickImage}
+          style={({ pressed }) => [styles.photoButton, pressed && { opacity: 0.7 }]}
+        >
+          <FontAwesome name="image" size={24} color={Colors.textSecondary} />
+        </Pressable>
+        <Text style={{ flex: 1 }}>{error}</Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={Keyboard.dismiss}
+          style={({ pressed }) => [styles.photoButton, pressed && { opacity: 0.7 }]}
+        >
+          <Text style={styles.doneButtonText}>Done</Text>
+        </Pressable>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   photoButtonRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 16,
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
   photoButton: {
-    flexDirection: 'column',
-    alignItems: 'center',
     paddingHorizontal: 12,
-    borderRadius: 8,
+  },
+  doneButtonText: {
+    marginLeft: 4,
+    fontSize: 16,
+    color: Colors.textSecondary,
   },
   strikethrough: {
     textDecorationLine: 'line-through',
@@ -231,11 +251,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: Colors.text,
-    flex: 1,
   },
   inputContainer: {
     paddingHorizontal: 16,
-    marginBottom: 48,
-    flex: 1,
   },
 });
+
+const useIsKeyboardVisible = () => {
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', handleKeyboardHide);
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
+  const handleKeyboardShow = () => {
+    setIsKeyboardVisible(true);
+  };
+
+  const handleKeyboardHide = () => {
+    setIsKeyboardVisible(false);
+  };
+  return isKeyboardVisible;
+};

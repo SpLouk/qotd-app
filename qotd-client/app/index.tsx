@@ -70,10 +70,9 @@ export default function AppIndex() {
       ]);
     }
   };
-  const needsWritePrompt = useNeedsWritePrompt();
 
   return (
-    <SafeAreaView style={styles.container} edges={needsWritePrompt ? ['top'] : ['top', 'bottom']}>
+    <SafeAreaView style={styles.container}>
       {successMessage && (
         <View style={styles.successMessage}>
           <Text style={styles.successMessageText}>{successMessage}</Text>
