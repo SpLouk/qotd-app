@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   },
   promptButton: {
     position: 'absolute',
-    bottom: 8,
+    bottom: 48,
     alignSelf: 'center',
     width: '80%',
     shadowColor: '#000',

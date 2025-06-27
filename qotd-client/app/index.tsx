@@ -93,9 +93,7 @@ export default function AppIndex() {
         </Pressable>
       </View>
 
-      <View style={styles.content}>
-        <MainContent setSuccessMessage={setSuccessMessage} setJoinGroupModalVisible={setJoinGroupModalVisible} />
-      </View>
+      <MainContent setSuccessMessage={setSuccessMessage} setJoinGroupModalVisible={setJoinGroupModalVisible} />
 
       <JoinGroupModal visible={joinGroupModalVisible} onClose={() => setJoinGroupModalVisible(false)} />
     </SafeAreaView>

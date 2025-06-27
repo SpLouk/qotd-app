@@ -10,7 +10,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -100,7 +100,6 @@ export function PromptResponseWriter() {
       setPhotos((prev) => [...prev, ...result.assets]);
     }
   }
-  const isKeyboardVisible = useIsKeyboardVisible();
 
   if (isLoading) {
     return <ActivityIndicator color={Colors.primary} size="large" />;
@@ -161,7 +160,7 @@ export function PromptResponseWriter() {
           <UploadPhotoPreview photos={photos} onRemovePhoto={removePhoto} />
         </View>
       ) : null}
-      <View style={[styles.photoButtonRow, isKeyboardVisible && { marginBottom: '30%' }]}>
+      <View style={styles.photoButtonRow}>
         <Pressable
           accessibilityRole="button"
           onPress={takePhoto}
@@ -256,26 +255,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 });
-
-const useIsKeyboardVisible = () => {
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', handleKeyboardHide);
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
-
-  const handleKeyboardShow = () => {
-    setIsKeyboardVisible(true);
-  };
-
-  const handleKeyboardHide = () => {
-    setIsKeyboardVisible(false);
-  };
-  return isKeyboardVisible;
-};
