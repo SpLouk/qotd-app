@@ -96,6 +96,7 @@ scope :ordered_by_recent_activity, -> {
       thread_id: "post_#{parent_post.id}",
       target_content_id: parent_post.id.to_s,
       custom_data: {
+        group_id: parent_post.group_id,
         responder_id: user.id,
         responder_username: user.username,
         responder_profile_photo_url: user.profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(user.profile_photo) : nil,
@@ -122,6 +123,7 @@ scope :ordered_by_recent_activity, -> {
       thread_id: "post_#{parent_post.id}",
       target_content_id: parent_post.id.to_s,
       custom_data: {
+        group_id: parent_post.group_id,
         responder_id: user.id,
         responder_username: user.username,
         responder_profile_photo_url: user.profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(user.profile_photo) : nil,

@@ -15,6 +15,7 @@ class MentionNotifierJob < ApplicationJob
       thread_id: "post_#{post.id}",
       target_content_id: post.id.to_s,
       custom_data: {
+        group_id: post.group_id,
         mentioner_id: post.user.id,
         mentioner_username: post.user.username,
         mentioner_profile_photo_url: post.user.profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(post.user.profile_photo) : nil,

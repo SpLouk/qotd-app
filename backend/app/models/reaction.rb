@@ -35,6 +35,7 @@ class Reaction < ApplicationRecord
       thread_id: "post_#{post.id}",
       target_content_id: post.id.to_s,
       custom_data: {
+        group_id: post.group_id,
         reactor_id: user.id,
         reactor_username: user.username,
         reactor_profile_photo_url: user.profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(user.profile_photo) : nil,
