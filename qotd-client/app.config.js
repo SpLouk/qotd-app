@@ -3,6 +3,7 @@ const IS_DEV = process.env.APP_VARIANT === 'development';
 export default {
   expo: {
     name: IS_DEV ? 'Hoot (dev)' : 'Hoot',
+    owner: 'hoot-of-the-day',
     slug: 'qotd',
     version: '1.1.0',
     orientation: 'portrait',
