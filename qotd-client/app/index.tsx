@@ -8,23 +8,14 @@ import { JoinGroupModal } from '@/components/JoinGroupModal';
 import PromptDrawer from '@/components/PromptDrawer';
 import { PromptResponseWriter } from '@/components/PromptResponseWriter';
 import Colors from '@/constants/Colors';
-import { GroupContext, useGroupId } from '@/context/GroupContext';
+import { GroupContext, useGroup } from '@/context/GroupContext';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  ActionSheetIOS,
-  ActivityIndicator,
-  Alert,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActionSheetIOS, ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { IntroPage } from '@/components/IntroPage';
+import { EmptyGroup } from '@/components/EmptyGroup';
 
 export default function AppIndex() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -101,26 +92,20 @@ export default function AppIndex() {
 }
 
 const MainContent = ({
-  setJoinGroupModalVisible,
   setSuccessMessage,
 }: {
   setJoinGroupModalVisible: (value: boolean) => void;
   setSuccessMessage: (value: string | null) => void;
 }) => {
-  const queryClient = useQueryClient();
-  const { isLoading: isLoadingPrompt, isFetching: isFetchingPrompt, error: promptError } = useActivePrompt();
+  const { isLoading: isLoadingPrompt, error: promptError } = useActivePrompt();
 
   const { data: user, isLoading: isLoadingUser } = useUserApi();
   const groupList = user?.groups;
 
+  const { data: selectedGroup, isLoading: isLoadingGroup } = useGroup();
   const needsWritePrompt = useNeedsWritePrompt();
-  const groupId = useGroupId();
 
-  const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
-  };
-
-  if (isLoadingPrompt || isLoadingUser) {
+  if (isLoadingUser || isLoadingGroup) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator color={Colors.primary} size="large" />
@@ -129,37 +114,15 @@ const MainContent = ({
   }
 
   if (!groupList?.length) {
-    return (
-      <View style={styles.joinGroupContainer}>
-        <Text style={styles.joinGroupOverlineText}>Nothing here?</Text>
-        <Pressable
-          style={({ pressed }) => [pressed && { opacity: 0.7 }]}
-          onPress={() => setJoinGroupModalVisible(true)}
-          accessibilityRole="link"
-        >
-          <Text style={styles.joinGroupLinkText}>Join a group to get started!</Text>
-        </Pressable>
-      </View>
-    );
+    return <IntroPage />;
   }
 
-  if (promptError) {
+  if (promptError || (selectedGroup?.members.length ?? 3) < 2) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>No active prompt available.</Text>
-        <Text style={styles.errorSubtext}>Check back later for new prompts!</Text>
-        <TouchableOpacity
-          style={[styles.refreshButton, isFetchingPrompt && styles.refreshButtonDisabled]}
-          disabled={isFetchingPrompt}
-          onPress={handleRefresh}
-        >
-          {isFetchingPrompt ? (
-            <ActivityIndicator color={Colors.primary} size="small" />
-          ) : (
-            <Text style={styles.refreshButtonText}>Refresh</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      <>
+        <EmptyGroup setSuccessMessage={setSuccessMessage} />
+        <PromptDrawer setSuccessMessage={setSuccessMessage} />
+      </>
     );
   }
 
@@ -217,66 +180,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  joinGroupContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    width: '100%',
-  },
-  joinGroupOverlineText: {
-    color: Colors.text,
-    fontSize: 18,
-  },
-  joinGroupLinkText: {
-    color: Colors.primary,
-    fontSize: 18,
-  },
   loadingContainer: {
     flex: 1,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    textAlign: 'center',
-  },
-  errorSubtext: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  refreshButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  refreshButtonDisabled: {
-    opacity: 0.7,
-  },
-  refreshButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   successMessage: {
     backgroundColor: '#4CAF50',
