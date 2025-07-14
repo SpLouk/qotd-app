@@ -18,6 +18,11 @@ export default {
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
+      icon: {
+        dark: './assets/images/icon.png',
+        light: './assets/images/icon.png',
+        tinted: './assets/images/icon.png',
+      },
     },
     android: {
       adaptiveIcon: {
