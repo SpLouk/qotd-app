@@ -5,7 +5,7 @@ class PromptQuestion < ApplicationRecord
   has_many :prompt_votes, dependent: :destroy
   has_many :voters, through: :prompt_votes, source: :user
 
-  validates :content, presence: true
+  validates :content, presence: true, length: { maximum: 256 }
 
   scope :active, -> { where(active: true) }
 

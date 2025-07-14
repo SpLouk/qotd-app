@@ -152,11 +152,12 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
   }
 
   function handleSubmitNewPrompt() {
-    if (!newPromptContent.trim()) return;
+    const truncatedContent = newPromptContent.trim().slice(0, 256);
+    if (!truncatedContent) return;
 
     const payload: CreatePromptQuestionRequest = {
       prompt_question: {
-        content: newPromptContent.trim(),
+        content: truncatedContent,
       },
     };
 
@@ -263,6 +264,7 @@ export default function PromptDrawer({ setSuccessMessage }: PromptDrawerProps) {
                           placeholder="Type your prompt here..."
                           placeholderTextColor={Colors.textSecondary}
                           multiline
+                          maxLength={256}
                         />
                         <TouchableOpacity
                           style={[styles.voteButton, !newPromptContent.trim() && styles.submitButtonDisabled]}
