@@ -3,19 +3,16 @@ import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/hooks/useAddDeviceToken';
 import { useClearBadge } from '@/hooks/useClearBadge';
 import { Feed } from '@/components/Feed';
-import { GroupTitlePager } from '@/components/GroupTitlePager';
-import { JoinGroupModal } from '@/components/JoinGroupModal';
 import PromptDrawer from '@/components/PromptDrawer';
 import { PromptResponseWriter } from '@/components/PromptResponseWriter';
 import Colors from '@/constants/Colors';
-import { GroupContext, useGroup } from '@/context/GroupContext';
-import { FontAwesome6 } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React, { useContext, useEffect, useState } from 'react';
-import { ActionSheetIOS, ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useGroup } from '@/context/GroupContext';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IntroPage } from '@/components/IntroPage';
 import { EmptyGroup } from '@/components/EmptyGroup';
+import { AppHeader } from '@/components/AppHeader';
 
 export default function AppIndex() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -27,40 +24,11 @@ export default function AppIndex() {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [successMessage]);
-
-  const [joinGroupModalVisible, setJoinGroupModalVisible] = useState(false);
-
-  const { data: user } = useUserApi();
-  const groupList = user?.groups;
-  const { setSelectedGroupId, selectedGroupId } = useContext(GroupContext)!;
+  }, [successMessage, setSuccessMessage]);
 
   // Add user device token
   useAddDeviceToken();
   useClearBadge();
-
-  const handlePlusPress = () => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', 'Join a Group', 'Create a Group', 'Profile'],
-          cancelButtonIndex: 0,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1) setJoinGroupModalVisible(true);
-          else if (buttonIndex === 2) router.push('/create-group');
-          else if (buttonIndex === 3) router.push('/profile');
-        },
-      );
-    } else {
-      Alert.alert('Group Options', undefined, [
-        { text: 'Join a Group', onPress: () => setJoinGroupModalVisible(true) },
-        { text: 'Create a Group', onPress: () => router.push('/create-group') },
-        { text: 'Profile', onPress: () => router.push('/profile') },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
-    }
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,34 +38,14 @@ export default function AppIndex() {
         </View>
       )}
 
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <GroupTitlePager
-            groupList={groupList}
-            selectedGroupId={selectedGroupId}
-            setSelectedGroupId={setSelectedGroupId}
-            router={router}
-          />
-        </View>
-        <Pressable onPress={handlePlusPress} style={styles.plusButton} accessibilityLabel="Add or join group">
-          <FontAwesome6 name="bars" size={24} color={Colors.primary} weight="thin" />
-        </Pressable>
-      </View>
-
-      <MainContent setSuccessMessage={setSuccessMessage} setJoinGroupModalVisible={setJoinGroupModalVisible} />
-
-      <JoinGroupModal visible={joinGroupModalVisible} onClose={() => setJoinGroupModalVisible(false)} />
+      <AppHeader />
+      <MainContent setSuccessMessage={setSuccessMessage} />
     </SafeAreaView>
   );
 }
 
-const MainContent = ({
-  setSuccessMessage,
-}: {
-  setJoinGroupModalVisible: (value: boolean) => void;
-  setSuccessMessage: (value: string | null) => void;
-}) => {
-  const { isLoading: isLoadingPrompt, error: promptError } = useActivePrompt();
+const MainContent = ({ setSuccessMessage }: { setSuccessMessage: (value: string | null) => void }) => {
+  const { error: promptError } = useActivePrompt();
 
   const { data: user, isLoading: isLoadingUser } = useUserApi();
   const groupList = user?.groups;
@@ -193,11 +141,5 @@ const styles = StyleSheet.create({
   successMessageText: {
     color: '#fff',
     textAlign: 'center',
-  },
-  plusButton: {
-    padding: 8,
-    marginLeft: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

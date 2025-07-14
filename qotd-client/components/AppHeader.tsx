@@ -1,137 +1,86 @@
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Image } from 'expo-image';
+import React, { useContext, useState } from 'react';
+import { ActionSheetIOS, Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { GroupTitlePager } from '@/components/GroupTitlePager';
 import { useUserApi } from '@/api/useUserApi';
+import Colors from '@/constants/Colors';
+import { GroupContext } from '@/context/GroupContext';
+import { JoinGroupModal } from '@/components/JoinGroupModal';
 
-interface AppHeaderProps {
-  title?: string;
-  showProfileButton?: boolean;
-  rightButton?: React.ReactNode;
-}
+export function AppHeader() {
+  const [joinGroupModalVisible, setJoinGroupModalVisible] = useState(false);
+  const { data: user } = useUserApi();
+  const groupList = user?.groups;
+  const { setSelectedGroupId, selectedGroupId } = useContext(GroupContext)!;
 
-export function AppHeader({ title = 'Hoot', showProfileButton = true, rightButton }: AppHeaderProps) {
-  const [menuVisible, setMenuVisible] = useState(false);
-
-  const { data: user, isLoading: isLoadingUser } = useUserApi();
-
-  const handleMenuItemPress = (route: '/search' | '/profile') => {
-    setMenuVisible(false);
-    router.push(route);
+  const handlePlusPress = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Join a Group', 'Create a Group', 'Profile'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) setJoinGroupModalVisible(true);
+          else if (buttonIndex === 2) router.push('/create-group');
+          else if (buttonIndex === 3) router.push('/profile');
+        },
+      );
+    } else {
+      Alert.alert('Group Options', undefined, [
+        { text: 'Join a Group', onPress: () => setJoinGroupModalVisible(true) },
+        { text: 'Create a Group', onPress: () => router.push('/create-group') },
+        { text: 'Profile', onPress: () => router.push('/profile') },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
   };
 
   return (
-    <>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>{title}</Text>
-          </View>
-
-          {rightButton && <View>{rightButton}</View>}
-
-          {showProfileButton &&
-            (isLoadingUser ? (
-              <View style={styles.profileButton}>
-                <ActivityIndicator color="#AFF" size="small" />
-              </View>
-            ) : (
-              user && (
-                <TouchableOpacity style={styles.profileButton} onPress={() => setMenuVisible(true)}>
-                  <Image source={{ uri: user.profile_photo_url }} style={styles.profilePhoto} />
-                </TouchableOpacity>
-              )
-            ))}
-        </View>
+    <View style={styles.header}>
+      <View style={styles.headerLeft}>
+        <GroupTitlePager
+          groupList={groupList}
+          selectedGroupId={selectedGroupId}
+          setSelectedGroupId={setSelectedGroupId}
+          router={router}
+        />
       </View>
+      <Pressable onPress={handlePlusPress} style={styles.menuButton} accessibilityLabel="Add or join group">
+        <FontAwesome6 name="bars" size={24} color={Colors.primary} weight="thin" />
+      </Pressable>
 
-      <Modal animationType="fade" transparent={true} visible={menuVisible} onRequestClose={() => setMenuVisible(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
-          <View style={styles.menuContainer}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('/profile')}>
-              <FontAwesome name="user" size={20} color="#000" style={styles.menuIcon} />
-              <Text style={styles.menuText}>Profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuItemPress('/search')}>
-              <FontAwesome name="search" size={20} color="#000" style={styles.menuIcon} />
-              <Text style={styles.menuText}>Find Friends</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Modal>
-    </>
+      <JoinGroupModal visible={joinGroupModalVisible} onClose={() => setJoinGroupModalVisible(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#fff',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ddd',
-    padding: 16,
-  },
-  headerContent: {
+    maxWidth: '100%',
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    padding: 16,
+    paddingVertical: 8,
   },
-  titleContainer: {
+  headerLeft: {
     flex: 1,
   },
-  titleText: {
-    fontSize: 18,
+  appName: {
+    fontSize: 24,
+    color: Colors.appTitle,
     fontWeight: '600',
-    color: '#666',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
-  profileButton: {
-    height: 36,
-    width: 36,
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profilePhoto: {
-    height: '100%',
-    width: '100%',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-start',
-  },
-  menuContainer: {
-    backgroundColor: '#fff',
-    marginTop: 60,
-    marginHorizontal: 16,
-    borderRadius: 12,
+
+  menuButton: {
     padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  menuItem: {
-    flexDirection: 'row',
+    marginLeft: 8,
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-  },
-  menuIcon: {
-    marginRight: 12,
-  },
-  menuText: {
-    fontSize: 16,
-    color: '#000',
+    justifyContent: 'center',
   },
 });
