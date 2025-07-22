@@ -10,7 +10,7 @@ class ActivatePromptQuestionJob < ApplicationJob
 
     # Send push notifications to users in this group
     device_tokens = DeviceToken.includes(:user)
-      .where(user: group.users)
+      .where(user: group.approved_users)
       .to_a
 
     notification = Notification.new(
