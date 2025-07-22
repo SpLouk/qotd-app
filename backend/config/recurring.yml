@@ -8,7 +8,7 @@ default: &default
     queue: default
     schedule: every day at 12AM
   schedule_prompt_creation_nudges:
-    class: SchedulePromptCreationNudges
+    class: SchedulePromptCreationNudgesJob
     queue: default
     schedule: every day at 12AM
   notify_about_recent_posts:
