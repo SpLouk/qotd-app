@@ -30,7 +30,7 @@ export const useHandleSignIn = () => {
       const { user, ...session } = res;
       setSession(session);
 
-      if (res.user.needs_registration) {
+      if (user.needs_registration) {
         router.replace('/sign-up');
       } else {
         router.replace('/');

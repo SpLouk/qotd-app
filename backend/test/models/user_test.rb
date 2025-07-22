@@ -13,7 +13,6 @@ class UserTest < ActiveSupport::TestCase
     json = @user.as_json
     assert_equal @user.id, json["id"]
     assert_equal @user.username, json["username"]
-    assert_equal @user.email_address, json["email_address"]
     assert_includes json.keys, "needs_registration"
     assert_includes json.keys, "profile_photo_url"
     assert_not_includes json.keys, "voted_today"

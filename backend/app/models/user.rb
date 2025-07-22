@@ -37,12 +37,13 @@ class User < ApplicationRecord
   end
 
   def as_json
-    attrs = slice(:id, :username, :needs_registration, :email_address)
+    attrs = slice(:id, :username, :needs_registration)
     attrs[:profile_photo_url] = profile_photo.attached? ? Rails.application.routes.url_helpers.rails_blob_url(profile_photo) : nil
     unless Current.user
       return attrs
     end
     if Current.user.id == id
+      attrs[:email_address] = email_address
       attrs[:voted_today] = has_voted_today?
       attrs[:eligible_to_vote_today] = responded_to_current_prompt_within_30_minutes?
       attrs[:created_prompt_today] = has_created_prompt_today?
@@ -77,7 +78,7 @@ class User < ApplicationRecord
       uid = result["sub"]
 
       User.transaction do
-        user = User.find_or_create_by(user_id: uid)
+        user = User.find_or_create_by(apple_uid: uid)
         # Limit sessions per user
         user.sessions.order(created_at: :desc).offset(5).destroy_all
         user

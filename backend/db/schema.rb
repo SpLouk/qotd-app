@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_27_185000) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_18_205357) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -81,6 +81,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_27_185000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "privacy_level", default: 0, null: false
+    t.string "prompt_schedule", default: "135", null: false
     t.index ["created_by_id"], name: "index_groups_on_created_by_id"
     t.index ["name"], name: "index_groups_on_name", unique: true
   end
@@ -193,13 +194,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_27_185000) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "user_id"
     t.string "email_address"
     t.string "username"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "apple_uid"
+    t.index ["apple_uid"], name: "index_users_on_apple_uid", unique: true
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
-    t.index ["user_id"], name: "index_users_on_user_id", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true, where: "username IS NOT NULL"
   end
 

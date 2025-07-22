@@ -3,40 +3,46 @@ one:
   name: "Test Group One"
   description: "A test group for testing posts"
   privacy_level: closed
+  prompt_schedule: "135"
 
 two:
   created_by: two
   name: "Test Group Two"
   description: "Another test group for testing posts"
   privacy_level: secret
+  prompt_schedule: "135"
 
 open:
   created_by: one
   name: "Public Group"
   description: "A public test group"
   privacy_level: open
+  prompt_schedule: "135"
 
 closed:
   created_by: two
   name: "Closed Group"
   description: "A closed test group"
   privacy_level: closed
+  prompt_schedule: "135"
 
 secret:
   created_by: two
   name: "Private Group"
   description: "A private test group"
   privacy_level: secret
+  prompt_schedule: "135"
 
 public_searchable:
   created_by: one
   name: "Searchable Test Group"
   description: "A searchable public group"
   privacy_level: open
+  prompt_schedule: "135"
 
 secret_two:
   created_by: three
   name: "Private Group Two"
   description: "Another private test group"
   privacy_level: secret
-
+  prompt_schedule: "135"

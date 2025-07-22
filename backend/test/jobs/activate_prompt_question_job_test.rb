@@ -13,7 +13,8 @@ class ActivatePromptQuestionJobTest < ActiveJob::TestCase
     active_prompt_g2 = prompt_questions(:active_group_two)
     assert active_prompt_g2.active?
 
-    ActivatePromptQuestionJob.perform_now
+    ActivatePromptQuestionJob.perform_now(groups(:one))
+    ActivatePromptQuestionJob.perform_now(groups(:two))
 
     # Verify Group One changes
     assert_not active_prompt_g1.reload.active?, "Old prompt in group one should be deactivated"
@@ -34,7 +35,8 @@ class ActivatePromptQuestionJobTest < ActiveJob::TestCase
     active_g1 = prompt_questions(:active_group_one)
     active_g2 = prompt_questions(:active_group_two)
 
-    ActivatePromptQuestionJob.perform_now
+    ActivatePromptQuestionJob.perform_now(groups(:one))
+    ActivatePromptQuestionJob.perform_now(groups(:two))
 
     # Verify nothing changed
     assert active_g1.reload.active?
@@ -42,25 +44,29 @@ class ActivatePromptQuestionJobTest < ActiveJob::TestCase
   end
 
   test "sends notifications to users in the correct group" do
-    # Setup device tokens for users in group one
-    token_1 = device_tokens(:ios_token)  # User one
-    token_2 = device_tokens(:another_ios_token)  # User two
-    token_3 = device_tokens(:device_token_3)  # User three
+    # Setup device tokens for users in group one and two
+    token_1 = device_tokens(:ios_token)  # User one (group one)
+    token_2 = device_tokens(:another_ios_token)  # User two (group one)
+    token_3 = device_tokens(:device_token_3)  # User three (group two)
+    token_4 = device_tokens(:device_token_4)  # User four (group one)
 
     # Verify users are in correct groups
     assert_equal groups(:one), token_1.user.groups.first
     assert_equal groups(:one), token_2.user.groups.first
     assert_equal groups(:two), token_3.user.groups.first
+    assert_equal groups(:one), token_4.user.groups.first
 
-    # Create a mock client that verifies notifications are sent to all tokens
+    # Create a mock client that verifies notifications are sent to all tokens in group one
     mock_client = mock("client")
     mock_client.expects(:call).with(:post, "/3/device/#{token_1.token}", anything, anything).once
     mock_client.expects(:call).with(:post, "/3/device/#{token_2.token}", anything, anything).once
+    mock_client.expects(:call).with(:post, "/3/device/#{token_4.token}", anything, anything).once
     mock_client.expects(:close)
 
     # Mock the create_client method to return our mock client
     ApnsService.stubs(:create_client).returns(mock_client)
 
-    ActivatePromptQuestionJob.perform_now
+    ActivatePromptQuestionJob.perform_now(groups(:one))
+    ActivatePromptQuestionJob.perform_now(groups(:two))
   end
 end

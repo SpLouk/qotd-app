@@ -3,10 +3,14 @@
 
 # Default configuration to be inherited
 default: &default
-  schedule_prompt_activation:
-    class: SchedulePromptActivationJob
+  schedule_daily_prompt_activations:
+    class: ScheduleDailyPromptActivationsJob
     queue: default
-    schedule: every Monday, Wednesday, and Friday at 12AM
+    schedule: every day at 12AM
+  schedule_prompt_creation_nudges:
+    class: SchedulePromptCreationNudges
+    queue: default
+    schedule: every day at 12AM
   notify_about_recent_posts:
     class: NotifyAboutRecentPostsJob
     queue: default

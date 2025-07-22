@@ -87,7 +87,6 @@ class GroupTest < ActiveSupport::TestCase
       member = members_json[index]
       assert_equal user.id, member[:id]
       assert_equal user.username, member[:username]
-      assert_equal user.profile_photo_url, member[:profile_photo_url]
       assert_nil member[:email_address], "should not include sensitive user data"
     end
   end

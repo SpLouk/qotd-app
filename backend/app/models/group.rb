@@ -15,6 +15,11 @@ class Group < ApplicationRecord
 
   after_create :create_default_invite_code
 
+  scope :scheduled_for_day, ->(day) {
+    day_str = day.to_s
+    where("prompt_schedule LIKE ?", "%#{day_str}%")
+  }
+
   def approved_users
     users.merge(GroupUser.where(approved: true))
   end

@@ -22,7 +22,7 @@ class Session < ApplicationRecord
     return false if refresh_token_expired?
 
     generate_token
-    set_token_expiry
+    self.token_expires_at = 1.hour.from_now
     save!
   end
 
