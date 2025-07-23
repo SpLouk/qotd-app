@@ -11,7 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo } from 'react';
-import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface PostProps {
   post: PostType;
@@ -195,7 +195,18 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
       )}
       {renderContentWithMentions(post.content, post.mentions)}
       <ReactionButton reactions={post.reactions} postId={post.id} readonly={readonly} style={{ marginTop: 8 }} />
-      <View style={styles.commentsContainer}>{comments.map(renderComment)}</View>
+      {comments.length > 0 && (
+        <FlatList
+          data={comments}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => renderComment(item)}
+          scrollEnabled={false}
+          initialNumToRender={5}
+          maxToRenderPerBatch={5}
+          windowSize={10}
+          style={styles.commentsContainer}
+        />
+      )}
       {!readonly ? (
         <Pressable style={({ pressed }) => [styles.replyButton, pressed && { opacity: 0.7 }]} onPress={navigateToPost}>
           <Text style={styles.replyButtonText}>Reply</Text>

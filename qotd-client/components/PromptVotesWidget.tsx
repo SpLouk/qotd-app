@@ -12,7 +12,7 @@ interface PollWidgetProps {
   setSuccessMessage: (content: string | null) => void;
 }
 
-export function PollWidget({ disabled, setSuccessMessage }: PollWidgetProps) {
+export function PromptVotesWidget({ disabled, setSuccessMessage }: PollWidgetProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchAndParseJson = useFetchApiAndParseJson();

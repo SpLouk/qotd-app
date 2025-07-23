@@ -1,4 +1,5 @@
 import { useActivePrompt } from '@/api/useActivePrompt';
+import type { ScrollView as ScrollViewType } from 'react-native';
 import BackButton from '@/components/BackButton';
 import { createPostRequestBody } from '@/components/helpers/useCreatePost';
 import { Post } from '@/components/Post';
@@ -12,7 +13,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import type { ScrollView as ScrollViewType } from 'react-native';
 import {
   ActivityIndicator,
   Alert,

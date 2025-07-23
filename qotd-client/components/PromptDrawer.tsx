@@ -259,7 +259,7 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
                 style={styles.keyboardAvoidingView}
               >
                 <View style={styles.header}>
-                  <Text style={styles.title}>{isCreatingPrompt ? 'Submit a new prompt' : 'Vote for next prompt'}</Text>
+                  <Text style={styles.title}>{isCreatingPrompt ? 'New Prompt' : 'Vote for next prompt'}</Text>
                   <TouchableOpacity style={styles.toggleButton} onPress={toggleCreatePrompt}>
                     <Text style={styles.toggleButtonText}>
                       {isCreatingPrompt ? 'Vote on prompts' : 'Submit a prompt'}
@@ -385,13 +385,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
   },
   toggleButton: {
     padding: 8,
@@ -499,7 +499,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: 30,
     padding: 16,
-    margin: 36,
+    margin: 16,
+    marginBottom: 36,
     alignItems: 'center',
   },
   voteButtonDisabled: {

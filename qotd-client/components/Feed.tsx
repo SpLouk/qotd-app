@@ -6,7 +6,7 @@ import Colors from '@/constants/Colors';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useGroup } from '@/context/GroupContext';
 import { formatDistanceToNow } from 'date-fns';
-import { PollWidget } from './PollWidget';
+import { PromptVotesWidget } from '@/components/PromptVotesWidget';
 
 export interface EnhancedPromptQuestion extends PromptQuestion {
   has_next_page: boolean;
@@ -108,7 +108,7 @@ export function Feed({ setSuccessMessage }: FeedProps) {
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListHeaderComponent={
           group?.prompt_voting_active ? (
-            <PollWidget disabled={!userData?.eligible_to_vote_today} setSuccessMessage={setSuccessMessage} />
+            <PromptVotesWidget disabled={!userData?.eligible_to_vote_today} setSuccessMessage={setSuccessMessage} />
           ) : null
         }
         ListEmptyComponent={
