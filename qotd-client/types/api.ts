@@ -20,6 +20,7 @@ export interface Group {
   privacy_level?: 'secret' | 'closed' | 'open';
   members: Pick<User, 'id' | 'username' | 'profile_photo_url'>[];
   current_user_role?: 'member' | 'admin';
+  will_activate_tomorrow?: boolean;
 }
 
 export interface PromptQuestion {

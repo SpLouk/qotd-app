@@ -13,6 +13,16 @@ const Colors = {
   tint: tintColor,
   tabIconDefault: '#ccc',
   tabIconSelected: tintColor,
+  
+  // Poll-specific colors
+  pollBackground: '#fafafa',
+  pollBorder: '#e0e0e0',
+  pollSelectedBorder: tintColor,
+  pollSelectedBackground: '#f0f8ff',
+  pollBarDefault: '#d1e7ff',
+  pollBarVoted: tintColor,
+  pollBarBackground: '#e8e8e8',
+  pollPercentageText: '#666',
 } as const;
 
 // For strongly typed theme access

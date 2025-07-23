@@ -3,7 +3,6 @@ import { useUserApi } from '@/api/useUserApi';
 import useAddDeviceToken from '@/hooks/useAddDeviceToken';
 import { useClearBadge } from '@/hooks/useClearBadge';
 import { Feed } from '@/components/Feed';
-import PromptDrawer from '@/components/PromptDrawer';
 import { PromptResponseWriter } from '@/components/PromptResponseWriter';
 import Colors from '@/constants/Colors';
 import { useGroup } from '@/context/GroupContext';
@@ -66,24 +65,14 @@ const MainContent = ({ setSuccessMessage }: { setSuccessMessage: (value: string 
   }
 
   if (promptError || (selectedGroup?.members.length ?? 3) < 2) {
-    return (
-      <>
-        <EmptyGroup setSuccessMessage={setSuccessMessage} />
-        <PromptDrawer setSuccessMessage={setSuccessMessage} />
-      </>
-    );
+    return <EmptyGroup setSuccessMessage={setSuccessMessage} />;
   }
 
   if (needsWritePrompt) {
     return <PromptResponseWriter />;
   }
 
-  return (
-    <>
-      <Feed />
-      <PromptDrawer setSuccessMessage={setSuccessMessage} />
-    </>
-  );
+  return <Feed setSuccessMessage={setSuccessMessage} />;
 };
 
 const useNeedsWritePrompt = () => {

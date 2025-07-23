@@ -55,10 +55,16 @@ class Group < ApplicationRecord
     end
   end
 
+  def will_activate_tomorrow?
+    tomorrow_wday = Date.tomorrow.wday.to_s
+    prompt_schedule.include?(tomorrow_wday)
+  end
+
   def as_json
     attrs = slice(:id, :name, :description, :privacy_level, :created_at, :created_by_id, :next_scheduled_activation)
     attrs[:members] = approved_users.as_json
     attrs[:active_invite_codes] = invite_codes.active.map(&:code)
+    attrs[:will_activate_tomorrow] = will_activate_tomorrow?
     attrs
   end
 

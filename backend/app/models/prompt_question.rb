@@ -15,9 +15,23 @@ class PromptQuestion < ApplicationRecord
       .order(prompt_votes_count: :desc)
   }
 
-  def user_voted?(user)
+  scope :top_half_by_replies, -> {
+    # Get all questions with their post counts
+    questions_with_counts = left_joins(:posts)
+                           .group(:id)
+                           .select("prompt_questions.*, COUNT(posts.id) as posts_count")
+                           .order("COUNT(posts.id) DESC")
+
+    # Calculate the half threshold (top 50%)
+    total_count = count
+    return [] if total_count == 0
+    # Return the top half
+    questions_with_counts.limit((total_count / 2).ceil)
+  }
+
+  def user_voted_today?(user)
     return false unless user
-    prompt_votes.exists?(user_id: user.id)
+    prompt_votes.where(created_at: Date.current.all_day).exists?(user_id: user.id)
   end
 
   def as_json(options = {})
@@ -27,7 +41,7 @@ class PromptQuestion < ApplicationRecord
 
     if options[:include_votes]
       json[:votes_count] = prompt_votes_count
-      json[:user_voted] = user_voted?(options[:current_user])
+      json[:user_voted] = user_voted_today?(options[:current_user])
     end
 
     if options[:include_posts]

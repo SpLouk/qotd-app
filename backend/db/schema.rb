@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_18_205357) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_23_171552) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -161,7 +161,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_18_205357) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["prompt_question_id"], name: "index_prompt_votes_on_prompt_question_id"
-    t.index ["user_id", "prompt_question_id"], name: "index_prompt_votes_on_user_id_and_prompt_question_id", unique: true
+    t.index ["user_id", "prompt_question_id"], name: "index_prompt_votes_on_user_id_and_prompt_question_id"
     t.index ["user_id"], name: "index_prompt_votes_on_user_id"
   end
 

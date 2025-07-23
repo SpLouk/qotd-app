@@ -1,19 +1,35 @@
-import { Post, PromptQuestion } from '@/types/api';
+import { Post, PromptQuestion, User } from '@/types/api';
 import { ActivityIndicator, SectionList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Post as PostComponent } from './Post';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import Colors from '@/constants/Colors';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useGroupId } from '@/context/GroupContext';
 import { formatDistanceToNow } from 'date-fns';
+import { PollWidget } from './PollWidget';
 
 export interface EnhancedPromptQuestion extends PromptQuestion {
   has_next_page: boolean;
 }
 
-export function Feed() {
+interface FeedProps {
+  setSuccessMessage: (content: string | null) => void;
+}
+
+export function Feed({ setSuccessMessage }: FeedProps) {
   const fetchAndParseJson = useFetchApiAndParseJson();
+  const queryClient = useQueryClient();
   const groupId = useGroupId();
+
+  // Get the current user data from the cache
+  const userData = queryClient.getQueryData<User>(['user']);
+
+  // Fetch prompts to vote on for the poll widget
+  const { data: promptQuestions } = useQuery<PromptQuestion[]>({
+    queryKey: ['promptQuestions', groupId],
+    queryFn: () => fetchAndParseJson(`/groups/${groupId}/prompt_questions`),
+    enabled: !!groupId,
+  });
 
   // Infinite query for archived prompts
   const {
@@ -96,6 +112,15 @@ export function Feed() {
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        ListHeaderComponent={
+          promptQuestions && promptQuestions.length > 0 ? (
+            <PollWidget
+              promptQuestions={promptQuestions}
+              disabled={!userData?.eligible_to_vote_today}
+              setSuccessMessage={setSuccessMessage}
+            />
+          ) : null
+        }
         ListEmptyComponent={
           <View style={styles.centered}>
             <Text style={styles.emptyText}>No posts yet</Text>
