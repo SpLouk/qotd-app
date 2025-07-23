@@ -28,7 +28,7 @@ export interface PromptQuestion {
   active?: boolean;
   content: string;
   votes_count?: number;
-  user_voted?: boolean;
+  user_voted_today?: boolean;
   created_by_username?: string;
   posts?: Post[];
   activated_at?: string;

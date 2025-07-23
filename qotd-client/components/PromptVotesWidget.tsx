@@ -46,7 +46,7 @@ export function PromptVotesWidget({ disabled, setSuccessMessage }: PollWidgetPro
         <View>
           {promptQuestions.slice(0, 3).map((prompt) => {
             const votePercentage = totalVotes > 0 ? (prompt.votes_count || 0) / totalVotes : 0;
-            const isUserVoted = prompt.user_voted;
+            const isUserVoted = prompt.user_voted_today;
 
             return (
               <View key={prompt.id} style={styles.promptOption}>

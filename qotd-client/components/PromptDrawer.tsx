@@ -50,14 +50,20 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
 
   const api = useFetchApiAndParseJson();
 
-  const currentVotedPromptId = promptQuestions?.find((p) => p.user_voted)?.id;
+  const currentVotedPromptId = promptQuestions?.find((p) => p.user_voted_today)?.id;
 
   const { mutate: votePrompt, isPending: isVoting } = useMutation({
     mutationKey: ['votePrompt'],
-    mutationFn: async (promptId: string) => {
+    mutationFn: async ({
+      promptId,
+      previous_voted_prompt_id,
+    }: {
+      promptId: string;
+      previous_voted_prompt_id?: string;
+    }) => {
       if (!groupId) throw new Error('No group ID available');
       return api(`/groups/${groupId}/prompt_questions/${promptId}/vote`, {
-        body: JSON.stringify({}),
+        body: JSON.stringify({ previous_voted_prompt_id }),
         method: 'POST',
       });
     },
@@ -68,6 +74,22 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
         queryClient.invalidateQueries({ queryKey: ['user'] });
         closeModal();
       }
+    },
+  });
+
+  const { mutate: unvotePrompt, isPending: isUnvoting } = useMutation({
+    mutationKey: ['unvotePrompt'],
+    mutationFn: async (promptId: string) => {
+      if (!groupId) throw new Error('No group ID available');
+      return api(`/groups/${groupId}/prompt_questions/${promptId}/unvote`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      setSuccessMessage('Your vote was removed successfully!');
+      queryClient.invalidateQueries({ queryKey: ['promptQuestions', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      closeModal();
     },
   });
 
@@ -153,7 +175,13 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
 
   function handleVote() {
     if (!selectedPromptId) return;
-    votePrompt(selectedPromptId);
+
+    // If user is clicking on their current voted prompt, unvote it
+    if (selectedPromptId === currentVotedPromptId) {
+      unvotePrompt(selectedPromptId);
+    } else {
+      votePrompt({ promptId: selectedPromptId, previous_voted_prompt_id: currentVotedPromptId });
+    }
   }
 
   function handleSubmitNewPrompt() {
@@ -191,9 +219,9 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
       >
         <View style={styles.promptContent}>
           <View>
-            <Text style={[styles.promptItemText, item.user_voted && styles.promptItemTextVoted]}>
+            <Text style={[styles.promptItemText, item.user_voted_today && styles.promptItemTextVoted]}>
               {item.content}
-              {item.user_voted ? ' ✓' : ''}
+              {item.user_voted_today ? ' ✓' : ''}
             </Text>
             {item.created_by_username && <Text style={styles.promptAuthor}>by {item.created_by_username}</Text>}
           </View>
@@ -204,7 +232,7 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
                 style={[
                   styles.progressBar,
                   { width: `${Math.max(votePercentage * 100, 2)}%` },
-                  item.user_voted && styles.progressBarVoted,
+                  item.user_voted_today && styles.progressBarVoted,
                 ]}
               />
             </View>
@@ -306,19 +334,19 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
                                 style={styles.promptList}
                               />
                               <TouchableOpacity
-                                style={[
-                                  styles.voteButton,
-                                  (!selectedPromptId || selectedPromptId === currentVotedPromptId) &&
-                                    styles.voteButtonDisabled,
-                                ]}
+                                style={[styles.voteButton, !selectedPromptId && styles.voteButtonDisabled]}
                                 onPress={handleVote}
-                                disabled={!selectedPromptId || isVoting || selectedPromptId === currentVotedPromptId}
+                                disabled={!selectedPromptId || isVoting || isUnvoting}
                               >
-                                {isVoting ? (
+                                {isVoting || isUnvoting ? (
                                   <ActivityIndicator color="#fff" />
                                 ) : (
                                   <Text style={styles.voteButtonText}>
-                                    {currentVotedPromptId ? 'Change Vote' : 'Vote'}
+                                    {selectedPromptId === currentVotedPromptId
+                                      ? 'Remove Vote'
+                                      : currentVotedPromptId
+                                        ? 'Change Vote'
+                                        : 'Vote'}
                                   </Text>
                                 )}
                               </TouchableOpacity>
