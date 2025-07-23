@@ -3,16 +3,26 @@ import { PromptQuestion } from '@/types/api';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import PromptDrawer from './PromptDrawer';
+import { useQuery } from '@tanstack/react-query';
+import { useGroupId } from '@/context/GroupContext';
+import { useFetchApiAndParseJson } from '@/utils/api';
 
 interface PollWidgetProps {
-  promptQuestions: PromptQuestion[];
   disabled?: boolean;
   setSuccessMessage: (content: string | null) => void;
 }
 
-export function PollWidget({ promptQuestions, disabled, setSuccessMessage }: PollWidgetProps) {
+export function PollWidget({ disabled, setSuccessMessage }: PollWidgetProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  if (!promptQuestions || promptQuestions.length === 0) {
+
+  const fetchAndParseJson = useFetchApiAndParseJson();
+  const groupId = useGroupId();
+  const { data: promptQuestions } = useQuery<PromptQuestion[]>({
+    queryKey: ['promptQuestions', groupId],
+    queryFn: () => fetchAndParseJson(`/groups/${groupId}/prompt_questions`),
+    enabled: !!groupId,
+  });
+  if (!promptQuestions) {
     return null;
   }
 
@@ -140,4 +150,3 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.pollBarVoted,
   },
 });
-

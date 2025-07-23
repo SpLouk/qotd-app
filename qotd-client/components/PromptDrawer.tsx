@@ -131,7 +131,7 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        return gestureState.dy > 0;
+        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && gestureState.dy > 0;
       },
       onPanResponderMove: (_, gestureState) => {
         if (gestureState.dy > 0) {
@@ -229,7 +229,6 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={closeModal} />
         <Animated.View
-          {...panResponder.panHandlers}
           style={[
             styles.modalContent,
             {
@@ -248,9 +247,11 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
           ]}
         >
           <View style={styles.container}>
-            <TouchableOpacity style={styles.handleContainer} onPress={closeModal}>
-              <View style={styles.handle} />
-            </TouchableOpacity>
+            <View style={styles.handleContainer} {...panResponder.panHandlers}>
+              <TouchableOpacity onPress={closeModal}>
+                <View style={styles.handle} />
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.content}>
               <KeyboardAvoidingView
@@ -363,9 +364,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   handleContainer: {
-    height: 30,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 8,
   },
   handle: {
     width: 40,
