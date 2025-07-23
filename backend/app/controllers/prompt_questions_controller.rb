@@ -40,6 +40,15 @@ class PromptQuestionsController < ApplicationController
   end
 
   def vote
+    # Remove previous vote if specified
+    if params[:previous_voted_prompt_id].present?
+      previous_prompt = @group.prompt_questions.find_by(id: params[:previous_voted_prompt_id])
+      if previous_prompt
+        previous_vote = previous_prompt.prompt_votes.find_by(user_id: Current.user.id)
+        previous_vote&.destroy
+      end
+    end
+
     # Create a vote for the current user on this prompt
     vote = @prompt_question.prompt_votes.build(user: Current.user)
 

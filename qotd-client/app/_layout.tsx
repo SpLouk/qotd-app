@@ -2,6 +2,7 @@ import { useUserApi } from '@/api/useUserApi';
 import { GroupContext, GroupProvider } from '@/context/GroupContext';
 import { SessionProvider } from '@/context/SessionContext';
 import { useSessionManager } from '@/hooks/useSessionManager';
+import { useNotificationHandler } from '@/hooks/useNotificationHandler';
 import { QueryProvider } from '@/providers/query';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import { Stack, useRouter } from 'expo-router';
@@ -31,6 +32,9 @@ function AppContent() {
   const groupContext = useContext(GroupContext);
   const firstGroup = user?.groups?.[0];
   const router = useRouter();
+
+  // Handle notifications that contain group_id
+  useNotificationHandler();
 
   useEffect(() => {
     if (user?.needs_registration) {

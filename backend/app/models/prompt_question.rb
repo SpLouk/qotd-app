@@ -42,6 +42,7 @@ class PromptQuestion < ApplicationRecord
     if options[:include_votes]
       json[:votes_count] = prompt_votes_count
       json[:user_voted] = user_voted_today?(options[:current_user])
+      json[:user_voted_today] = user_voted_today?(options[:current_user])
     end
 
     if options[:include_posts]
