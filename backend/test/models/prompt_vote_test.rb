@@ -14,17 +14,21 @@ class PromptVoteTest < ActiveSupport::TestCase
     assert_equal 1, prompt.reload.prompt_votes_count
   end
 
-  test "user cannot vote for the same prompt twice" do
+  test "user cannot vote for the same prompt twice in one day" do
     # Setup - user already has a vote
     user = users(:one)
     prompt = prompt_questions(:inactive)
+    PromptVote.create!({
+      prompt_question: prompt,
+      user: user
+    })
 
     # Try to create another vote
     vote = PromptVote.new(user: user, prompt_question: prompt)
 
     # Assert vote fails validation
     assert_not vote.save
-    assert_includes vote.errors[:user_id], "can only vote once per prompt"
+    assert_includes vote.errors[:base], "can only vote once per group per day"
   end
 
   test "counter cache updates on vote creation and deletion" do

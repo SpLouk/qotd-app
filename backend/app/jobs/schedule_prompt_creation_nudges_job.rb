@@ -14,6 +14,10 @@ class SchedulePromptCreationNudgesJob < ApplicationJob
 
       SendPromptCreationNudgeJob.set(wait_until: nudge_time).perform_later(group)
       Rails.logger.info "Scheduled nudge for group ID=#{group.id} at #{nudge_time}"
+      
+      # Also schedule AI prompt generation at the same time
+      GenerateAiPromptJob.set(wait_until: nudge_time).perform_later(group)
+      Rails.logger.info "Scheduled AI prompt generation for group ID=#{group.id} at #{nudge_time}"
     end
   end
 end
