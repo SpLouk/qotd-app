@@ -11,6 +11,8 @@ android/
 ios/
 expo-env.d.ts
 
+dev-builds/
+
 # Native
 *.orig.*
 *.jks
