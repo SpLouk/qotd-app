@@ -223,7 +223,11 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
               {item.content}
               {item.user_voted_today ? ' ✓' : ''}
             </Text>
-            {item.created_by_username && <Text style={styles.promptAuthor}>by {item.created_by_username}</Text>}
+            {item.created_by_username ? (
+              <Text style={styles.promptAuthor}>by {item.created_by_username}</Text>
+            ) : (
+              <Text style={styles.promptAuthor}>by Hoot</Text>
+            )}
           </View>
 
           <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>

@@ -5,7 +5,7 @@ export default {
     name: IS_DEV ? 'Hoot (dev)' : 'Hoot',
     owner: 'hoot-of-the-day',
     slug: 'qotd',
-    version: '1.1.0',
+    version: '1.2.0',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'myapp',
