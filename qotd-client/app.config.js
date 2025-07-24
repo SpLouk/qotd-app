@@ -50,6 +50,7 @@ export default {
       'expo-apple-authentication',
       'expo-secure-store',
       'expo-audio',
+      'expo-notifications',
       [
         'expo-image-picker',
         {
