@@ -12,6 +12,7 @@ ios/
 expo-env.d.ts
 
 dev-builds/
+prod-builds/
 
 # Native
 *.orig.*
