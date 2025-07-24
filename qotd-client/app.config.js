@@ -25,6 +25,7 @@ export default {
       },
     },
     android: {
+      package: 'com.loukidelis.qotd',
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',
