@@ -57,8 +57,7 @@ class Group < ApplicationRecord
 
   def prompt_recently_activated?
     return false unless active_prompt
-    false
-    # active_prompt.activated_at > 6.hours.ago
+    active_prompt.activated_at > 6.hours.ago
   end
 
   def as_json

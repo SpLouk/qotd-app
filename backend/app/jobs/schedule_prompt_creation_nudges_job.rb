@@ -6,7 +6,7 @@ class SchedulePromptCreationNudgesJob < ApplicationJob
     groups_activating_tomorrow = Group.scheduled_for_day(Date.tomorrow.wday)
 
     est_timezone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    base_time = est_timezone.local(Day.today.year, Day.today.month, Day.today.day, 9, 0, 0)
+    base_time = est_timezone.local(Date.today.year, Date.today.month, Date.today.day, 9, 0, 0)
 
     groups_activating_tomorrow.each do |group|
       random_hours = rand(0..8)
@@ -14,7 +14,7 @@ class SchedulePromptCreationNudgesJob < ApplicationJob
 
       SendPromptCreationNudgeJob.set(wait_until: nudge_time).perform_later(group)
       Rails.logger.info "Scheduled nudge for group ID=#{group.id} at #{nudge_time}"
-      
+
       # Also schedule AI prompt generation at the same time
       GenerateAiPromptJob.set(wait_until: nudge_time).perform_later(group)
       Rails.logger.info "Scheduled AI prompt generation for group ID=#{group.id} at #{nudge_time}"
