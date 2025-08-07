@@ -8,7 +8,7 @@ class GenerateAiPromptJob < ApplicationJob
     # Build context for ChatGPT
     prompt_examples = popular_prompts.map(&:content).join("\n- ")
 
-    system_message = "You are helping generate engaging question prompts for a social app where close friends answer daily questions. Generate ONE creative, thought-provoking question that would spark interesting conversations."
+    system_message = "You are helping generate engaging question prompts for a social app where close friends answer daily questions. Generate ONE creative, thought-provoking question that would spark interesting conversations. Avoid anything corny or trite."
 
     user_message = if prompt_examples.present?
       "Here are some popular questions from this group:\n- #{prompt_examples}\n\nGenerate a similar style question that would be fun for this group. Keep it to one single short sentence and under 256 characters. No two-part questions."
@@ -17,7 +17,7 @@ class GenerateAiPromptJob < ApplicationJob
     end
 
     begin
-      response = call_chatgpt_api(system_message, user_message)
+      response = call_chatgpt_api(system_message + user_message)
 
       if response && response.length <= 256
         group.prompt_questions.create!(
@@ -28,6 +28,7 @@ class GenerateAiPromptJob < ApplicationJob
 
         Rails.logger.info "Generated AI prompt for group ID=#{group.id}: #{response}"
       else
+
         Rails.logger.warn "ChatGPT response too long or empty for group ID=#{group.id}"
       end
     rescue => e
@@ -37,33 +38,30 @@ class GenerateAiPromptJob < ApplicationJob
 
   private
 
-  def call_chatgpt_api(system_message, user_message)
-    uri = URI("https://api.openai.com/v1/chat/completions")
+  def call_chatgpt_api(input)
+    uri = URI("https://api.openai.com/v1/responses")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
 
     request = Net::HTTP::Post.new(uri)
     api_key = Rails.application.credentials.dig(:openai_api_key)
-    Rails.logger.error "api_key: #{api_key}"
     request["Authorization"] = "Bearer #{api_key}"
     request["Content-Type"] = "application/json"
 
     request.body = {
       model: "gpt-5-mini",
-      messages: [
-        { role: "system", content: system_message },
-        { role: "user", content: user_message }
-      ],
-      max_tokens: 100,
-      temperature: 0.8
+      input: input
     }.to_json
 
     response = http.request(request)
 
     if response.code == "200"
       data = JSON.parse(response.body)
-      content = data.dig("choices", 0, "message", "content")
-      content&.strip
+      message = data["output"]&.find { |x| x["type"] == "message" }
+      Rails.logger.info message
+      messageText = message&.dig("content", 0, "text")&.strip
+      Rails.logger.info messageText
+      messageText
     else
       Rails.logger.error "ChatGPT API error: #{response.code} - #{response.body}"
       nil
