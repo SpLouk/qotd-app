@@ -14,10 +14,9 @@ class SendPromptCreationNudgeJob < ApplicationJob
       thread_id: "vote_reminder_#{group.id}",
       target_content_id: group.id.to_s,
       custom_data: {
-        group_id: parent_post.group_id
+        group_id: group.id.to_s
       }
     )
     ApnsService.notify(notification, device_tokens) if device_tokens.any?
   end
 end
-
