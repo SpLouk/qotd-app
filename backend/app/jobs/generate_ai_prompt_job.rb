@@ -8,12 +8,12 @@ class GenerateAiPromptJob < ApplicationJob
     # Build context for ChatGPT
     prompt_examples = popular_prompts.map(&:content).join("\n- ")
 
-    system_message = "You are helping generate engaging question prompts for a social app where friends answer daily questions. Generate ONE creative, thought-provoking question that would spark interesting conversations."
+    system_message = "You are helping generate engaging question prompts for a social app where close friends answer daily questions. Generate ONE creative, thought-provoking question that would spark interesting conversations."
 
     user_message = if prompt_examples.present?
-      "Here are some popular questions from this group:\n- #{prompt_examples}\n\nGenerate a similar style question that would be engaging for this group. Keep it under 256 characters and make it conversational."
+      "Here are some popular questions from this group:\n- #{prompt_examples}\n\nGenerate a similar style question that would be fun for this group. Keep it to one single short sentence and under 256 characters. No two-part questions."
     else
-      "Generate an engaging, thought-provoking question for friends to answer and discuss. Keep it under 256 characters and make it conversational."
+      "Generate an engaging, thought-provoking question for friends to answer and discuss. Keep it to one single short sentence and under 256 characters. No two-part questions."
     end
 
     begin
@@ -49,7 +49,7 @@ class GenerateAiPromptJob < ApplicationJob
     request["Content-Type"] = "application/json"
 
     request.body = {
-      model: "gpt-4.1-mini",
+      model: "gpt-5-mini",
       messages: [
         { role: "system", content: system_message },
         { role: "user", content: user_message }
