@@ -64,3 +64,5 @@ gem "net-smtp", "~> 0.5.0"
 
 gem "mission_control-jobs"
 gem "propshaft"
+
+gem "postmark-rails"

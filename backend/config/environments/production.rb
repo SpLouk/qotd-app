@@ -55,25 +55,9 @@ Rails.application.configure do
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  # config.action_mailer.raise_delivery_errors = false
-
-  config.action_mailer.delivery_method = :smtp
-  # config.action_mailer.default_url_options = { host: Rails.application.credentials.dig(:smtp, :host), protocol: "https" }
-  config.action_mailer.smtp_settings = {
-    user_name: Rails.application.credentials.dig(:smtp, :user_name),
-    password: Rails.application.credentials.dig(:smtp, :password),
-    address: "smtp.sendgrid.net",
-    port: 2525,
-    authentication: :plain,
-    enable_starttls_auto: true,
-    domain: "loukidelis.ca"
-  }
-
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.default_options = { from: "no-reply@em1463.loukidelis.ca" }
+  config.action_mailer.default_options = { from: "no-reply@loukidelis.ca" }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
