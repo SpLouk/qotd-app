@@ -34,6 +34,13 @@ class PromptQuestion < ApplicationRecord
     prompt_votes.where(created_at: Date.current.all_day).exists?(user_id: user.id)
   end
 
+  def user_can_reply_again?(user)
+    return false unless user && active
+    user_post = posts.where(user: user).order(:created_at).first
+    return false unless user_post
+    user_post.is_fast_reply_to_prompt?
+  end
+
   def self.generate_ai_suggestion(user, partial_prompt = "")
     popular_prompts = user.prompt_questions.top_half_by_replies.sample(3)
     prompt_examples = popular_prompts.map(&:content).join("\n- ")
@@ -70,6 +77,10 @@ class PromptQuestion < ApplicationRecord
 
     if options[:include_posts]
       json[:posts] = posts.ordered_by_recent_activity.map { |p| p.as_json }
+
+      if Current.user
+        json[:user_can_reply_again] = user_can_reply_again?(Current.user)
+      end
     end
 
     json

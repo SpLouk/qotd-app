@@ -145,7 +145,12 @@ export const Post: React.FC<PostProps> = ({ post, otherPosts, readonly = false }
         </Pressable>
       </Modal>
       <View style={styles.header}>
-        <UserProfileHeader user_id={post.user_id} username={post.username} user_photo_url={post.user_photo_url} />
+        <UserProfileHeader
+          user_id={post.user_id}
+          username={post.username}
+          user_photo_url={post.user_photo_url}
+          showOwlFlair={post.is_fast_reply_to_prompt}
+        />
         <View style={{ gap: 6 }}>
           <View style={styles.headerActions}>
             <Text style={styles.date}>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</Text>

@@ -65,6 +65,7 @@ class Group < ApplicationRecord
     attrs[:members] = approved_users.as_json
     attrs[:active_invite_codes] = invite_codes.active.map(&:code)
     attrs[:prompt_voting_active] = !prompt_recently_activated?
+    attrs[:followup_posts_allowed] = !prompt_recently_activated?
     attrs
   end
 

@@ -21,6 +21,7 @@ export interface Group {
   members: Pick<User, 'id' | 'username' | 'profile_photo_url'>[];
   current_user_role?: 'member' | 'admin';
   prompt_voting_active?: boolean;
+  followup_posts_allowed?: boolean;
 }
 
 export interface PromptQuestion {

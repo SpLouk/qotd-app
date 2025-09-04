@@ -41,6 +41,7 @@ scope :ordered_by_recent_activity, -> {
         locations: mention.locations
       }
     end
+    attrs[:is_fast_reply_to_prompt] = is_fast_reply_to_prompt?()
 
     attrs[:reactions] = reactions.active.map do |reaction|
       {
@@ -67,6 +68,11 @@ scope :ordered_by_recent_activity, -> {
       attrs[:sound_file_url] = nil
     end
     attrs
+  end
+
+  def is_fast_reply_to_prompt?
+    return false unless prompt_question&.activated_at
+    created_at <= prompt_question.activated_at + 30.minutes
   end
 
   private

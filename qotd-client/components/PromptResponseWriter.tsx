@@ -24,8 +24,13 @@ import {
   Keyboard,
 } from 'react-native';
 
-export function PromptResponseWriter() {
-  const [offTopic, setOffTopic] = useState(false);
+interface Props {
+  offTopicDefault?: boolean;
+  onSubmit?: () => void;
+}
+
+export function PromptResponseWriter({ offTopicDefault, onSubmit }: Props) {
+  const [offTopic, setOffTopic] = useState(offTopicDefault);
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [error, setError] = useState('');
   const [response, setResponse] = useState('');
@@ -50,6 +55,7 @@ export function PromptResponseWriter() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promptQuestionsActivatedInfinite', groupId] });
       invalidateUser();
+      onSubmit?.();
     },
   });
 

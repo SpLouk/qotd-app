@@ -1,5 +1,5 @@
 import { Post, PromptQuestion, User } from '@/types/api';
-import { ActivityIndicator, SectionList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, SectionList, RefreshControl, StyleSheet, Text, View, Pressable } from 'react-native';
 import { Post as PostComponent } from './Post';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import Colors from '@/constants/Colors';
@@ -8,6 +8,7 @@ import { useGroup } from '@/context/GroupContext';
 import { formatDistanceToNow } from 'date-fns';
 import { PromptVotesWidget } from '@/components/PromptVotesWidget';
 import { WritePromptWidget } from '@/components/WritePromptWidget';
+import { useRouter } from 'expo-router';
 
 export interface EnhancedPromptQuestion extends PromptQuestion {
   has_next_page: boolean;
@@ -22,6 +23,7 @@ export function Feed({ setSuccessMessage }: FeedProps) {
   const queryClient = useQueryClient();
   const { data: group } = useGroup();
   const groupId = group?.id;
+  const router = useRouter();
 
   // Get the current user data from the cache
   const userData = queryClient.getQueryData<User>(['user']);
@@ -103,6 +105,37 @@ export function Feed({ setSuccessMessage }: FeedProps) {
     }
   };
 
+  // Render section footer
+  const renderSectionFooter = ({ section }: { section: { prompt: PromptQuestion; data: Post[] } }) => {
+    const canReplyAgain = section.prompt.active && section.prompt.user_can_reply_again && group?.followup_posts_allowed;
+
+    // Show empty state for sections with no posts
+    if (section.data.length === 0) {
+      return (
+        <View style={styles.centered}>
+          <Text style={styles.emptyText}>No posts yet</Text>
+        </View>
+      );
+    }
+
+    // Show additional reply message for active prompt
+    if (canReplyAgain) {
+      return (
+        <View style={{ marginBottom: 16 }}>
+          <Text style={styles.additionalReplyText}>You've been a good owl today, go ahead and</Text>
+          <Pressable
+            style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+            onPress={() => router.push('/write-additional-post')}
+          >
+            <Text style={styles.additionalReplyLinkText}>post again</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <View style={styles.container}>
       <SectionList
@@ -137,13 +170,7 @@ export function Feed({ setSuccessMessage }: FeedProps) {
         onEndReached={onEndReached}
         onEndReachedThreshold={0.3}
         stickySectionHeadersEnabled={false}
-        renderSectionFooter={({ section }) =>
-          section.data.length === 0 ? (
-            <View style={styles.centered}>
-              <Text style={styles.emptyText}>No posts yet</Text>
-            </View>
-          ) : null
-        }
+        renderSectionFooter={renderSectionFooter}
       />
     </View>
   );
@@ -199,5 +226,14 @@ const styles = StyleSheet.create({
   loadMoreContainer: {
     alignItems: 'center',
     marginVertical: 12,
+  },
+  additionalReplyText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  additionalReplyLinkText: {
+    fontSize: 16,
+    color: Colors.primary,
+    textDecorationLine: 'underline',
   },
 });

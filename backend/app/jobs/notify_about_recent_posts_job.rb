@@ -17,6 +17,7 @@ class NotifyAboutRecentPostsJob < ApplicationJob
     return unless posts_to_notify.exists?
 
     users_who_posted = User.where(id: posts_to_notify.select(:user_id).distinct)
+    all_off_topic = posts_to_notify.all? { |post| post.off_topic }
 
     group.approved_users.each do |user|
       usernames = users_who_posted.where.not(id: user.id).pluck(:username)
@@ -31,9 +32,14 @@ class NotifyAboutRecentPostsJob < ApplicationJob
         [ usernames[0..-2].join(", "), usernames.last ].reject(&:empty?).join(" and ")
       end
 
+      body = "#{usernames_list} #{usernames.size == 1 ? 'has' : 'have'} responded to today's prompt"
+      if all_off_topic
+        body ="#{usernames_list} #{usernames.size == 1 ? 'has' : 'have'} posted"
+      end
+
       notification = Notification.new(
         title: "They're Hootin'!",
-        body: "#{usernames_list} #{usernames.size == 1 ? 'has' : 'have'} responded to today's prompt",
+        body: body,
         category: "recent_posters",
         thread_id: "prompt_#{prompt.id}",
         target_content_id: group.id.to_s
