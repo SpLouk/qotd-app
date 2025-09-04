@@ -31,6 +31,7 @@ export interface PromptQuestion {
   user_voted_today?: boolean;
   created_by_username?: string;
   posts?: Post[];
+  user_can_reply_again?: boolean;
   activated_at?: string;
 }
 
@@ -54,6 +55,7 @@ export interface Post {
   reactions?: Reaction[];
   photo_urls: string[];
   sound_file_url?: string;
+  is_fast_reply_to_prompt?: boolean;
 }
 
 export interface Mention {

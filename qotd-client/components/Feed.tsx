@@ -1,12 +1,13 @@
 import { Post, PromptQuestion, User } from '@/types/api';
 import { ActivityIndicator, SectionList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Post as PostComponent } from './Post';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import Colors from '@/constants/Colors';
 import { useFetchApiAndParseJson } from '@/utils/api';
 import { useGroup } from '@/context/GroupContext';
 import { formatDistanceToNow } from 'date-fns';
 import { PromptVotesWidget } from '@/components/PromptVotesWidget';
+import { WritePromptWidget } from '@/components/WritePromptWidget';
 
 export interface EnhancedPromptQuestion extends PromptQuestion {
   has_next_page: boolean;
@@ -40,6 +41,11 @@ export function Feed({ setSuccessMessage }: FeedProps) {
     queryFn: ({ pageParam }) => fetchAndParseJson(`/groups/${groupId}/prompt_questions/archived?page=${pageParam}`),
     getNextPageParam: (lastPage, allPages) => (lastPage.has_next_page ? allPages.length : null),
     initialPageParam: 0,
+    enabled: !!groupId,
+  });
+  const { data: promptQuestions } = useQuery<PromptQuestion[]>({
+    queryKey: ['promptQuestions', groupId],
+    queryFn: () => fetchAndParseJson(`/groups/${groupId}/prompt_questions`),
     enabled: !!groupId,
   });
 
@@ -108,7 +114,11 @@ export function Feed({ setSuccessMessage }: FeedProps) {
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListHeaderComponent={
           group?.prompt_voting_active ? (
-            <PromptVotesWidget disabled={!userData?.eligible_to_vote_today} setSuccessMessage={setSuccessMessage} />
+            promptQuestions?.length === 0 ? (
+              <WritePromptWidget setSuccessMessage={setSuccessMessage} />
+            ) : (
+              <PromptVotesWidget disabled={!userData?.eligible_to_vote_today} setSuccessMessage={setSuccessMessage} />
+            )
           ) : null
         }
         ListEmptyComponent={

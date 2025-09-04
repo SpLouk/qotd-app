@@ -23,6 +23,9 @@ const Colors = {
   pollBarVoted: tintColor,
   pollBarBackground: '#e8e8e8',
   pollPercentageText: '#666',
+  
+  // Fast reply highlight
+  fastReplyBorder: '#ffd700',
 } as const;
 
 // For strongly typed theme access

@@ -110,6 +110,21 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
     },
   });
 
+  const { mutate: fetchSuggestion, isPending: isFetchingSuggestion } = useMutation({
+    mutationKey: ['suggestPrompt'],
+    mutationFn: async () => {
+      if (!groupId) throw new Error('No group ID available');
+      const params = new URLSearchParams();
+      if (newPromptContent.trim()) {
+        params.append('partial_prompt', newPromptContent.trim());
+      }
+      return api(`/groups/${groupId}/prompt_questions/suggest?${params}`);
+    },
+    onSuccess: (data: { suggested_prompt: string }) => {
+      setNewPromptContent(data.suggested_prompt);
+    },
+  });
+
   const openModal = useCallback(() => {
     panY.setValue(0);
     Animated.timing(fadeAnim, {
@@ -311,17 +326,43 @@ export default function PromptDrawer({ setSuccessMessage, isOpen = false, onClos
                         multiline
                         maxLength={256}
                       />
-                      <TouchableOpacity
-                        style={[styles.voteButton, !newPromptContent.trim() && styles.submitButtonDisabled]}
-                        onPress={handleSubmitNewPrompt}
-                        disabled={!newPromptContent.trim() || isSubmittingPrompt}
+                      <View
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          gap: 16,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                       >
-                        {isSubmittingPrompt ? (
-                          <ActivityIndicator color="#fff" />
-                        ) : (
-                          <Text style={styles.submitButtonText}>Submit Prompt</Text>
-                        )}
-                      </TouchableOpacity>
+                        <Pressable
+                          style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+                          onPress={() => fetchSuggestion()}
+                          disabled={isFetchingSuggestion}
+                        >
+                          {isFetchingSuggestion ? (
+                            <ActivityIndicator />
+                          ) : (
+                            <Text style={styles.suggestButtonText}>slop it up</Text>
+                          )}
+                        </Pressable>
+                        <Text>or</Text>
+                        <Pressable
+                          style={({ pressed }) => [
+                            pressed && { opacity: 0.6 },
+                            styles.submitButton,
+                            (!newPromptContent.trim() || isSubmittingPrompt) && styles.submitButtonDisabled,
+                          ]}
+                          onPress={handleSubmitNewPrompt}
+                          disabled={!newPromptContent.trim() || isSubmittingPrompt}
+                        >
+                          {isSubmittingPrompt ? (
+                            <ActivityIndicator color="#fff" />
+                          ) : (
+                            <Text style={styles.submitButtonText}>Submit</Text>
+                          )}
+                        </Pressable>
+                      </View>
                     </>
                   ) : (
                     <>
@@ -450,6 +491,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  suggestButtonText: {
+    color: Colors.primary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
   voteContainer: {
     flex: 1,
   },
@@ -533,6 +579,13 @@ const styles = StyleSheet.create({
     padding: 16,
     margin: 16,
     marginBottom: 36,
+    alignItems: 'center',
+  },
+  submitButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 30,
+    padding: 16,
+    paddingHorizontal: 32,
     alignItems: 'center',
   },
   voteButtonDisabled: {

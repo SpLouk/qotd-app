@@ -17,6 +17,7 @@ export function PromptVotesWidget({ disabled, setSuccessMessage }: PollWidgetPro
 
   const fetchAndParseJson = useFetchApiAndParseJson();
   const groupId = useGroupId();
+
   const { data: promptQuestions } = useQuery<PromptQuestion[]>({
     queryKey: ['promptQuestions', groupId],
     queryFn: () => fetchAndParseJson(`/groups/${groupId}/prompt_questions`),
@@ -148,5 +149,33 @@ const styles = StyleSheet.create({
   },
   barVoted: {
     backgroundColor: Colors.pollBarVoted,
+  },
+  createPromptContainer: {
+    padding: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    textAlignVertical: 'top',
+    minHeight: 80,
+    fontSize: 14,
+    color: Colors.text,
+  },
+  submitButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

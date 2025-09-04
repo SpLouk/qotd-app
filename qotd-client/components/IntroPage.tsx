@@ -14,6 +14,11 @@ export const IntroPage = () => {
   const { invalidateUser } = useUserApi();
   const groupContext = useContext(GroupContext);
   const router = useRouter();
+  
+  if (!groupContext) {
+    throw new Error('IntroPage must be used within a GroupProvider');
+  }
+  
   const { setSelectedGroupId } = groupContext;
   const joinGroupMutation = useMutation({
     mutationFn: async (code: string) => {
