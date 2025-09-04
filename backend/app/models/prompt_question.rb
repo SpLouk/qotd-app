@@ -34,6 +34,29 @@ class PromptQuestion < ApplicationRecord
     prompt_votes.where(created_at: Date.current.all_day).exists?(user_id: user.id)
   end
 
+  def self.generate_ai_suggestion(user, partial_prompt = "")
+    popular_prompts = user.prompt_questions.top_half_by_replies.sample(3)
+    prompt_examples = popular_prompts.map(&:content).join("\n- ")
+
+    system_message = "You are helping complete and improve question prompts for a social app where close friends answer daily questions. Generate ONE creative, thought-provoking question that would spark interesting conversations. Avoid anything corny or trite."
+
+    user_message = if partial_prompt.present?
+      if prompt_examples.present?
+        "The user has started typing: '#{partial_prompt}', complete their input.\n\nHere are some popular past prompts created by this user:\n- #{prompt_examples}\n\nTry to use this user's voice. Keep it to one single sentence and under 256 characters. No two-part questions."
+      else
+        "The user has started typing: '#{partial_prompt}', complete their input.\n\nComplete or improve their question to be engaging and thought-provoking. Keep it to one single short sentence and under 256 characters. No two-part questions."
+      end
+    else
+      if prompt_examples.present?
+        "Here are some past prompts created by this user:\n- #{prompt_examples}\n\nTry to use this user's voice. Keep it to one single sentence and under 256 characters. No two-part questions."
+      else
+        "Generate an engaging, thought-provoking question for friends to answer and discuss. Keep it to one single short sentence and under 256 characters. No two-part questions."
+      end
+    end
+
+    ChatgptService.call_chatgpt_api(system_message + "\n\n" + user_message)
+  end
+
   def as_json(options = {})
     json = slice(:active, :content, :created_at, :id, :group_id, :activated_at)
 

@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       end
       get :active, on: :collection
       get :archived, on: :collection
+      get :suggest, on: :collection
     end
 
     resources :posts, only: [ :create, :destroy, :index ] do

@@ -6,7 +6,7 @@ class SchedulePromptCreationNudgesJobTest < ActiveJob::TestCase
     ActiveJob::Base.queue_adapter.enqueued_jobs.clear
   end
 
-  test "schedules nudge and AI prompt jobs for groups activating tomorrow" do
+  test "schedules nudge jobs for groups activating tomorrow" do
     # Time travel to Monday so tomorrow is Tuesday (weekday 2)
     monday = Time.new(2025, 1, 6)
     travel_to monday.beginning_of_day do
@@ -27,39 +27,23 @@ class SchedulePromptCreationNudgesJobTest < ActiveJob::TestCase
         job[:job] == SendPromptCreationNudgeJob
       end
 
-      # Check that GenerateAiPromptJob was scheduled
-      ai_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select do |job|
-        job[:job] == GenerateAiPromptJob
-      end
-
       assert_equal 1, nudge_jobs.size
-      assert_equal 1, ai_jobs.size
 
-      # Verify the jobs are scheduled for the same group
+      # Verify the job is scheduled for the group
       # Arguments are serialized as GlobalID, check the gid contains the group ID
       nudge_group_gid = nudge_jobs.first[:args].first["_aj_globalid"]
-      ai_group_gid = ai_jobs.first[:args].first["_aj_globalid"]
-      
       assert_includes nudge_group_gid, tuesday_group.id.to_s
-      assert_includes ai_group_gid, tuesday_group.id.to_s
 
       # Verify scheduling time is today between 9 AM and 5 PM EST
       nudge_time = Time.at(nudge_jobs.first[:at])
-      ai_time = Time.at(ai_jobs.first[:at])
 
       assert_equal monday.to_date, nudge_time.to_date
-      assert_equal monday.to_date, ai_time.to_date
       assert nudge_time.hour >= 9
       assert nudge_time.hour <= 17
-      assert ai_time.hour >= 9
-      assert ai_time.hour <= 17
-
-      # Both jobs should be scheduled for the same time
-      assert_equal nudge_time, ai_time
     end
   end
 
-  test "schedules jobs for multiple groups activating tomorrow" do
+  test "schedules nudge jobs for multiple groups activating tomorrow" do
     # Time travel to Thursday so tomorrow is Friday (weekday 5)
     thursday = Time.new(2025, 1, 9)
     travel_to thursday.beginning_of_day do
@@ -83,35 +67,25 @@ class SchedulePromptCreationNudgesJobTest < ActiveJob::TestCase
       # Run the job
       SchedulePromptCreationNudgesJob.perform_now
 
-      # Check scheduled jobs
+      # Check scheduled nudge jobs
       nudge_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select do |job|
         job[:job] == SendPromptCreationNudgeJob
-      end
-
-      ai_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select do |job|
-        job[:job] == GenerateAiPromptJob
       end
 
       # Should have jobs for our created groups plus any fixture groups that activate on Friday
       expected_total = Group.scheduled_for_day(5).count
       assert_equal expected_total, nudge_jobs.size
-      assert_equal expected_total, ai_jobs.size
 
       # Verify our specific groups are included in the scheduled jobs
       # Arguments are serialized as GlobalID, extract IDs from gid strings
       nudge_group_gids = nudge_jobs.map { |job| job[:args].first["_aj_globalid"] }
-      ai_group_gids = ai_jobs.map { |job| job[:args].first["_aj_globalid"] }
-      
-      # Both should contain references to our created groups
+
+      # Should contain references to our created groups
       friday_1_in_nudge = nudge_group_gids.any? { |gid| gid.include?(friday_group_1.id.to_s) }
       friday_2_in_nudge = nudge_group_gids.any? { |gid| gid.include?(friday_group_2.id.to_s) }
-      friday_1_in_ai = ai_group_gids.any? { |gid| gid.include?(friday_group_1.id.to_s) }
-      friday_2_in_ai = ai_group_gids.any? { |gid| gid.include?(friday_group_2.id.to_s) }
-      
+
       assert friday_1_in_nudge, "Friday group 1 should be scheduled for nudge"
       assert friday_2_in_nudge, "Friday group 2 should be scheduled for nudge"
-      assert friday_1_in_ai, "Friday group 1 should be scheduled for AI prompt"
-      assert friday_2_in_ai, "Friday group 2 should be scheduled for AI prompt"
     end
   end
 
@@ -121,17 +95,17 @@ class SchedulePromptCreationNudgesJobTest < ActiveJob::TestCase
     thursday = Time.new(2025, 1, 9)
     travel_to thursday.beginning_of_day do
       # Create groups that don't activate on Friday
-      monday_only_group = Group.create!(
-        name: "Monday Only Group", 
+      Group.create!(
+        name: "Monday Only Group",
         description: "Only activates on Monday",
         privacy_level: :open,
         prompt_schedule: "1", # Monday only
         created_by: users(:one)
       )
 
-      tuesday_only_group = Group.create!(
+      Group.create!(
         name: "Tuesday Only Group",
-        description: "Only activates on Tuesday", 
+        description: "Only activates on Tuesday",
         privacy_level: :closed,
         prompt_schedule: "2", # Tuesday only
         created_by: users(:two)
@@ -145,14 +119,9 @@ class SchedulePromptCreationNudgesJobTest < ActiveJob::TestCase
         job[:job] == SendPromptCreationNudgeJob
       end
 
-      ai_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select do |job|
-        job[:job] == GenerateAiPromptJob
-      end
-
       # Should only have jobs for fixture groups that activate on Friday (5)
       expected_count = Group.where("prompt_schedule LIKE '%5%'").count
       assert_equal expected_count, nudge_jobs.size
-      assert_equal expected_count, ai_jobs.size
     end
   end
 
@@ -174,7 +143,7 @@ class SchedulePromptCreationNudgesJobTest < ActiveJob::TestCase
       # Run the job
       SchedulePromptCreationNudgesJob.perform_now
 
-      # Get all scheduled times
+      # Get all scheduled nudge times
       nudge_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select do |job|
         job[:job] == SendPromptCreationNudgeJob
       end
@@ -208,15 +177,10 @@ class SchedulePromptCreationNudgesJobTest < ActiveJob::TestCase
         job[:job] == SendPromptCreationNudgeJob
       end
 
-      ai_jobs = ActiveJob::Base.queue_adapter.enqueued_jobs.select do |job|
-        job[:job] == GenerateAiPromptJob
-      end
-
-      # Should have jobs for all fixture groups
+      # Should have nudge jobs for all fixture groups
       expected_group_count = Group.scheduled_for_day(1).count
       assert expected_group_count > 0, "Expected at least one group to be scheduled"
       assert_equal expected_group_count, nudge_jobs.size
-      assert_equal expected_group_count, ai_jobs.size
     end
   end
 end

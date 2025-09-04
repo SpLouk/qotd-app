@@ -19,7 +19,7 @@ class ReactionsControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference "Reaction.count" do
       post reactions_path, params: { reaction: { post_id: @post.id, reaction: "👍" } }, headers: auth_headers
     end
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     assert_includes JSON.parse(@response.body)["error"], "This reaction already exists"
   end
 
@@ -36,7 +36,7 @@ class ReactionsControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference "Reaction.count" do
       post reactions_path, params: { reaction: { post_id: -1, reaction: "👍" } }, headers: auth_headers
     end
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "should destroy reaction (soft delete)" do

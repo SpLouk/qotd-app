@@ -52,4 +52,61 @@ class PromptQuestionsControllerTest < ActionDispatch::IntegrationTest
     assert prompt_with_votes.key?("user_voted"), 
       "Response should include user_voted attribute"
   end
+
+  test "should suggest prompt with partial prompt" do
+    suggested_prompt = "What's your favorite memory from this year?"
+    ChatgptService.stubs(:call_chatgpt_api).returns(suggested_prompt)
+
+    get suggest_group_prompt_questions_url(@group), 
+        params: { partial_prompt: "What's your favorite" },
+        headers: auth_headers
+
+    assert_response :success
+    json_response = JSON.parse(@response.body)
+    assert_equal suggested_prompt, json_response["suggested_prompt"]
+  end
+
+  test "should suggest prompt without partial prompt" do
+    suggested_prompt = "If you could have dinner with anyone, who would it be?"
+    ChatgptService.stubs(:call_chatgpt_api).returns(suggested_prompt)
+
+    get suggest_group_prompt_questions_url(@group), headers: auth_headers
+
+    assert_response :success
+    json_response = JSON.parse(@response.body)
+    assert_equal suggested_prompt, json_response["suggested_prompt"]
+  end
+
+  test "should handle AI service failure gracefully" do
+    ChatgptService.stubs(:call_chatgpt_api).raises(StandardError.new("API error"))
+
+    get suggest_group_prompt_questions_url(@group), 
+        params: { partial_prompt: "What's your" },
+        headers: auth_headers
+
+    assert_response :service_unavailable
+    json_response = JSON.parse(@response.body)
+    assert_equal "Unable to generate suggestion", json_response["error"]
+  end
+
+  test "should handle empty AI response" do
+    ChatgptService.stubs(:call_chatgpt_api).returns(nil)
+
+    get suggest_group_prompt_questions_url(@group), headers: auth_headers
+
+    assert_response :service_unavailable
+    json_response = JSON.parse(@response.body)
+    assert_equal "Unable to generate suggestion", json_response["error"]
+  end
+
+  test "should handle AI response that's too long" do
+    long_response = "A" * 300
+    ChatgptService.stubs(:call_chatgpt_api).returns(long_response)
+
+    get suggest_group_prompt_questions_url(@group), headers: auth_headers
+
+    assert_response :service_unavailable
+    json_response = JSON.parse(@response.body)
+    assert_equal "Unable to generate suggestion", json_response["error"]
+  end
 end

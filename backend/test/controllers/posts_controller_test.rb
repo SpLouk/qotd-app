@@ -92,7 +92,7 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference [ "PostFlag.count", "post.reload.flags_count" ] do
       post flag_group_post_path(@group, post), headers: auth_headers
     end
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     assert_includes JSON.parse(@response.body)["errors"].join, "has already been taken"
   end
 

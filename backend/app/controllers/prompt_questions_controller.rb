@@ -35,7 +35,7 @@ class PromptQuestionsController < ApplicationController
     if @prompt_question.save
       render json: @prompt_question, status: :created
     else
-      render json: { errors: @prompt_question.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: @prompt_question.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -55,7 +55,7 @@ class PromptQuestionsController < ApplicationController
     if vote.save
       render json: @prompt_question.as_json(include_votes: true, current_user: Current.user)
     else
-      render json: { errors: vote.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: vote.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -68,6 +68,23 @@ class PromptQuestionsController < ApplicationController
       render json: @prompt_question.as_json(include_votes: true, current_user: Current.user)
     else
       render json: { error: "Vote not found" }, status: :not_found
+    end
+  end
+
+  def suggest
+    partial_prompt = params[:partial_prompt] || ""
+
+    begin
+      response = PromptQuestion.generate_ai_suggestion(Current.user, partial_prompt)
+
+      if response && response.length <= 256
+        render json: { suggested_prompt: response }
+      else
+        render json: { error: "Unable to generate suggestion" }, status: :service_unavailable
+      end
+    rescue => e
+      Rails.logger.error "Failed to generate prompt suggestion for group ID=#{@group.id}: #{e.message}"
+      render json: { error: "Unable to generate suggestion" }, status: :service_unavailable
     end
   end
 

@@ -70,7 +70,7 @@ class GroupsControllerTest < ActionDispatch::IntegrationTest
          params: { group: { name: "", privacy_level: "open" } },
          headers: auth_headers
 
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     assert_includes JSON.parse(@response.body)["errors"].keys, "name"
   end
 
@@ -97,7 +97,7 @@ class GroupsControllerTest < ActionDispatch::IntegrationTest
 
     # Try to join again
     post join_group_path(@open_group), headers: auth_headers
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
   end
 
   test "admin can approve membership request" do

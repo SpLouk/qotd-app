@@ -28,7 +28,7 @@ class GroupsController < ApplicationController
       @group.add_user(Current.user, :admin)
       render json: @group, status: :created
     else
-      render json: { errors: @group.errors }, status: :unprocessable_entity
+      render json: { errors: @group.errors }, status: :unprocessable_content
     end
   end
 
@@ -36,7 +36,7 @@ class GroupsController < ApplicationController
     if @group.update(group_params)
       render json: @group
     else
-      render json: { errors: @group.errors }, status: :unprocessable_entity
+      render json: { errors: @group.errors }, status: :unprocessable_content
     end
   end
 
@@ -50,7 +50,7 @@ class GroupsController < ApplicationController
     # Check if user is already a member
     existing_membership = @group.group_users.find_by(user: Current.user)
     if existing_membership
-      render json: { error: "Already a member or request pending" }, status: :unprocessable_entity
+      render json: { error: "Already a member or request pending" }, status: :unprocessable_content
       return
     end
 
@@ -65,7 +65,7 @@ class GroupsController < ApplicationController
     if @group_user.save
       render json: @group_user, status: :created
     else
-      render json: { errors: @group_user.errors }, status: :unprocessable_entity
+      render json: { errors: @group_user.errors }, status: :unprocessable_content
     end
   end
 
@@ -81,7 +81,7 @@ class GroupsController < ApplicationController
     end
 
     unless invite_code.valid_for_use?
-      render json: { error: "Invite code is expired or maxed out" }, status: :unprocessable_entity
+      render json: { error: "Invite code is expired or maxed out" }, status: :unprocessable_content
       return
     end
 
@@ -98,13 +98,13 @@ class GroupsController < ApplicationController
 
     render json: @group_user, status: :created
   rescue ActiveRecord::RecordInvalid => e
-    render json: { errors: @group_user.errors.full_messages }, status: :unprocessable_entity
+    render json: { errors: @group_user.errors.full_messages }, status: :unprocessable_content
   end
 
   def leave_group
     group_user = @group.group_users.find_by(user: Current.user)
     unless group_user
-      render json: { error: "Not a member of this group" }, status: :unprocessable_entity
+      render json: { error: "Not a member of this group" }, status: :unprocessable_content
       return
     end
     group_user.destroy
@@ -114,7 +114,7 @@ class GroupsController < ApplicationController
   def remove_user
     group_user = @group.group_users.find_by(user_id: params[:user_id])
     unless group_user
-      render json: { error: "User is not a member of this group" }, status: :unprocessable_entity
+      render json: { error: "User is not a member of this group" }, status: :unprocessable_content
       return
     end
     group_user.destroy
@@ -128,7 +128,7 @@ class GroupsController < ApplicationController
     if @group_user.update(approved: true)
       render json: @group_user
     else
-      render json: { errors: @group_user.errors }, status: :unprocessable_entity
+      render json: { errors: @group_user.errors }, status: :unprocessable_content
     end
   end
 

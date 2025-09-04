@@ -6,7 +6,7 @@ class ReactionsController < ApplicationController
     if reaction.save
       head :created
     else
-      render json: { error: reaction.errors.full_messages.join(", ") }, status: :unprocessable_entity
+      render json: { error: reaction.errors.full_messages.join(", ") }, status: :unprocessable_content
     end
   end
 

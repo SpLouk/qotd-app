@@ -22,7 +22,7 @@ class PostsController < ApplicationController
     if @post.save
       render json: @post, status: :created
     else
-      render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: @post.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -45,7 +45,7 @@ class PostsController < ApplicationController
     if post_flag.save
       head :created
     else
-      render json: { errors: post_flag.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: post_flag.errors.full_messages }, status: :unprocessable_content
     end
   end
 

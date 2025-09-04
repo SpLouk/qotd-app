@@ -9,7 +9,7 @@ class UsersController < ApplicationController
     if Current.user.update(user_params)
       render json: Current.user
     else
-      render json: { errors: Current.user.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: Current.user.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -24,7 +24,7 @@ class UsersController < ApplicationController
     if Current.user.destroy!
       head :no_content
     else
-      render json: { errors: Current.user.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: Current.user.errors.full_messages }, status: :unprocessable_content
     end
   end
 
