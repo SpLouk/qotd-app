@@ -9,6 +9,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { PromptVotesWidget } from '@/components/PromptVotesWidget';
 import { WritePromptWidget } from '@/components/WritePromptWidget';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 
 export interface EnhancedPromptQuestion extends PromptQuestion {
   has_next_page: boolean;
@@ -24,6 +25,7 @@ export function Feed({ setSuccessMessage }: FeedProps) {
   const { data: group } = useGroup();
   const groupId = group?.id;
   const router = useRouter();
+  const [userInitiatedRefetch, setUserInitiatedRefetch] = useState(false);
 
   // Get the current user data from the cache
   const userData = queryClient.getQueryData<User>(['user']);
@@ -50,6 +52,20 @@ export function Feed({ setSuccessMessage }: FeedProps) {
     queryFn: () => fetchAndParseJson(`/groups/${groupId}/prompt_questions`),
     enabled: !!groupId,
   });
+
+  /**
+   * Need to track this state explicitly so that the refresh control (spinner UX)
+   * doesn't trigger when ['promptQuestionsActivatedInfinite', groupId] is made stale
+   * by some other process (e.g. liking a post)
+   */
+  const handleUserInitiatedRefetch = () => {
+    refetch();
+    setUserInitiatedRefetch(true);
+
+    setTimeout(() => {
+      setUserInitiatedRefetch(false);
+    }, 3000);
+  };
 
   // Flatten archived prompts
   const archivedPrompts = archivedData?.pages.flat() ?? [];
@@ -144,7 +160,9 @@ export function Feed({ setSuccessMessage }: FeedProps) {
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching && userInitiatedRefetch} onRefresh={handleUserInitiatedRefetch} />
+        }
         ListHeaderComponent={
           group?.prompt_voting_active ? (
             promptQuestions?.length === 0 ? (
